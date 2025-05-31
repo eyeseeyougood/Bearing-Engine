@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,17 +10,20 @@ namespace Bearing;
 
 public static class SceneLoader
 {
-    public static void Tick()
-    {
-
-    }
+    public static void Tick() { }
 
     public static GameObject LoadFromFile(string filepath)
     {
-        return LoadFromFile(File.ReadAllText(filepath).Replace("\r", "").Split('\n'));
-    }
-    public static GameObject LoadFromFile(string[] data)
-    {
-        return null;
+        string data = File.ReadAllText(filepath);
+
+        JsonSerializerSettings settings = new JsonSerializerSettings()
+        {
+            Converters = new List<JsonConverter>() { new ComponentConverter(), new ParameterConverter() }
+        };
+
+        GameObject root = JsonConvert.DeserializeObject<GameObject>(data, settings);
+        root.Load();
+
+        return root;
     }
 }

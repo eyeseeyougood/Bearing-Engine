@@ -1,0 +1,133 @@
+{
+    "name": "Scene",
+    "transform": {
+        "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "eRotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+        }
+    },
+
+    "immediateChildren": [
+
+
+        {
+            "name": "first object",
+            "transform": {
+                "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": -3.75
+                },
+                "eRotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                }
+            },
+
+            "components": [
+                {
+                    "type": "MeshRenderer",
+                    "mesh": "Cube.obj",
+                    "material": {
+                        "shader": {
+                            "vert": "./Resources/Shaders/default.vert",
+                            "frag": "./Resources/Shaders/default.frag"
+                        },
+
+                        "parameters": {
+                            "mainColour": {
+                                "type": "Vector4",
+                                "x": 0.0,
+                                "y": 0.2,
+                                "z": 0.7,
+                                "w": 1.0
+                            }
+                        },
+
+                        "attribs": {
+                            "aPosition": 3,
+                            "aTexCoord": 2,
+                            "aNormal": 3
+                        }
+                    }
+                },
+                {
+                    "type": "BearingRigidbody",
+                    "frozen": true
+                }
+            ]
+        },
+        {
+            "name": "second object (sibling)",
+            "transform": {
+                "position": {
+                    "x": 0.5,
+                    "y": 3.0,
+                    "z": -3.75
+                },
+                "eRotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                }
+            },
+
+            "components": [
+                {
+                    "type": "MeshRenderer",
+                    "mesh": "Cube.obj",
+                    "material": {
+                        "shader": {
+                            "vert": "./Resources/Shaders/default.vert",
+                            "frag": "./Resources/Shaders/default.frag"
+                        },
+
+                        "parameters": {
+                            "mainColour": {
+                                "type": "Vector4",
+                                "x": 0.4,
+                                "y": 0.2,
+                                "z": 0.7,
+                                "w": 1.0
+                            }
+                        },
+
+                        "attribs": {
+                            "aPosition": 3,
+                            "aTexCoord": 2,
+                            "aNormal": 3
+                        }
+                    }
+                },
+                {
+                    "type": "BearingRigidbody",
+                    "frozen": false
+                }
+            ]
+        }
+
+
+    ]
+}

@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,18 +11,17 @@ namespace Bearing;
 
 public class GameObject
 {
-    public string name;
+    public string name { get; set; }
 
-    public Transform3D transform = new Transform3D();
+    public Transform3D transform { get; set; }
 
-    public List<GameObject> immediateChildren = new List<GameObject>();
+    public List<GameObject> immediateChildren { get; set; }
+
+    public List<Component> components { get; set; }
 
     private GameObject _parent;
 
-    public GameObject()
-    {
-        transform.onTransformChanged += OnTransformChanged;
-    }
+    public GameObject() { }
 
     ~GameObject()
     {
@@ -43,16 +44,88 @@ public class GameObject
 
     public void Tick()
     {
+        foreach (Component c in components)
+        {
+            c.OnTick();
+        }
     }
 
     public virtual void Load()
     {
+        immediateChildren ??= new List<GameObject>();
+        components ??= new List<Component>();
 
+        transform.onTransformChanged += OnTransformChanged;
+
+        foreach (GameObject child in immediateChildren)
+        {
+            child._parent = this;
+            child.transform.parent = transform;
+            child.OnParentChanged();
+            child.Load();
+        }
+        foreach (Component c in components)
+        {
+            c.gameObject = this;
+            c.OnLoad();
+        }
+    }
+
+    public Component? GetComponent(Type type)
+    {
+        Component? result = null;
+
+        foreach (Component comp in components)
+        {
+            if (comp.GetType() == type)
+            {
+                result = comp;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    public void AddComponent(Component component, bool load = true)
+    {
+        components.Add(component);
+        if (!load)
+            return;
+
+        component.gameObject = this;
+        component.OnLoad();
+    }
+
+    public void RemoveComponent(Component component)
+    {
+        component.Cleanup();
+        components.Remove(component);
+    }
+
+    public bool HasComponent(Type type)
+    {
+        bool result = false;
+
+        foreach (Component comp in components)
+        {
+            if (comp.GetType() == type)
+            {
+                result = true;
+                break;
+            }
+        }
+
+        return result;
     }
 
     public virtual void Cleanup()
     {
         transform.onTransformChanged -= OnTransformChanged;
+        foreach (Component c in components)
+        {
+            RemoveComponent(c);
+        }
     }
 
     protected virtual void OnParentChanged() { }

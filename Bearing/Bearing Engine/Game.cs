@@ -52,10 +52,10 @@ public class Game : GameWindow
         // init stuff
 
         // OPTIMISATION
-        //PhysicsManager.ticksPerTick = 20; // testing value
-        //PhysicsManager.Init();
+        PhysicsManager.ticksPerTick = 20; // testing value
+        PhysicsManager.Init();
         
-        root = (Scene)SceneLoader.LoadFromFile(@"./Resources/Scene/main.json");
+        root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json"));
 
         Console.WriteLine("Ended Loading");
     }
@@ -82,21 +82,13 @@ public class Game : GameWindow
         SceneLoader.Tick();
         Input.UpdateState(KeyboardState, MouseState);
         gameTick.Invoke();
+        PhysicsManager.Tick();
         if (Input.GetKeyDown(Keys.Escape))
         {
             Input.LockCursor();
         }
     }
 
-    private void TraversalTick(GameObject g)
-    {
-        foreach (GameObject go in g.immediateChildren)
-        {
-            TraversalTick(go);
-        }
-        g.Tick();
-    }
-    
     protected override void OnRenderFrame(FrameEventArgs e)
     {
         base.OnRenderFrame(e);

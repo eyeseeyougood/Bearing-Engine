@@ -20,7 +20,7 @@ public static class ModelLoader
         AssimpContext importer = new AssimpContext();
         Assimp.Scene model = importer.ImportFile(filepath, PostProcessSteps.Triangulate);
 
-        Mesh result = new Mesh();
+        Mesh result = Mesh.CreateEmpty();
         Assimp.Mesh impMesh = model.Meshes[meshID];
 
         List<Vector3> vertices = new List<Vector3>();
@@ -73,11 +73,7 @@ public static class ModelLoader
             numInds = (uint)finalIndices.Count;
         }
 
-        Mesh result = new Mesh()
-        {
-            vertices = finalVerts.ToArray(),
-            indices = finalIndices.ToArray()
-        };
+        Mesh result = Mesh.FromData(finalVerts.ToArray(), finalIndices.ToArray());
 
         return result;
     }

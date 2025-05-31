@@ -1,0 +1,90 @@
+﻿using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
+
+namespace Bearing;
+
+public class MeshRenderer : Component, IRenderable
+{
+    public Mesh mesh { get; }
+    public Material material { get; set; }
+    public int id { get; set; }
+
+    private int ebo;
+    private int vao;
+    private int vbo;
+
+    public MeshRenderer(string mesh)
+    {
+        this.mesh = new Mesh(mesh);
+
+        // TODO: HARDCODED for now
+        /*
+        material = new Material();
+            
+        material.shader = new Shader(
+            "./Resources/Shaders/default.vert",
+            "./Resources/Shaders/default.frag"
+            );
+
+        material.attribs = new Dictionary<string, int>()
+        {
+            { "aPosition", 3 },
+            { "aTexCoord", 2 },
+            { "aNormal", 3 },
+        };
+
+        material.parameters = new Dictionary<string, object>()
+        {
+            { "mainColour", new Vector4(0f, 0.2f, 0.7f, 1.0f) },
+        };*/
+    }
+
+    public override void OnLoad()
+    {
+        float[] vertexData = mesh.GetVertexData();
+
+        gameObject.transform.GetModelMatrix();
+
+        vao = GL.GenVertexArray();
+        GL.BindVertexArray(vao);
+
+        vbo = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, vertexData.Length * sizeof(float), vertexData, BufferUsageHint.StaticDraw);
+
+        ebo = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, mesh.indices.Length * sizeof(uint), mesh.indices, BufferUsageHint.StaticDraw);
+
+        material.LoadAttribs();
+
+        Game.instance.AddOpaqueRenderable(this); // make this recieve the render call
+    }
+
+    public override void OnTick()
+    {
+    }
+
+    public void Render()
+    {
+        GL.Enable(EnableCap.DepthTest);
+
+        material.Use();
+
+        GL.BindVertexArray(vao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
+
+        material.SetShaderParameter("model", gameObject.transform.GetModelMatrix());
+        material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
+        material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
+
+        material.LoadParameters();
+
+        GL.DrawElements(PrimitiveType.Triangles, mesh.indices.Length, DrawElementsType.UnsignedInt, 0);
+    }
+
+    public override void Cleanup()
+    {
+    }
+}

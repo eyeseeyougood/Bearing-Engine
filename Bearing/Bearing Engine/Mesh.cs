@@ -7,6 +7,24 @@ public class Mesh
     public MeshVertex3D[] vertices;
     public uint[] indices;
 
+    public Mesh(string filename)
+    {
+        Mesh m = ModelLoader.FileToMesh($"./Resources/Models/{filename}");
+        vertices = m.vertices;
+        indices = m.indices;
+    }
+
+    private Mesh() { }
+
+    public static Mesh CreateEmpty() { return new Mesh(); }
+    public static Mesh FromData(MeshVertex3D[] verts, uint[] indices)
+    {
+        return new Mesh() {
+            vertices = verts,
+            indices = indices
+        };
+    }
+
     public virtual float[] GetVertexData()
     {
         List<float> result = new();

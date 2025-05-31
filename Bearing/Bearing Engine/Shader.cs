@@ -13,12 +13,15 @@ namespace Bearing
 
         private readonly Dictionary<string, int> _uniformLocations;
 
-        public Shader(params string[] creationArgs)
-        {
-            string vertPath = creationArgs[0]; // MUST HAVE ATLEAST VERT AND FRAG FOR A SHADER
-            string fragPath = creationArgs[1];
+        public string vert { get; set; }
+        public string frag { get; set; }
 
-            var shaderSource = File.ReadAllText(vertPath);
+        public Shader(string vert, string frag)
+        {
+            this.vert = vert;
+            this.frag = frag;
+
+            var shaderSource = File.ReadAllText(vert);
 
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
 
@@ -26,7 +29,7 @@ namespace Bearing
 
             CompileShader(vertexShader);
 
-            shaderSource = File.ReadAllText(fragPath);
+            shaderSource = File.ReadAllText(frag);
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, shaderSource);
             CompileShader(fragmentShader);
