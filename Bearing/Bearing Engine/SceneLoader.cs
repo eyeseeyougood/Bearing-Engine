@@ -18,7 +18,7 @@ public static class SceneLoader
 
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {
-            Converters = new List<JsonConverter>() { new ComponentConverter(), new ParameterConverter() }
+            Converters = new List<JsonConverter>() { new ComponentConverter() }
         };
 
         GameObject root = JsonConvert.DeserializeObject<GameObject>(data, settings);

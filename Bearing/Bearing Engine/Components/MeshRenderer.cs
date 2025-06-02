@@ -75,9 +75,9 @@ public class MeshRenderer : Component, IRenderable
         GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
 
-        material.SetShaderParameter("model", gameObject.transform.GetModelMatrix());
-        material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
-        material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
+        material.SetShaderParameter(new ShaderParam() { name = "model", Matrix4 = gameObject.transform.GetModelMatrix() });
+        material.SetShaderParameter(new ShaderParam() { name = "view", Matrix4 = Game.instance.camera.GetViewMatrix() });
+        material.SetShaderParameter(new ShaderParam() { name = "projection", Matrix4 = Game.instance.camera.GetProjectionMatrix() });
 
         material.LoadParameters();
 
