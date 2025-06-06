@@ -16,27 +16,6 @@ public class MeshRenderer : Component, IRenderable
     public MeshRenderer(string mesh)
     {
         this.mesh = new Mesh(mesh);
-
-        // TODO: HARDCODED for now
-        /*
-        material = new Material();
-            
-        material.shader = new Shader(
-            "./Resources/Shaders/default.vert",
-            "./Resources/Shaders/default.frag"
-            );
-
-        material.attribs = new Dictionary<string, int>()
-        {
-            { "aPosition", 3 },
-            { "aTexCoord", 2 },
-            { "aNormal", 3 },
-        };
-
-        material.parameters = new Dictionary<string, object>()
-        {
-            { "mainColour", new Vector4(0f, 0.2f, 0.7f, 1.0f) },
-        };*/
     }
 
     public override void OnLoad()
@@ -75,9 +54,9 @@ public class MeshRenderer : Component, IRenderable
         GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
 
-        material.SetShaderParameter(new ShaderParam() { name = "model", Matrix4 = gameObject.transform.GetModelMatrix() });
-        material.SetShaderParameter(new ShaderParam() { name = "view", Matrix4 = Game.instance.camera.GetViewMatrix() });
-        material.SetShaderParameter(new ShaderParam() { name = "projection", Matrix4 = Game.instance.camera.GetProjectionMatrix() });
+        material.SetShaderParameter(new ShaderParam("model", gameObject.transform.GetModelMatrix()));
+        material.SetShaderParameter(new ShaderParam("view", Game.instance.camera.GetViewMatrix()));
+        material.SetShaderParameter(new ShaderParam("projection", Game.instance.camera.GetProjectionMatrix()));
 
         material.LoadParameters();
 

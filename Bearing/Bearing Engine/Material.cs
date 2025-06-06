@@ -16,16 +16,16 @@ public class ShaderParam // json bullshit
     public int @int { get { return vI; } set { vI = value; use = 1; } }
 
     private Vector2 vV2;
-    public Vector2 @Vector2 { get { return vV2; } set { vV2 = value; use = 2; } }
+    public Vector2 vector2 { get { return vV2; } set { vV2 = value; use = 2; } }
 
     private Vector3 vV3;
-    public Vector3 @Vector3 { get { return vV3; } set { vV3 = value; use = 3; } }
+    public Vector3 vector3 { get { return vV3; } set { vV3 = value; use = 3; } }
 
     private Vector4 vV4;
-    public Vector4 @Vector4 { get { return vV4; } set { vV4 = value; use = 4; } }
+    public Vector4 vector4 { get { return vV4; } set { vV4 = value; use = 4; } }
 
     private Matrix4 vM4;
-    public Matrix4 @Matrix4{ get { return vM4; } set { vM4 = value; use = 5; } }
+    public Matrix4 matrix4{ get { return vM4; } set { vM4 = value; use = 5; } }
 
     private int use;
 
@@ -38,21 +38,49 @@ public class ShaderParam // json bullshit
             case 1:
                 return @int;
             case 2:
-                return @Vector2;
+                return vector2;
             case 3:
-                return @Vector3;
+                return vector3;
             case 4:
-                return @Vector4;
+                return vector4;
             case 5:
-                return @Matrix4;
+                return matrix4;
         }
 
         return null;
     }
 
-    public ShaderParam()
+    public ShaderParam() { }
+
+    public ShaderParam(string name, float @float)
     {
-        name = "";
+        this.name = name;
+        this.@float = @float;
+    }
+    public ShaderParam(string name, int @int)
+    {
+        this.name = name;
+        this.@int = @int;
+    }
+    public ShaderParam(string name, Vector2 vector2)
+    {
+        this.name = name;
+        this.vector2 = vector2;
+    }
+    public ShaderParam(string name, Vector3 vector3)
+    {
+        this.name = name;
+        this.vector3 = vector3;
+    }
+    public ShaderParam(string name, Vector4 vector4)
+    {
+        this.name = name;
+        this.vector4 = vector4;
+    }
+    public ShaderParam(string name, Matrix4 matrix4)
+    {
+        this.name = name;
+        this.matrix4 = matrix4;
     }
 }
 
@@ -60,12 +88,6 @@ public class ShaderAttrib
 {
     public string name { get; set; }
     public int size { get; set; }
-
-    public ShaderAttrib()
-    {
-        name = "";
-        size = 0;
-    }
 }
 
 public class Material

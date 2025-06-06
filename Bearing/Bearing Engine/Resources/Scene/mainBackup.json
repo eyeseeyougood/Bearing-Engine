@@ -51,21 +51,32 @@
                             "frag": "./Resources/Shaders/default.frag"
                         },
 
-                        "parameters": {
-                            "mainColour": {
-                                "type": "Vector4",
-                                "x": 0.0,
-                                "y": 0.2,
-                                "z": 0.7,
-                                "w": 1.0
+						"parameters": [
+                            {
+								"name": "mainColour",
+                                "vector4": {
+									"x": 0.0,
+									"y": 0.2,
+									"z": 0.7,
+									"w": 1.0
+								}
                             }
-                        },
+                        ],
 
-                        "attribs": {
-                            "aPosition": 3,
-                            "aTexCoord": 2,
-                            "aNormal": 3
-                        }
+                        "attribs": [
+							{
+								"name": "aPosition",
+								"size": 3
+							},
+							{
+								"name": "aTexCoord",
+								"size": 2
+							},
+							{
+								"name": "aNormal",
+								"size": 3
+							}
+                        ]
                     }
                 },
                 {
@@ -78,7 +89,7 @@
             "name": "second object (sibling)",
             "transform": {
                 "position": {
-                    "x": 1.0,
+                    "x": 0.5,
                     "y": 3.0,
                     "z": -3.75
                 },
@@ -104,21 +115,32 @@
                             "frag": "./Resources/Shaders/default.frag"
                         },
 
-                        "parameters": {
-                            "mainColour": {
-                                "type": "Vector4",
-                                "x": 0.4,
-                                "y": 0.2,
-                                "z": 0.7,
-                                "w": 1.0
+                        "parameters": [
+                            {
+								"name": "mainColour",
+                                "vector4": {
+									"x": 0.4,
+									"y": 0.2,
+									"z": 0.6,
+									"w": 1.0
+								}
                             }
-                        },
+                        ],
 
-                        "attribs": {
-                            "aPosition": 3,
-                            "aTexCoord": 2,
-                            "aNormal": 3
-                        }
+                        "attribs": [
+							{
+								"name": "aPosition",
+								"size": 3
+							},
+							{
+								"name": "aTexCoord",
+								"size": 2
+							},
+							{
+								"name": "aNormal",
+								"size": 3
+							}
+                        ]
                     }
                 },
                 {
