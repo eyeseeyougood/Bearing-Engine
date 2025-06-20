@@ -21,7 +21,7 @@ namespace Bearing
             this.vert = vert;
             this.frag = frag;
 
-            var shaderSource = File.ReadAllText(vert);
+            var shaderSource = Resources.ReadAllText(Resource.GetShader(vert));
 
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
 
@@ -29,7 +29,7 @@ namespace Bearing
 
             CompileShader(vertexShader);
 
-            shaderSource = File.ReadAllText(frag);
+            shaderSource = Resources.ReadAllText(Resource.GetShader(frag));
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, shaderSource);
             CompileShader(fragmentShader);
@@ -58,6 +58,16 @@ namespace Bearing
 
                 _uniformLocations.Add(key, location);
             }
+        }
+
+        public bool HasUniform(string val)
+        {
+            return _uniformLocations.ContainsKey(val);
+        }
+
+        public int GetUniformLoc(string val)
+        {
+            return _uniformLocations[val];
         }
 
         private static void CompileShader(int shader)

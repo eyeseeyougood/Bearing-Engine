@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using Assimp;
-using Mesh = Bearing.Mesh;
+using Mesh = Bearing.Mesh3D;
 
 namespace Bearing;
 
@@ -15,12 +15,13 @@ public static class ModelLoader
     /// <param name="filename"></param>
     /// <returns></returns>
 
-    public static Mesh FileToMesh(string filepath, int meshID)
+    public static Mesh3D FileToMesh3D(string filepath, int meshID)
     {
         AssimpContext importer = new AssimpContext();
-        Assimp.Scene model = importer.ImportFile(filepath, PostProcessSteps.Triangulate);
+        var fStream = Resources.Open(Resource.FromPath(filepath));
+        Assimp.Scene model = importer.ImportFileFromStream(fStream, PostProcessSteps.Triangulate, Path.GetExtension(filepath));
 
-        Mesh result = Mesh.CreateEmpty();
+        Mesh3D result = Mesh3D.CreateEmpty();
         Assimp.Mesh impMesh = model.Meshes[meshID];
 
         List<Vector3> vertices = new List<Vector3>();
@@ -54,17 +55,18 @@ public static class ModelLoader
         return result;
     }
 
-    public static Mesh FileToMesh(string filepath)
+    public static Mesh3D FileToMesh3D(string filepath)
     {
         AssimpContext importer = new AssimpContext();
-        Assimp.Scene model = importer.ImportFile(filepath, PostProcessSteps.Triangulate);
+        var fStream = Resources.Open(Resource.FromPath(filepath));
+        Assimp.Scene model = importer.ImportFileFromStream(fStream, PostProcessSteps.Triangulate, Path.GetExtension(filepath));
 
         List<MeshVertex3D> finalVerts = new List<MeshVertex3D>();
         List<uint> finalIndices = new List<uint>();
         uint numInds = 0;
         for (int i = 0; i < model.MeshCount; i++)
         {
-            Mesh tempMesh = FileToMesh(filepath, i);
+            Mesh3D tempMesh = FileToMesh3D(filepath, i);
             finalVerts.AddRange(tempMesh.vertices);
             foreach (uint index in tempMesh.indices)
             {
@@ -73,7 +75,48 @@ public static class ModelLoader
             numInds = (uint)finalIndices.Count;
         }
 
-        Mesh result = Mesh.FromData(finalVerts.ToArray(), finalIndices.ToArray());
+        Mesh3D result = Mesh3D.FromData(finalVerts.ToArray(), finalIndices.ToArray());
+
+        fStream.DisposeAsync();
+
+        return result;
+    }
+
+    public static Mesh2D FileToMesh2D(string filepath)
+    {
+        AssimpContext importer = new AssimpContext();
+        var fStream = Resources.Open(Resource.FromPath(filepath));
+        Assimp.Scene model = importer.ImportFileFromStream(fStream, PostProcessSteps.Triangulate, Path.GetExtension(filepath));
+
+        Mesh2D result = Mesh2D.CreateEmpty();
+        Assimp.Mesh impMesh = model.Meshes[0];
+
+        List<Vector3> vertices = new List<Vector3>();
+        impMesh.Vertices.ForEach((i) => { Vector3 pos = new Vector3(i.X, i.Y, i.Z) / 2.0f; vertices.Add(pos); });
+        List<MeshVertex2D> verts = new List<MeshVertex2D>();
+
+        int g = 0;
+        foreach (Vector3D tex in impMesh.TextureCoordinateChannels[0])
+        {
+            MeshVertex2D newV = new MeshVertex2D();
+            newV.position = vertices[g].Xy;
+            newV.texCoord = new Vector2(tex.X, tex.Y);
+            Vector3D v = impMesh.Normals[g];
+            verts.Add(newV);
+            g++;
+        }
+
+        int[] meshInd = impMesh.GetIndices();
+        uint[] finalIndices = new uint[meshInd.Length];
+        int k = 0;
+        foreach (int i in meshInd)
+        {
+            finalIndices[k] = Convert.ToUInt32(i);
+            k++;
+        }
+
+        result.vertices = verts.ToArray();
+        result.indices = finalIndices;
 
         return result;
     }

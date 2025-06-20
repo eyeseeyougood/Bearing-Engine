@@ -12,6 +12,8 @@ namespace Bearing;
 public class GameObject
 {
     public string name { get; set; }
+    public string tag { get; set; }
+    public List<object> metadata { get; set; }
 
     public Transform3D transform { get; set; }
 
@@ -21,11 +23,19 @@ public class GameObject
 
     private GameObject _parent;
 
-    public GameObject() { }
+    public GameObject() { InitProperties(); }
 
     ~GameObject()
     {
         Cleanup();
+    }
+
+    private void InitProperties()
+    {
+        transform ??= new Transform3D();
+        immediateChildren ??= new List<GameObject>();
+        components ??= new List<Component>();
+        metadata ??= new List<object>();
     }
 
     public GameObject parent
@@ -42,18 +52,21 @@ public class GameObject
         }
     }
 
-    public void Tick()
+    public void Tick(float dt)
     {
-        foreach (Component c in components)
+        foreach (Component c in components.ToList())
         {
-            c.OnTick();
+            c.OnTick(dt);
+        }
+        foreach (GameObject child in immediateChildren)
+        {
+            child.Tick(dt);
         }
     }
 
     public virtual void Load()
     {
-        immediateChildren ??= new List<GameObject>();
-        components ??= new List<Component>();
+        InitProperties();
 
         transform.onTransformChanged += OnTransformChanged;
 
@@ -122,9 +135,13 @@ public class GameObject
     public virtual void Cleanup()
     {
         transform.onTransformChanged -= OnTransformChanged;
-        foreach (Component c in components)
+        foreach (Component c in components.ToList())
         {
             RemoveComponent(c);
+        }
+        foreach (GameObject child in immediateChildren)
+        {
+            child.Cleanup();
         }
     }
 

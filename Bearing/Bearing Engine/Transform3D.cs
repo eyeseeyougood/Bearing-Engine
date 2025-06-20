@@ -86,6 +86,21 @@ public class Transform3D
         }
     }
 
+    public Vector3 GetForward()
+    {
+        return model.Row2.Xyz;
+    }
+
+    public Vector3 GetRight()
+    {
+        return model.Row0.Xyz;
+    }
+
+    public Vector3 GetUp()
+    {
+        return model.Row1.Xyz;
+    }
+
     public Matrix4 GetModelMatrix()
     {
         return model;

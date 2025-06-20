@@ -50,13 +50,16 @@ public class Game : GameWindow
         camera = new Camera(new Vector3(0,2,4f), 8f/6f);
 
         // init stuff
+        Gizmos.Init();
 
-        // OPTIMISATION
+        AudioManager.Init();
+
+        // TODO: OPTIMISATION
         PhysicsManager.ticksPerTick = 20; // testing value
         PhysicsManager.Init();
         
         root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json"));
-
+        
         Console.WriteLine("Ended Loading");
     }
 
@@ -74,6 +77,8 @@ public class Game : GameWindow
 
     protected override void OnClosing(CancelEventArgs e)
     {
+        root.Cleanup();
+        AudioManager.Cleanup();
         base.OnClosing(e);
     }
 
@@ -82,7 +87,9 @@ public class Game : GameWindow
         SceneLoader.Tick();
         Input.UpdateState(KeyboardState, MouseState);
         gameTick.Invoke();
+        root.Tick((float)e.Time);
         PhysicsManager.Tick();
+        Time.Tick(e.Time);
         if (Input.GetKeyDown(Keys.Escape))
         {
             Input.LockCursor();
@@ -105,6 +112,10 @@ public class Game : GameWindow
         {
             renderable.Render();
         }
+
+        Gizmos.Render();
+        
+        UIManager.RenderUI();
 
         SwapBuffers();
     }

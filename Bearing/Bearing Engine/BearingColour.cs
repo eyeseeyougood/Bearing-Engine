@@ -9,7 +9,7 @@ namespace Bearing;
 
 public class BearingColour
 {
-    Vector4 zeroToOne;
+    public Vector4 zeroToOne { get; set; }
 
     public BearingColour() { }
     

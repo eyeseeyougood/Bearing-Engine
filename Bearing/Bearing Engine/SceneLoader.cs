@@ -14,7 +14,7 @@ public static class SceneLoader
 
     public static GameObject LoadFromFile(string filepath)
     {
-        string data = File.ReadAllText(filepath);
+        string data = Resources.ReadAllText(Resource.FromPath(filepath));
 
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {

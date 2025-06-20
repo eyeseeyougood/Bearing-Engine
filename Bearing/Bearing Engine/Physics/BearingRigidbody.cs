@@ -28,7 +28,7 @@ public class BearingRigidbody : Component
 
     public override void OnLoad()
     {
-        Mesh mesh = ((MeshRenderer)gameObject.GetComponent(typeof(MeshRenderer))).mesh;
+        Mesh3D mesh = (Mesh3D)((MeshRenderer)gameObject.GetComponent(typeof(MeshRenderer))).mesh;
 
         Vector3 half = mesh.GetBoundingBox() / 2.0f;
         BulletSharp.Math.Vector3 halfExt = new BulletSharp.Math.Vector3(
@@ -51,7 +51,7 @@ public class BearingRigidbody : Component
         PhysicsManager.Register(rb);
     }
 
-    public override void OnTick()
+    public override void OnTick(float dt)
     {
     }
 

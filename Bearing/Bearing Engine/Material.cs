@@ -92,6 +92,35 @@ public class ShaderAttrib
 
 public class Material
 {
+    public static Material fallback = new Material()
+    {
+        shader = new Shader("default.vert", "default.frag"),
+        attribs = new List<ShaderAttrib>()
+        {
+            new ShaderAttrib() { name = "aPosition", size = 3 },
+            new ShaderAttrib() { name = "aTexCoord", size = 2 },
+            new ShaderAttrib() { name = "aNormal", size = 3 },
+        },
+        parameters = new List<ShaderParam>()
+        {
+            new ShaderParam() { name = "mainColour", vector4 = new Vector4(0.9f, 0.9f, 0.9f, 1.0f) },
+        }
+    };
+
+    public static Material uiFallback = new Material()
+    {
+        shader = new Shader("defaultUI.vert", "defaultUI.frag"),
+        attribs = new List<ShaderAttrib>()
+        {
+            new ShaderAttrib() { name = "aPosition", size = 2 },
+            new ShaderAttrib() { name = "aTexCoord", size = 2 },
+        },
+        parameters = new List<ShaderParam>()
+        {
+            new ShaderParam() { name = "mainColour", vector4 = new Vector4(0.9f, 0.9f, 0.9f, 1.0f) },
+        }
+    };
+
     public List<ShaderParam> parameters { get; set; }
     public List<ShaderAttrib> attribs { get; set; }
 
