@@ -101,7 +101,6 @@ public static class ModelLoader
             MeshVertex2D newV = new MeshVertex2D();
             newV.position = vertices[g].Xy;
             newV.texCoord = new Vector2(tex.X, tex.Y);
-            Vector3D v = impMesh.Normals[g];
             verts.Add(newV);
             g++;
         }

@@ -7,12 +7,20 @@ using System.Threading.Tasks;
 
 namespace Bearing;
 
-public class BearingColour
+public struct BearingColour
 {
-    public Vector4 zeroToOne { get; set; }
+    public static readonly BearingColour Transparent = new BearingColour() { zeroToOne = new Vector4(0,0,0,0) };
+    public static readonly BearingColour Black = new BearingColour() { zeroToOne = new Vector4(0,0,0,1) };
+    public static readonly BearingColour White = new BearingColour() { zeroToOne = new Vector4(1f, 1f, 1f, 1f) };
+    public static readonly BearingColour DarkWhite = new BearingColour() { zeroToOne = new Vector4(0.82f, 0.82f, 0.82f, 1f) };
+    public static readonly BearingColour LightGray = new BearingColour() { zeroToOne = new Vector4(0.75f, 0.75f, 0.75f, 1f) };
+    public static readonly BearingColour Gray = new BearingColour();
+    public static readonly BearingColour DarkGray = new BearingColour() { zeroToOne = new Vector4(0.25f, 0.25f, 0.25f, 1f) };
+
+    public Vector4 zeroToOne { get; set; } = new Vector4(0.5f, 0.5f, 0.5f, 1f); // default to gray
 
     public BearingColour() { }
-    
+
     public static BearingColour FromZeroToOne(Vector3 zeroToOne)
     {
         return new BearingColour() { zeroToOne = new Vector4(zeroToOne, 1f) };

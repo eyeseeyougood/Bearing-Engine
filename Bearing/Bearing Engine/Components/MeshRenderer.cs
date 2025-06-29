@@ -63,8 +63,12 @@ public class MeshRenderer : Component, IRenderable
 
         LightManager.AddLightingInfo(material);
 
+        BeforeRender();
+
         GL.DrawElements(PrimitiveType.Triangles, mesh.indices.Length, DrawElementsType.UnsignedInt, 0);
     }
+
+    protected virtual void BeforeRender() { }
 
     protected void SetMesh(Mesh nMesh)
     {

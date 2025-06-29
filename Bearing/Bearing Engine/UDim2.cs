@@ -7,8 +7,8 @@ namespace Bearing;
 
 public struct UDim2
 {
-    public Vector2 scale = Vector2.Zero;
-    public Vector2 offset = Vector2.Zero;
+    public Vector2 scale { get; set; } = Vector2.Zero;
+    public Vector2 offset { get; set; } = Vector2.Zero;
 
     public static readonly UDim2 Zero = new UDim2(0, 0, 0, 0);
     public static readonly UDim2 One = new UDim2(1, 1, 0, 0);
@@ -23,4 +23,9 @@ public struct UDim2
     public UDim2(Vector2 scale, Vector2 offset) { this.scale = scale; this.offset = offset; }
     public UDim2(float scaleX, float scaleY) { scale = new Vector2(scaleX, scaleY); }
     public UDim2(float scaleX, float scaleY, float offsetX, float offsetY) { scale = new Vector2(scaleX, scaleY); offset = new Vector2(offsetX, offsetY); }
+
+    public Vector2 Normalize(Vector2 screenSize)
+    {
+        return scale + (offset / screenSize);
+    }
 }

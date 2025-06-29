@@ -10,7 +10,10 @@ public class Texture
 {
     public readonly int Handle;
 
-    public static Texture FromData(int width, int height, byte[] data, TextureMinFilter minF = TextureMinFilter.Linear, TextureMagFilter magF = TextureMagFilter.Linear)
+    public int _width { get; private set; }
+    public int _height { get; private set; }
+
+    public static Texture FromData(int width, int height, byte[] data, TextureWrapMode wrapMode = TextureWrapMode.Repeat, TextureMinFilter minF = TextureMinFilter.Linear, TextureMagFilter magF = TextureMagFilter.Linear)
     {
         int handle = GL.GenTexture();
         GL.ActiveTexture(TextureUnit.Texture0);
@@ -21,18 +24,25 @@ public class Texture
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minF);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magF);
 
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)wrapMode);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)wrapMode);
 
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
-        return new Texture(handle);
+        Texture result = new Texture(handle);
+
+        result._width = width;
+        result._height = height;
+
+        return result;
     }
 
     public static Texture LoadFromFile(string path)
     {
         // Generate handle
         int handle = GL.GenTexture();
+
+        Texture result = new Texture(handle);
 
         // Bind the handle
         GL.ActiveTexture(TextureUnit.Texture0);
@@ -61,6 +71,9 @@ public class Texture
             //   Data type of the pixels.
             //   And finally, the actual pixels.
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+
+            result._width = image.Width;
+            result._height = image.Height;
         }
 
         // Now that our texture is loaded, we can set a few settings to affect how the image appears on rendering.
@@ -87,12 +100,17 @@ public class Texture
         // Here is an example of mips in action https://en.wikipedia.org/wiki/File:Mipmap_Aliasing_Comparison.png
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
-        return new Texture(handle);
+        return result;
     }
 
     public Texture(int glHandle)
     {
         Handle = glHandle;
+    }
+
+    public void Dispose()
+    {
+        GL.DeleteTexture(Handle);
     }
 
     // Activate texture

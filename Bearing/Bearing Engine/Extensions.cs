@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using OpenTK.Mathematics;
+using SkiaSharp;
 
 namespace Bearing;
 
@@ -56,5 +57,24 @@ public static class Extensions
             mat.M43,
             mat.M44
             );
+    }
+
+    public static SKColor ToSKColour(this BearingColour c)
+    {
+        Vector4i i = (Vector4i)c.GetZeroTo255A();
+        return new SKColor((byte)i.X, (byte)i.Y, (byte)i.Z, (byte)i.W);
+    }
+
+    public static bool PointInQuad(Vector2 point, Vector4 quad)
+    {
+        if (point.X >= quad.X && point.X <= quad.Z)
+        {
+            if (point.Y >= quad.Y && point.Y <= quad.W)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

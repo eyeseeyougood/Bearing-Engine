@@ -40,7 +40,62 @@
             },
             "components": [
                 {
+                    "anchor": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "offset": {
+                            "x": 240,
+                            "y": 100
+                        }
+                    },
+                    "id": 69,
+                    "type": "UIButton"
+                },
+                {
+                    "parent": 69,
+
+                    "anchor": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "offset": {
+                            "x": 200,
+                            "y": 200
+                        }
+                    },
+
+                    "text": "hello!!!",
                     "type": "UILabel"
+                },
+                {
+                    "type": "TestComponent"
                 }
             ]
         }
