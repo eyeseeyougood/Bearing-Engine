@@ -10,6 +10,6 @@ public class ElementComparer : IComparer<UIElement>
 
         if (x.renderLayer < y.renderLayer) return -1;
 
-        return -1;
+        return 0;
     }
 }

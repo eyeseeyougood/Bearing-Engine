@@ -12,4 +12,5 @@ public class UITheme
     public BearingColour buttonUpBackground = BearingColour.LightGray;
     public BearingColour buttonDownBackground = BearingColour.Gray;
     public BearingColour buttonHoverBackground = BearingColour.DarkWhite;
+    public BearingColour verticalScrollBG = BearingColour.Gray;
 }

@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bearing;
+namespace Bearing.Multiplayer;
 
-public interface IRenderable
+public enum NetworkModel
 {
-    public int rid { get; set; }
-
-    public void Render() { }
+    SRS = 0,
 }

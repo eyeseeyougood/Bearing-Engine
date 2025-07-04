@@ -21,6 +21,7 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTK" Version="4.9.4" />
+    <PackageReference Include="RiptideNetworking.Riptide" Version="2.2.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
     <PackageReference Include="StbImageSharp" Version="2.30.15" />
   </ItemGroup>
@@ -36,13 +37,5 @@
 	  <None Remove="Resources\Shaders\defaultUI.frag" />
 	  <None Remove="Resources\Shaders\defaultUI.vert" />
 	</ItemGroup>
-	
-	<!--
-	<Target Name="CopyResources" AfterTargets="Build">
-		<ItemGroup>
-			<ProjectProjectFiles Include="Resources\**\*" />
-		</ItemGroup>
-		<Copy SourceFiles="@(ProjectProjectFiles)" DestinationFolder="$(OutputPath)Resources\%(RecursiveDir)" />
-	</Target>-->
 
 </Project>

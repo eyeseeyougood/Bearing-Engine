@@ -7,7 +7,7 @@ public class MeshRenderer : Component, IRenderable
 {
     public Mesh mesh { get; private set; }
     public Material material { get; set; }
-    public int id { get; set; }
+    public int rid { get; set; }
 
     protected bool setup3DMatrices = true;
 

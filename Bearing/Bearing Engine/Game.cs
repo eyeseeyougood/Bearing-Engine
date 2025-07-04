@@ -4,6 +4,7 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Mathematics;
 using System.ComponentModel;
+using Bearing.Multiplayer;
 
 namespace Bearing;
 
@@ -43,6 +44,13 @@ public class Game : GameWindow
         return currentRenderableID;
     }
 
+    private int currentGameObjectID = -1;
+    public int GetUniqueGameObjectID()
+    {
+        currentGameObjectID++;
+        return currentGameObjectID;
+    }
+
     protected override void OnLoad()
     {
         instance = this;
@@ -50,17 +58,19 @@ public class Game : GameWindow
         camera = new Camera(new Vector3(0,2,4f), 8f/6f);
 
         // init stuff
+        SceneSettingsManager.Init();
+
         Gizmos.Init();
 
         AudioManager.Init();
+
+        MultiplayerManager.Init();
 
         // TODO: OPTIMISATION
         PhysicsManager.ticksPerTick = 20; // testing value
         PhysicsManager.Init();
         
         root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json"));
-        
-        Console.WriteLine("Ended Loading");
     }
 
     public void CursorLockStateChanged(bool state)
@@ -84,6 +94,8 @@ public class Game : GameWindow
 
     protected override void OnUpdateFrame(FrameEventArgs e)
     {
+        MultiplayerManager.Tick((float)e.Time);
+
         SceneLoader.Tick();
         Input.UpdateState(KeyboardState, MouseState);
         gameTick.Invoke();

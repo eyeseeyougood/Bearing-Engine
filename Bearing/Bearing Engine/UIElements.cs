@@ -10,7 +10,7 @@ namespace Bearing;
 
 public class UIElement : MeshRenderer
 {
-    public UIElement(string mesh) : base(mesh, true) { UIManager.AddUI(this); }
+    public UIElement(string mesh) : base(mesh, true) { }
     
     public int renderLayer { get; set; }
 
@@ -19,7 +19,7 @@ public class UIElement : MeshRenderer
     public int parent { // id
         get
         {
-            return _parent.id;
+            return _parent.rid;
         }
         set
         {
@@ -103,10 +103,14 @@ public class UIElement : MeshRenderer
     {
         base.OnLoad();
         Game.instance.RemoveOpaqueRenderable(this); // ui should not be handled like all other renderables XDD
+        UIManager.AddUI(this);
     }
 
     public override void OnTick(float dt)
     {
+        UpdatePosition();
+        UpdateSize();
+
         float screenW = Game.instance.Size.X;
         float screenH = Game.instance.Size.Y;
 
@@ -275,5 +279,50 @@ public class UIButton : UIElement
 
         // handle colour
         material.SetShaderParameter(new ShaderParam("mainColour", bg.zeroToOne));
+    }
+}
+
+public class UIVerticalScrollView : UIElement
+{
+    private UITheme theme = UIManager.currentTheme;
+
+    public List<int> contents { get; set; } = new List<int>();
+
+    private float scroll;
+
+    public UIVerticalScrollView() : base("Quad.obj")
+    {
+        material = new Material()
+        {
+            shader = new Shader("defaultUI.vert", "defaultUI.frag"),
+            attribs = new List<ShaderAttrib>()
+            {
+                new ShaderAttrib() { name = "aPosition", size = 2 },
+                new ShaderAttrib() { name = "aTexCoord", size = 2 },
+            },
+            is3D = false
+        };
+
+        setup3DMatrices = false;
+        SetMesh(new Mesh2D("Quad.obj", true));
+    }
+
+    public override void OnTick(float dt)
+    {
+        base.OnTick(dt);
+
+        foreach (int item in contents)
+        {
+            UIElement? element = UIManager.FindFromID(item);
+
+            if (element == null) { continue; }
+
+            element.position = new UDim2(position.scale, Vector2.Zero);
+            element.size = new UDim2(new Vector2(size.scale.X, element.size.scale.Y), element.size.offset);
+        }
+
+        position = new UDim2(MathF.Sin(Time.now), position.scale.Y);
+
+        material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.zeroToOne));
     }
 }

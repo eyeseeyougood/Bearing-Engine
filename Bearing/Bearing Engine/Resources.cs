@@ -34,6 +34,11 @@ public class Resource
         return FromPath("./Resources/Shaders/" + name);
     }
 
+    public static Resource GetEngineShader(string name)
+    {
+        return FromPath("./EngineData/Shaders/" + name);
+    }
+
     public static Resource GetTexture(string name)
     {
         return FromPath("./Resources/Textures/" + name);

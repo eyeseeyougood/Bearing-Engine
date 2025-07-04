@@ -8,7 +8,7 @@ namespace Bearing;
 
 public class Light : Component
 {
-    public BearingColour colour { get; set; }
+    public BearingColour colour { get; set; } = BearingColour.White;
 
     public override void Cleanup() { }
     public override void OnLoad()

@@ -1,0 +1,5 @@
+--- Multiplayer ---
+isMultiplayer = true
+netModel = SRS
+maxPlayers = 5
+--- Multiplayer ---

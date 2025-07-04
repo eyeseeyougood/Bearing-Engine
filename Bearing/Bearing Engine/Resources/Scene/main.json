@@ -20,12 +20,12 @@
     "components": [],
     "immediateChildren": [
         {
-            "name": "Test UI Element",
+            "name": "Cube",
             "transform": {
                 "position": {
                     "x": 0,
                     "y": 0,
-                    "z": 0
+                    "z": -3
                 },
                 "eRotation": {
                     "x": 0,
@@ -40,62 +40,42 @@
             },
             "components": [
                 {
-                    "anchor": {
-                        "x": 0.5,
-                        "y": 0.5
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.5,
-                            "y": 0.5
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 0.0
-                        },
-                        "offset": {
-                            "x": 240,
-                            "y": 100
-                        }
-                    },
-                    "id": 69,
-                    "type": "UIButton"
+                    "type": "Launcher"
                 },
                 {
-                    "parent": 69,
-
-                    "anchor": {
-                        "x": 0.5,
-                        "y": 0.5
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.5,
-                            "y": 0.5
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-                            "x": 0,
-                            "y": 0
+                    "mesh": "Cube.obj",
+                    "material": {
+                        "shader": {
+                            "vert": "default.vert",
+                            "frag": "default.frag"
                         },
-                        "offset": {
-                            "x": 200,
-                            "y": 200
-                        }
+                        "parameters": [
+                            {
+                                "name": "mainColour",
+                                "vector4": {
+                                    "x": 0.7,
+                                    "y": 0.1,
+                                    "z": 0.1,
+                                    "w": 1.0
+                                }
+                            }
+                        ],
+                        "attribs": [
+                            {
+                                "name": "aPosition",
+                                "size": 3
+                            },
+                            {
+                                "name": "aTexCoord",
+                                "size": 2
+                            },
+                            {
+                                "name": "aNormal",
+                                "size": 3
+                            }
+                        ]
                     },
-
-                    "text": "hello!!!",
-                    "type": "UILabel"
-                },
-                {
-                    "type": "TestComponent"
+                    "type": "MeshRenderer"
                 }
             ]
         }
