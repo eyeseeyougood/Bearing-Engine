@@ -98,6 +98,133 @@
                     "text": "hello!!!",
                     "type": "UILabel"
                 },
+
+
+
+                {
+                    "renderLayer": -1,
+
+                    "anchor": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "offset": {
+                            "x": 240,
+                            "y": 100
+                        }
+                    },
+                    "id": 420,
+                    "type": "UIButton"
+                },
+                {
+                    "parent": 420,
+
+                    "renderLayer": 0,
+
+                    "anchor": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "offset": {
+                            "x": 200,
+                            "y": 200
+                        }
+                    },
+
+                    "text": "this is button 2!!!",
+                    "type": "UILabel"
+                },
+
+
+
+                {
+                    "renderLayer": -1,
+
+                    "anchor": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "offset": {
+                            "x": 240,
+                            "y": 100
+                        }
+                    },
+                    "id": 800,
+                    "type": "UIButton"
+                },
+                {
+                    "parent": 800,
+
+                    "renderLayer": 0,
+
+                    "anchor": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "offset": {
+                            "x": 200,
+                            "y": 200
+                        }
+                    },
+
+                    "text": "And this is my personal favourite button :)",
+                    "type": "UILabel"
+                },
+
+
+
                 {
                     "type": "TestComponent"
                 }
@@ -155,12 +282,12 @@
                         }
                     },
                     "contents": [
-                        69
+                        69,
+                        420,
+                        800
                     ],
+                    "scrollSensitivity": 100,
                     "type": "UIVerticalScrollView"
-                },
-                {
-                    "type": "MovementTest"
                 }
             ]
         }

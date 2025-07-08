@@ -14,6 +14,21 @@ public class UIElement : MeshRenderer
 
     public int renderLayer { get; set; }
 
+    private bool _setVisible = true;
+    private bool _visible = true;
+    public bool visible
+    {
+        get
+        {
+            return _visible;
+        }
+        set
+        {
+            _setVisible = value;
+            UpdateVisibility();
+        }
+    }
+
     public Action positionChanged = () => { };
     public Action sizeChanged = () => { };
 
@@ -86,6 +101,23 @@ public class UIElement : MeshRenderer
         return new Vector4i((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y);
     }
 
+    private void UpdateVisibility()
+    {
+        if (!_setVisible)
+        {
+            _visible = false;
+            return;
+        }
+
+        if (_parent == null)
+        {
+            _visible = _setVisible;
+            return;
+        }
+
+        _visible = _parent.visible;
+    }
+
     /// <summary>
     /// Force a position recalculation
     /// </summary>
@@ -101,7 +133,7 @@ public class UIElement : MeshRenderer
                       - _parent.anchor
                       * parentNormalisedScale;
 
-        _position = new UDim2(scale, _setPos.offset);
+        _position = new UDim2(scale, _setPos.offset + _parent.position.offset);
     }
 
     /// <summary>
@@ -141,6 +173,14 @@ public class UIElement : MeshRenderer
         material.SetShaderParameter(new ShaderParam("posScale", position.scale));
         material.SetShaderParameter(new ShaderParam("sizeOffset", size.offset));
         material.SetShaderParameter(new ShaderParam("sizeScale", size.scale));
+    }
+
+    public override void Render()
+    {
+        UpdateVisibility();
+
+        if (visible)
+            base.Render();
     }
 }
 
@@ -261,7 +301,7 @@ public class UIButton : UIElement
         BearingColour bg = theme.buttonUpBackground;
 
         pressed = false;
-        if (Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox()))
+        if (Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox()) && visible)
         {
             bg = theme.buttonHoverBackground;
             if (Input.GetMouseButton(0))
@@ -300,6 +340,9 @@ public class UIVerticalScrollView : UIElement
 {
     private UITheme theme = UIManager.currentTheme;
 
+    public float scrollSensitivity { get; set; } = 5;
+    public float spacing { get; set; } = 5;
+
     public List<int> contents { get; set; } = new List<int>();
 
     private float scroll;
@@ -325,6 +368,8 @@ public class UIVerticalScrollView : UIElement
     {
         base.OnTick(dt);
 
+        scroll += Input.GetMouseScrollDelta().Y * (scrollSensitivity+spacing);
+
         material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.zeroToOne));
     }
 
@@ -332,14 +377,36 @@ public class UIVerticalScrollView : UIElement
     {
         base.BeforeRender();
 
+        int index = 0;
         foreach (int item in contents)
         {
             UIElement? element = UIManager.FindFromID(item);
 
             if (element == null) { continue; }
 
-            element.position = new UDim2(position.scale, Vector2.Zero);
+            Vector2 normalisedScale = size.scale + (size.offset / Game.instance.ClientSize);
+            Vector2 elementNormalisedScale = element.size.scale + (element.size.offset / Game.instance.ClientSize);
+
+            float elementOffset = index * elementNormalisedScale.Y * Game.instance.ClientSize.Y;
+
+            element.position = new UDim2(position.scale - new Vector2(0, 0.5f * normalisedScale.Y - elementNormalisedScale.Y * (1-element.anchor.Y)), new Vector2(0, scroll + index*spacing + elementOffset));
             element.size = new UDim2(new Vector2(size.scale.X, element.size.scale.Y), element.size.offset);
+
+            // check if still in bounding box otherwise dont render
+
+            Vector4 ebb = element.GetScreenBoundingBox();
+
+            Vector4 obb = GetScreenBoundingBox();
+
+            bool shouldRender = true;
+            if (!Extensions.PointInQuad(ebb.Xy, obb))
+                shouldRender = false;
+            else if (!Extensions.PointInQuad(ebb.Zw, obb))
+                shouldRender = false;
+
+            element.visible = shouldRender;
+
+            index++;
         }
     }
 }

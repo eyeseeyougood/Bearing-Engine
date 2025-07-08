@@ -48,7 +48,7 @@ public class MeshRenderer : Component, IRenderable
     {
     }
 
-    public void Render()
+    public virtual void Render()
     {
         material.Use();
 
