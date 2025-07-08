@@ -12,7 +12,6 @@
     <Folder Include="EngineData\Audio\" />
     <Folder Include="EngineData\Textures\" />
     <Folder Include="Resources\Models\" />
-    <Folder Include="Resources\Textures\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +35,10 @@
 	  <None Remove="EngineData\Shaders\defaultUI.vert" />
 	  <None Remove="Resources\Shaders\defaultUI.frag" />
 	  <None Remove="Resources\Shaders\defaultUI.vert" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <EmbeddedResource Include="Multiplayer\IClientCode.cs" />
 	</ItemGroup>
 
 </Project>

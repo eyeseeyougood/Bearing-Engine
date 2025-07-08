@@ -46,9 +46,14 @@ public static class MultiplayerManager
         SetupNetworkModel(model);
     }
 
-    public static void AddSyncVariable(int objID, int compID, string property)
+    public static void InstantiateObject(string prefabName, string newName)
     {
-        netModel.AddSyncVariable(objID, compID, property);
+        netModel.InstantiateObject(prefabName, newName);
+    }
+
+    public static void AddSyncVariable(string objName, int compID, string property)
+    {
+        netModel.AddSyncVariable(objName, compID, property);
     }
 
     public static void Broadcast(Message m, ushort ignoreClient = 0)
@@ -58,7 +63,8 @@ public static class MultiplayerManager
 
     public static void Tick(float delta)
     {
-        netModel.Tick(delta);
+        if (isMultiplayer)
+            netModel.Tick(delta);
     }
 
     public static void InitHost()

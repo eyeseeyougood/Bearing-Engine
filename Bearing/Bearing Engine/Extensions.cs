@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 namespace Bearing;
 
@@ -61,6 +62,18 @@ public static class Extensions
             );
     }
 
+    public static float LerpAngle(this float a, float b, float t)
+    {
+        float delta = Repeat((b - a) + 180f, 360f) - 180f;
+        return a + delta * t;
+    }
+
+    private static float Repeat(float t, float length)
+    {
+        return t - MathF.Floor(t / length) * length;
+    }
+
+
     public static SKColor ToSKColour(this BearingColour c)
     {
         Vector4i i = (Vector4i)c.GetZeroTo255A();
@@ -78,7 +91,6 @@ public static class Extensions
         return data.ToArray();
     }
 
-    // V is unused here, kinda janky so that it is an extension function
     public static Vector3 DeserialiseVector3(byte[] data)
     {
         Vector3 result = Vector3.Zero;
@@ -86,6 +98,24 @@ public static class Extensions
         result.X = BitConverter.ToSingle(data.ToList().GetRange(0,4).ToArray());
         result.Y = BitConverter.ToSingle(data.ToList().GetRange(4,4).ToArray());
         result.Z = BitConverter.ToSingle(data.ToList().GetRange(8,4).ToArray());
+
+        return result;
+    }
+
+    public static byte[] SerialiseString(string v)
+    {
+        List<byte> data = new List<byte>();
+
+        data.AddRange(Encoding.UTF8.GetBytes(v));
+
+        return data.ToArray();
+    }
+
+    public static string DeserialiseString(byte[] data)
+    {
+        string result = "";
+
+        result = Encoding.UTF8.GetString(data);
 
         return result;
     }

@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace Bearing.Multiplayer;
 
-public struct SyncVariable
+public interface IClientCode
 {
-    public string objName;
-    public int compID;
-    public string property;
+    public bool isMine { get; set; }
 }

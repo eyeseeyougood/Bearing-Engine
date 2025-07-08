@@ -44,7 +44,7 @@ public class Transform3D
         set
         {
             _eRotation = value;
-            _qRotation = Quaternion.FromEulerAngles(_eRotation);
+            _qRotation = Quaternion.FromEulerAngles(_eRotation * MathHelper.DegToRad);
             UpdateModel();
             onTransformChanged.Invoke();
         }

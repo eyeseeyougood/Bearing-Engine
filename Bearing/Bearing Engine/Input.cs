@@ -47,6 +47,13 @@ public static class Input
         return mstate.IsButtonPressed(button);
     }
 
+    public static bool GetMouseButtonDown(int button)
+    {
+        if (mstate == null)
+            return false;
+        return mstate.IsButtonPressed((MouseButton)button);
+    }
+
     public static bool GetMouseButton(MouseButton button)
     {
         if (mstate == null) 
@@ -54,11 +61,30 @@ public static class Input
         return mstate.IsButtonDown(button);
     }
 
+    public static bool GetMouseButton(int button)
+    {
+        if (mstate == null)
+            return false;
+        return mstate.IsButtonDown((MouseButton)button);
+    }
+
     public static bool GetMouseButtonUp(MouseButton button)
     {
         if (mstate == null) 
             return false;
         return mstate.IsButtonReleased(button);
+    }
+
+    public static bool GetMouseButtonUp(int button)
+    {
+        if (mstate == null)
+            return false;
+        return mstate.IsButtonReleased((MouseButton)button);
+    }
+
+    public static Vector2 GetMouseScrollDelta()
+    {
+        return mstate.ScrollDelta;
     }
 
     /// <summary>

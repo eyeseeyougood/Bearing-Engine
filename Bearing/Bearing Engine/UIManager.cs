@@ -15,9 +15,25 @@ public static class UIManager
 
     public static UITheme currentTheme = new UITheme();
 
+    private static int currentID = -1;
+    private static List<int> usedIDs = new List<int>();
+    public static int GetUniqueUIID()
+    {
+        currentID++;
+        while (usedIDs.Contains(currentID))
+        {
+            currentID++;
+        }
+        return currentID;
+    }
+
     public static void AddUI(UIElement element)
     {
         uiElements.Add(element);
+        if (element.rid == -1)
+        {
+            element.rid = GetUniqueUIID();
+        }
         uiElements.Sort(elementComp);
     }
 
@@ -39,11 +55,35 @@ public static class UIManager
         return null;
     }
 
+    private static bool orderSame = false;
+    private static List<int> prevOrder = new List<int>();
     public static void RenderUI()
     {
+        List<int> orderCopy = prevOrder.ToList();
+        prevOrder.Clear();
+
+        if (!orderSame)
+        {
+            uiElements.Sort(elementComp);
+            Logger.Log("Sorted UI");
+        }
+
+        orderSame = true;
+
+        int indx = 0;
         foreach (UIElement element in uiElements)
         {
             element.Render();
+
+            if (indx >= orderCopy.Count)
+                continue;
+
+            if (orderCopy[indx] != element.rid)
+            {
+                orderSame = false;
+            }
+            prevOrder.Add(element.rid);
+            indx++;
         }
     }
 

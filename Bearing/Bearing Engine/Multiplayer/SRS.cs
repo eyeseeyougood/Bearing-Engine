@@ -17,6 +17,8 @@ public class SRS : NetModel
     public bool isHost;
     public bool hasLoaded;
 
+    private List<(string, string)> networkedObjects = new List<(string, string)>(); // all objects that have been spawned
+
     public override void InitClient(string targetIP)
     {
         client = MultiplayerManager.CreateClient(targetIP);
@@ -39,18 +41,20 @@ public class SRS : NetModel
         
         client.Update();
 
-        if (!isHost) return;
-
         // broadcast sync variables
         foreach (SyncVariable @var in syncVars)
         {
             Message m = Message.Create(MessageSendMode.Unreliable, 4); // MsgID:4 means sync variable
-            Component comp = GameObject.Find(@var.objID).GetComponent(@var.compID);
+            Component comp = GameObject.Find(@var.objName).GetComponent(@var.compID);
+
+            if (comp == null) // issue with cleanup probs XDD
+                continue;
+
             object data = comp.GetType().GetProperty(@var.property).GetValue(comp);
 
             byte[] bData = (byte[])Extensions.GetExtensionMethod("Serialise"+ data.GetType().Name).Invoke(null, new object[] { data });
             
-            m.AddInt(var.objID);
+            m.AddString(var.objName);
             m.AddInt(var.compID);
             m.AddString(var.property);
             m.AddString(data.GetType().Name);
@@ -59,22 +63,34 @@ public class SRS : NetModel
             client.Send(m);
         }
 
+        if (!isHost) return;
+
         roomServer.Tick(delta);
     }
 
 
     // syncing
     List<SyncVariable> syncVars = new List<SyncVariable>();
-    public override void AddSyncVariable(int objectID, int compID, string property)
+    public override void AddSyncVariable(string objectName, int compID, string property)
     {
         SyncVariable @var = new SyncVariable()
         {
-            objID = objectID,
+            objName = objectName,
             compID = compID,
             property = property
         };
 
         syncVars.Add(@var);
+    }
+
+    public override void InstantiateObject(string prefabName, string newName)
+    {
+        Message m = Message.Create(MessageSendMode.Reliable, 3); // MsgID:3 means instantiate object
+
+        m.AddString(prefabName);
+        m.AddString(newName);
+
+        client.Send(m);
     }
 
     public override void Broadcast(Message m, ushort ignore)
@@ -91,7 +107,7 @@ public class SRS : NetModel
     [MessageHandler(4)]
     public static void SyncVarsFromServer(Message message)
     {
-        int objID = message.GetInt();
+        string objName = message.GetString();
         int compID = message.GetInt();
         string prop = message.GetString();
 
@@ -99,7 +115,26 @@ public class SRS : NetModel
 
         object value = Extensions.GetExtensionMethod("Deserialise" + propType).Invoke(null, new object[] { message.GetBytes() });
 
-        Component c = GameObject.Find(objID).GetComponent(compID);
+        Component c = GameObject.Find(objName).GetComponent(compID);
         c.GetType().GetProperty(prop).SetValue(c, value);
+    }
+
+    [MessageHandler(3)] // MsgID:3 means instantiate an object from file
+    public static void InstanceFromClient(ushort client, Message message)
+    {
+        MultiplayerManager.Broadcast(message, client);
+    }
+
+    [MessageHandler(3)]
+    public static void InstanceFromServer(Message message)
+    {
+        string prefab = message.GetString();
+        string newName = message.GetString(); // when instantiated over the network a new name must be sent to avoid issues with syncing later
+
+        GameObject newPlayer = SceneLoader.LoadFromFile($"./Resources/Scene/{prefab}.json", false);
+        newPlayer.name = newName;
+        newPlayer.tag = "OtherPlayer";
+        newPlayer.parent = Game.instance.root;
+        newPlayer.Load();
     }
 }

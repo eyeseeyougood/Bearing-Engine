@@ -11,6 +11,8 @@ public static class PhysicsManager
 
     public static int ticksPerTick = 1;
 
+    public static float gravity { get; private set; } = -9.81f;
+
     public static void Init()
     {
         var collisionConfig = new DefaultCollisionConfiguration();
@@ -35,6 +37,9 @@ public static class PhysicsManager
             foreach (GameObject sh in physicsObjects)
             {
                 BearingRigidbody brb = (BearingRigidbody)sh.GetComponent(typeof(BearingRigidbody));
+                if (brb == null) // I think this can be the case during cleanup or sum idrk
+                    continue;
+
                 RigidBody rb = brb.rb;
                 rb.MotionState.GetWorldTransform(out Matrix worldTransform);
                 sh.transform.FromModel(worldTransform.ToTKMatrix());
@@ -57,10 +62,8 @@ public static class PhysicsManager
             Dispose(rigidBody);
 
             RigidBody staticBody = CreateStaticCopy(rigidBody);
-            sender.RemoveComponent(brb);
-            BearingRigidbody newBrb = BearingRigidbody.FromRB(staticBody);
-            newBrb.frozen = brb.frozen;
-            sender.AddComponent(newBrb, false);
+
+            brb.UpdateRB(staticBody);
 
             Register(staticBody);
         }
@@ -71,10 +74,9 @@ public static class PhysicsManager
                 Dispose(rigidBody);
 
                 RigidBody dynamicBody = CreateDynamicCopy(rigidBody);
-                sender.RemoveComponent(brb);
-                BearingRigidbody newBrb = BearingRigidbody.FromRB(dynamicBody);
-                newBrb.frozen = brb.frozen;
-                sender.AddComponent(newBrb, false);
+
+                brb.UpdateRB(dynamicBody);
+
                 Register(dynamicBody);
             }
         }

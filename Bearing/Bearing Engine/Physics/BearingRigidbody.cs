@@ -26,6 +26,11 @@ public class BearingRigidbody : Component
         return b;
     }
 
+    public void UpdateRB(RigidBody newRb)
+    {
+        rb = newRb;
+    }
+
     public override void OnLoad()
     {
         Mesh3D mesh = (Mesh3D)((MeshRenderer)gameObject.GetComponent(typeof(MeshRenderer))).mesh;
@@ -49,6 +54,17 @@ public class BearingRigidbody : Component
         // Add the rigidbody to the world
         PhysicsManager.physicsObjects.Add(gameObject);
         PhysicsManager.Register(rb);
+    }
+
+    public void SetPosition(Vector3 newPosition)
+    {
+        gameObject.transform.position = newPosition;
+        UpdateFromModelMatrix();
+    }
+
+    private void UpdateFromModelMatrix()
+    {
+        rb.MotionState = new DefaultMotionState(gameObject.transform.GetModelMatrix().ToBulletMatrix());
     }
 
     public override void OnTick(float dt)

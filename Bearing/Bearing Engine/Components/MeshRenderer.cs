@@ -7,9 +7,13 @@ public class MeshRenderer : Component, IRenderable
 {
     public Mesh mesh { get; private set; }
     public Material material { get; set; }
-    public int rid { get; set; }
+    public int rid { get; set; } = -1;
 
     protected bool setup3DMatrices = true;
+
+    public Texture texture0;
+    public Texture texture1;
+    public Texture texture2;
 
     private int ebo;
     private int vao;
@@ -62,6 +66,15 @@ public class MeshRenderer : Component, IRenderable
         material.LoadParameters();
 
         LightManager.AddLightingInfo(material);
+
+        if (texture0 != null)
+            texture0.Use(TextureUnit.Texture0);
+
+        if (texture1 != null)
+            texture1.Use(TextureUnit.Texture1);
+
+        if (texture2 != null)
+            texture2.Use(TextureUnit.Texture2);
 
         BeforeRender();
 

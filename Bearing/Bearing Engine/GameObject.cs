@@ -30,6 +30,17 @@ public class GameObject
     {
         Cleanup();
     }
+    /*
+    public static GameObject Instantiate(GameObject original)
+    {
+        GameObject result = new GameObject();
+
+        result.name = original.name;
+        result.tag = original.tag;
+        result.
+
+        return result;
+    }*/
 
     public static GameObject? Find(int id)
     {
@@ -123,7 +134,7 @@ public class GameObject
         {
             c.OnTick(dt);
         }
-        foreach (GameObject child in immediateChildren)
+        foreach (GameObject child in immediateChildren.ToList())
         {
             child.Tick(dt);
         }
@@ -155,11 +166,11 @@ public class GameObject
     {
         T? result = null;
 
-        foreach (T comp in components)
+        foreach (Component comp in components)
         {
-            if (comp.GetType() == typeof(T))
+            if (comp is T tC)
             {
-                result = comp;
+                result = tC;
                 break;
             }
         }

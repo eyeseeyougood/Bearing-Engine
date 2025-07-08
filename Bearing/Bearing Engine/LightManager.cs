@@ -24,11 +24,13 @@ public static class LightManager
         int pointId = 0;
         foreach (Light l in lights)
         {
-            if (l is PointLight)
+            if (l is PointLight pl)
             {
                 GL.UseProgram(mat.shader.Handle);
-                GL.Uniform3(mat.shader.GetUniformLoc($"pointLights[{pointId}].pos"), l.gameObject.transform.position);
-                GL.Uniform4(mat.shader.GetUniformLoc($"pointLights[{pointId}].col"), l.colour.GetZeroToOneA());
+                GL.Uniform3(mat.shader.GetUniformLoc($"pointLights[{pointId}].pos"), pl.gameObject.transform.position);
+                GL.Uniform4(mat.shader.GetUniformLoc($"pointLights[{pointId}].col"), pl.colour.GetZeroToOneA());
+                GL.Uniform1(mat.shader.GetUniformLoc($"pointLights[{pointId}].intensity"), pl.intensity);
+                GL.Uniform1(mat.shader.GetUniformLoc($"pointLights[{pointId}].range"), pl.range);
                 pointId++;
             }
         }

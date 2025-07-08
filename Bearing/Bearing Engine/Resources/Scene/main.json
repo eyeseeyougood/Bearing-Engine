@@ -20,12 +20,12 @@
     "components": [],
     "immediateChildren": [
         {
-            "name": "Cube",
+            "name": "Button",
             "transform": {
                 "position": {
                     "x": 0,
                     "y": 0,
-                    "z": -3
+                    "z": 0
                 },
                 "eRotation": {
                     "x": 0,
@@ -40,42 +40,127 @@
             },
             "components": [
                 {
-                    "type": "Launcher"
+                    "renderLayer": -1,
+
+                    "anchor": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "offset": {
+                            "x": 240,
+                            "y": 100
+                        }
+                    },
+                    "id": 69,
+                    "type": "UIButton"
                 },
                 {
-                    "mesh": "Cube.obj",
-                    "material": {
-                        "shader": {
-                            "vert": "default.vert",
-                            "frag": "default.frag"
-                        },
-                        "parameters": [
-                            {
-                                "name": "mainColour",
-                                "vector4": {
-                                    "x": 0.7,
-                                    "y": 0.1,
-                                    "z": 0.1,
-                                    "w": 1.0
-                                }
-                            }
-                        ],
-                        "attribs": [
-                            {
-                                "name": "aPosition",
-                                "size": 3
-                            },
-                            {
-                                "name": "aTexCoord",
-                                "size": 2
-                            },
-                            {
-                                "name": "aNormal",
-                                "size": 3
-                            }
-                        ]
+                    "parent": 69,
+
+                    "renderLayer": 0,
+
+                    "anchor": {
+                        "x": 0.5,
+                        "y": 0.5
                     },
-                    "type": "MeshRenderer"
+
+                    "position": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "offset": {
+                            "x": 200,
+                            "y": 200
+                        }
+                    },
+
+                    "text": "hello!!!",
+                    "type": "UILabel"
+                },
+                {
+                    "type": "TestComponent"
+                }
+            ]
+        },
+
+
+
+
+
+
+
+        {
+            "name": "Vertical Scroll View",
+            "transform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "eRotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            },
+            "components": [
+                {
+                    "renderLayer": -2,
+                    "anchor": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.25,
+                            "y": 0.5
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "offset": {
+                            "x": 240,
+                            "y": 500
+                        }
+                    },
+                    "contents": [
+                        69
+                    ],
+                    "type": "UIVerticalScrollView"
+                },
+                {
+                    "type": "MovementTest"
                 }
             ]
         }

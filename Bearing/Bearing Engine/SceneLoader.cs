@@ -12,7 +12,7 @@ public static class SceneLoader
 {
     public static void Tick() { }
 
-    public static GameObject LoadFromFile(string filepath)
+    public static GameObject LoadFromFile(string filepath, bool initialise = true)
     {
         string data = Resources.ReadAllText(Resource.FromPath(filepath));
 
@@ -22,7 +22,9 @@ public static class SceneLoader
         };
 
         GameObject root = JsonConvert.DeserializeObject<GameObject>(data, settings);
-        root.Load();
+
+        if (initialise)
+            root.Load();
 
         return root;
     }

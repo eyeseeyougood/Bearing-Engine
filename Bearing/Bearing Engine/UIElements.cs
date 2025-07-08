@@ -10,16 +10,22 @@ namespace Bearing;
 
 public class UIElement : MeshRenderer
 {
-    public UIElement(string mesh) : base(mesh, true) { }
-    
+    public UIElement(string mesh) : base(mesh, true) { UIManager.AddUI(this); }
+
     public int renderLayer { get; set; }
+
+    public Action positionChanged = () => { };
+    public Action sizeChanged = () => { };
 
     protected UIElement _parent;
 
     public int parent { // id
         get
         {
-            return _parent.rid;
+            if (_parent != null)
+                return _parent.rid;
+
+            return -1;
         }
         set
         {
@@ -41,16 +47,19 @@ public class UIElement : MeshRenderer
         }
     }
 
+    public UDim2 _setPos{ get; set; } = new UDim2(0.0f, 0.0f, 0, 0);
     public UDim2 _position { get; set; } = new UDim2(0.0f, 0.0f, 0, 0);
     public UDim2 position { 
         get {
             return _position;
         }
         set {
-            _position = value;
+            _setPos = value;
             UpdatePosition();
+            positionChanged.Invoke();
         }
     }
+    public UDim2 _setSize { get; set; } = new UDim2(0.0f,0.0f,200,200);
     public UDim2 _size { get; set; } = new UDim2(0.0f,0.0f,200,200);
     public UDim2 size
     {
@@ -60,10 +69,10 @@ public class UIElement : MeshRenderer
         }
         set
         {
-            _size = value;
+            _setSize = value;
             UpdateSize();
+            sizeChanged.Invoke();
         }
-
     }
 
     public Vector4i GetScreenBoundingBox()
@@ -77,33 +86,45 @@ public class UIElement : MeshRenderer
         return new Vector4i((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y);
     }
 
-    private void UpdatePosition()
+    /// <summary>
+    /// Force a position recalculation
+    /// </summary>
+    public void UpdatePosition()
     {
-        if (_parent == null) return;
+        if (_parent == null) { _position = _setPos; return; }
 
         Vector2 parentNormalisedScale = _parent.size.scale + (_parent.size.offset / Game.instance.ClientSize);
 
-        Vector2 scale = _position.scale
+        Vector2 scale = _setPos.scale
                       * parentNormalisedScale
                       + _parent.position.scale
                       - _parent.anchor
                       * parentNormalisedScale;
 
-        _position = new UDim2(scale, _position.offset);
+        _position = new UDim2(scale, _setPos.offset);
     }
 
-    private void UpdateSize()
+    /// <summary>
+    /// Force a size recalculation
+    /// </summary>
+    public void UpdateSize()
     {
-        if (_parent == null) return;
+        if (_parent == null) { _size = _setSize; return; }
 
-        _size = new UDim2(_size.scale * (_parent.size.scale + (_parent.size.offset / Game.instance.ClientSize)), _size.offset);
+        _size = new UDim2(_setSize.scale * (_parent.size.scale + (_parent.size.offset / Game.instance.ClientSize)), _setSize.offset);
     }
 
     public override void OnLoad()
     {
         base.OnLoad();
+
+        if (_parent != null)
+        {
+            _parent.positionChanged += UpdatePosition;
+            _parent.sizeChanged += UpdateSize;
+        }
+
         Game.instance.RemoveOpaqueRenderable(this); // ui should not be handled like all other renderables XDD
-        UIManager.AddUI(this);
     }
 
     public override void OnTick(float dt)
@@ -154,8 +175,6 @@ public class UILabel : UIElement
 
     public bool fitHeightToWidth { get; set; } = true;
 
-    private Texture texture;
-
     public event EventHandler<string> onTextChanged = (i,j) => { };
 
     public UILabel() : base("Quad.obj") { }
@@ -183,12 +202,12 @@ public class UILabel : UIElement
 
     private void ResetTexture()
     {
-        if (texture != null)
+        if (texture0 != null)
         {
-            texture.Dispose();
+            texture0.Dispose();
         }
 
-        texture = UIManager.UITextHelper.RenderTextToBmp(text);
+        texture0 = UIManager.UITextHelper.RenderTextToBmp(text);
     }
 
     protected virtual void TextChanged(string val)
@@ -203,12 +222,7 @@ public class UILabel : UIElement
         base.OnTick(dt);
 
         material.SetShaderParameter(new ShaderParam("mainColour", theme.labelText.zeroToOne));
-        material.SetShaderParameter(new ShaderParam("texSize", new Vector2(texture._width, texture._height)));
-    }
-
-    protected override void BeforeRender()
-    {
-        texture.Use(OpenTK.Graphics.OpenGL4.TextureUnit.Texture0);
+        material.SetShaderParameter(new ShaderParam("texSize", new Vector2(texture0._width, texture0._height)));
     }
 }
 
@@ -311,6 +325,13 @@ public class UIVerticalScrollView : UIElement
     {
         base.OnTick(dt);
 
+        material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.zeroToOne));
+    }
+
+    protected override void BeforeRender()
+    {
+        base.BeforeRender();
+
         foreach (int item in contents)
         {
             UIElement? element = UIManager.FindFromID(item);
@@ -320,9 +341,5 @@ public class UIVerticalScrollView : UIElement
             element.position = new UDim2(position.scale, Vector2.Zero);
             element.size = new UDim2(new Vector2(size.scale.X, element.size.scale.Y), element.size.offset);
         }
-
-        position = new UDim2(MathF.Sin(Time.now), position.scale.Y);
-
-        material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.zeroToOne));
     }
 }
