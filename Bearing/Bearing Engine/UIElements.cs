@@ -159,14 +159,8 @@ public class UIElement : MeshRenderer
         Game.instance.RemoveOpaqueRenderable(this); // ui should not be handled like all other renderables XDD
     }
 
-    public override void OnTick(float dt)
+    protected virtual void UpdateShaderParams()
     {
-        UpdatePosition();
-        UpdateSize();
-
-        float screenW = Game.instance.Size.X;
-        float screenH = Game.instance.Size.Y;
-
         material.SetShaderParameter(new ShaderParam("screenSize", Game.instance.ClientSize));
         material.SetShaderParameter(new ShaderParam("anchor", anchor));
         material.SetShaderParameter(new ShaderParam("posOffset", position.offset));
@@ -175,9 +169,19 @@ public class UIElement : MeshRenderer
         material.SetShaderParameter(new ShaderParam("sizeScale", size.scale));
     }
 
+    public override void OnTick(float dt)
+    {
+        UpdatePosition();
+        UpdateSize();
+
+        float screenW = Game.instance.Size.X;
+        float screenH = Game.instance.Size.Y;
+    }
+
     public override void Render()
     {
         UpdateVisibility();
+        UpdateShaderParams();
 
         if (visible)
             base.Render();
@@ -214,6 +218,7 @@ public class UILabel : UIElement
     }
 
     public bool fitHeightToWidth { get; set; } = true;
+    public string font { get; set; } = "Arial";
 
     public event EventHandler<string> onTextChanged = (i,j) => { };
 
@@ -247,7 +252,7 @@ public class UILabel : UIElement
             texture0.Dispose();
         }
 
-        texture0 = UIManager.UITextHelper.RenderTextToBmp(text);
+        texture0 = UIManager.UITextHelper.RenderTextToBmp(text, font);
     }
 
     protected virtual void TextChanged(string val)
@@ -340,7 +345,7 @@ public class UIVerticalScrollView : UIElement
 {
     private UITheme theme = UIManager.currentTheme;
 
-    public float scrollSensitivity { get; set; } = 5;
+    public float scrollSensitivity { get; set; } = 1;
     public float spacing { get; set; } = 5;
 
     public List<int> contents { get; set; } = new List<int>();
@@ -368,7 +373,7 @@ public class UIVerticalScrollView : UIElement
     {
         base.OnTick(dt);
 
-        scroll += Input.GetMouseScrollDelta().Y * (scrollSensitivity+spacing);
+        scroll += Input.GetMouseScrollDelta().Y * scrollSensitivity;
 
         material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.zeroToOne));
     }
@@ -387,9 +392,11 @@ public class UIVerticalScrollView : UIElement
             Vector2 normalisedScale = size.scale + (size.offset / Game.instance.ClientSize);
             Vector2 elementNormalisedScale = element.size.scale + (element.size.offset / Game.instance.ClientSize);
 
-            float elementOffset = index * elementNormalisedScale.Y * Game.instance.ClientSize.Y;
+            float newIndex = index + scroll;
 
-            element.position = new UDim2(position.scale - new Vector2(0, 0.5f * normalisedScale.Y - elementNormalisedScale.Y * (1-element.anchor.Y)), new Vector2(0, scroll + index*spacing + elementOffset));
+            float elementOffset = newIndex * elementNormalisedScale.Y * Game.instance.ClientSize.Y;
+
+            element.position = new UDim2(position.scale - new Vector2(0, 0.5f * normalisedScale.Y - elementNormalisedScale.Y * (1-element.anchor.Y)), new Vector2(0, newIndex*spacing + elementOffset));
             element.size = new UDim2(new Vector2(size.scale.X, element.size.scale.Y), element.size.offset);
 
             // check if still in bounding box otherwise dont render

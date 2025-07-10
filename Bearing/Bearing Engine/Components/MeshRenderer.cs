@@ -78,6 +78,8 @@ public class MeshRenderer : Component, IRenderable
 
         BeforeRender();
 
+        material.Use();
+
         GL.DrawElements(PrimitiveType.Triangles, mesh.indices.Length, DrawElementsType.UnsignedInt, 0);
     }
 

@@ -20,7 +20,7 @@
     "components": [],
     "immediateChildren": [
         {
-            "name": "Button",
+            "name": "test object",
             "transform": {
                 "position": {
                     "x": 0,
@@ -38,68 +38,11 @@
                     "z": 1
                 }
             },
-            "components": [
-                {
-                    "renderLayer": -1,
-
-                    "anchor": {
-                        "x": 0.5,
-                        "y": 0.5
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.5,
-                            "y": 0.5
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 0.0
-                        },
-                        "offset": {
-                            "x": 240,
-                            "y": 100
-                        }
-                    },
-                    "id": 69,
-                    "type": "UIButton"
-                },
-                {
-                    "parent": 69,
-
-                    "renderLayer": 0,
-
-                    "anchor": {
-                        "x": 0.5,
-                        "y": 0.5
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.5,
-                            "y": 0.5
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-                            "x": 0,
-                            "y": 0
-                        },
-                        "offset": {
-                            "x": 200,
-                            "y": 200
-                        }
-                    },
-
-                    "text": "hello!!!",
-                    "type": "UILabel"
-                },
-
-
+            "compononents": [
+                #PRESET(button)
+                [
+                    "hello!!!", = "This button was made with a preset!"|
+                ],
 
                 {
                     "renderLayer": -1,
@@ -148,15 +91,16 @@
 
                     "size": {
                         "scale": {
-                            "x": 0,
-                            "y": 0
+                            "x": 1,
+                            "y": 1
                         },
                         "offset": {
-                            "x": 200,
-                            "y": 200
+                            "x": -20,
+                            "y": -20
                         }
                     },
 
+                    "font": "Comic Sans MS",
                     "text": "this is button 2!!!",
                     "type": "UILabel"
                 },
@@ -210,12 +154,12 @@
 
                     "size": {
                         "scale": {
-                            "x": 0,
-                            "y": 0
+                            "x": 1,
+                            "y": 1
                         },
                         "offset": {
-                            "x": 200,
-                            "y": 200
+                            "x": -20,
+                            "y": -20
                         }
                     },
 
@@ -278,7 +222,7 @@
                         },
                         "offset": {
                             "x": 240,
-                            "y": 500
+                            "y": 415
                         }
                     },
                     "contents": [
@@ -286,7 +230,7 @@
                         420,
                         800
                     ],
-                    "scrollSensitivity": 100,
+                    "scrollSensitivity": 1,
                     "type": "UIVerticalScrollView"
                 }
             ]

@@ -89,10 +89,10 @@ public static class UIManager
 
     public static class UITextHelper
     {
-        public static Texture RenderTextToBmp(string text)
+        public static Texture RenderTextToBmp(string text, string font = "Arial")
         {
             var fontSize = 48;
-            var typeface = SKTypeface.FromFamilyName("Arial");
+            var typeface = SKTypeface.FromFamilyName(font);
             var paint = new SKPaint
             {
                 Typeface = typeface,
