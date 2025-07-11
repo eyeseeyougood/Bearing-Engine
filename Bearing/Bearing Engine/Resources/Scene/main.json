@@ -1,22 +1,6 @@
 {
     "name": "Scene Root",
-    "transform": {
-        "position": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-        },
-        "eRotation": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-        },
-        "scale": {
-            "x": 1,
-            "y": 1,
-            "z": 1
-        }
-    },
+    #PRESET(defaultTransform) [],
     "components": [],
     "immediateChildren": [
         {
@@ -38,168 +22,29 @@
                     "z": 1
                 }
             },
-            "compononents": [
+            "components": [
                 #PRESET(button)
                 [
                     "hello!!!", = "This button was made with a preset!"|
                 ],
 
-                {
-                    "renderLayer": -1,
+                #PRESET(button)
+                [
+                    "69" = "420"|
+                    "hello!!!", = "this is button 2!!!"|
+                ],
 
-                    "anchor": {
-                        "x": 0.5,
-                        "y": 0.5
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.5,
-                            "y": 0.5
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 0.0
-                        },
-                        "offset": {
-                            "x": 240,
-                            "y": 100
-                        }
-                    },
-                    "id": 420,
-                    "type": "UIButton"
-                },
-                {
-                    "parent": 420,
-
-                    "renderLayer": 0,
-
-                    "anchor": {
-                        "x": 0.5,
-                        "y": 0.5
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.5,
-                            "y": 0.5
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-                            "x": 1,
-                            "y": 1
-                        },
-                        "offset": {
-                            "x": -20,
-                            "y": -20
-                        }
-                    },
-
-                    "font": "Comic Sans MS",
-                    "text": "this is button 2!!!",
-                    "type": "UILabel"
-                },
-
-
-
-                {
-                    "renderLayer": -1,
-
-                    "anchor": {
-                        "x": 0.5,
-                        "y": 0.5
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.5,
-                            "y": 0.5
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 0.0
-                        },
-                        "offset": {
-                            "x": 240,
-                            "y": 100
-                        }
-                    },
-                    "id": 800,
-                    "type": "UIButton"
-                },
-                {
-                    "parent": 800,
-
-                    "renderLayer": 0,
-
-                    "anchor": {
-                        "x": 0.5,
-                        "y": 0.5
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.5,
-                            "y": 0.5
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-                            "x": 1,
-                            "y": 1
-                        },
-                        "offset": {
-                            "x": -20,
-                            "y": -20
-                        }
-                    },
-
-                    "text": "And this is my personal favourite button :)",
-                    "type": "UILabel"
-                },
-
-
-
-                {
-                    "type": "TestComponent"
-                }
+                #PRESET(button)
+                [
+                    "69" = "800"|
+                    "hello!!!", = "And this is my personal favourite button :)"|
+                ]
             ]
         },
 
-
-
-
-
-
-
         {
             "name": "Vertical Scroll View",
-            "transform": {
-                "position": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "eRotation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "scale": {
-                    "x": 1,
-                    "y": 1,
-                    "z": 1
-                }
-            },
+            #PRESET(defaultTransform) [],
             "components": [
                 {
                     "renderLayer": -2,
