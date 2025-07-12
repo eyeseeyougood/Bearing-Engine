@@ -8,6 +8,7 @@ namespace Bearing;
 
 public class UITheme
 {
+    public BearingColour selection = BearingColour.LightBlue;
     public BearingColour labelText = BearingColour.Black;
     public BearingColour buttonUpBackground = BearingColour.LightGray;
     public BearingColour buttonDownBackground = BearingColour.Gray;

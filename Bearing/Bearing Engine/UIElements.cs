@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Bearing;
 
@@ -245,7 +246,7 @@ public class UILabel : UIElement
         base.OnLoad();
     }
 
-    private void ResetTexture()
+    protected void ResetTexture()
     {
         if (texture0 != null)
         {
@@ -271,9 +272,85 @@ public class UILabel : UIElement
     }
 }
 
+public class UITextBox : UILabel
+{
+    public UITheme theme = UIManager.currentTheme;
+
+    private UITheme buttonTheme = new UITheme();
+
+    private UIButton button;
+
+    private bool selected = false;
+
+    public UITextBox() : base() { }
+
+    public override void OnLoad()
+    {
+        buttonTheme.buttonUpBackground = theme.selection;
+        buttonTheme.buttonDownBackground = theme.selection;
+        buttonTheme.buttonHoverBackground = theme.selection;
+
+        button = new UIButton()
+        {
+            parent = rid,
+            renderLayer = 0,
+
+            theme = buttonTheme,
+
+            anchor = new Vector2(0.5f, 0.5f),
+
+            position = new UDim2(0.5f, 0.5f),
+
+            size = new UDim2(1, 1),
+        };
+        gameObject.AddComponent(button);
+
+        button.buttonPressed += Pressed;
+
+        base.OnLoad();
+
+        Input.onCharacterPressed += OnCharacterPressed;
+    }
+
+    private void Pressed(object? sender, EventArgs e)
+    {
+        selected = true;
+    }
+
+    public override void OnTick(float dt)
+    {
+        base.OnTick(dt);
+
+        button.theme = selected ? buttonTheme : theme;
+
+        if (Input.GetKeyDown(Keys.Backspace))
+        {
+            text = string.Join("",text.SkipLast(1));
+        }
+        if (Input.GetKeyDown(Keys.Enter) && Input.GetKey(Keys.LeftShift))
+        {
+            text += "\n";
+        }
+        else if ((Input.GetKeyDown(Keys.Escape) || Input.GetKeyDown(Keys.Enter)) && selected)
+        {
+            selected = false;
+        }
+    }
+
+    private void OnCharacterPressed(string character)
+    {
+        if (!selected)
+            return;
+
+        text += character[0];
+
+        ResetTexture();
+    }
+}
+
 public class UIButton : UIElement
 {
-    private UITheme theme = UIManager.currentTheme;
+    public UITheme theme = UIManager.currentTheme;
 
     public event EventHandler buttonPressed = (i, j) => { };
     public event EventHandler buttonHold = (i, j) => { };

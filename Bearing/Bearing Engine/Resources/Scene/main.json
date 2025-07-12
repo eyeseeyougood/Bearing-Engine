@@ -30,15 +30,17 @@
 
                 #PRESET(button)
                 [
-                    "69" = "420"|
+                    69, = 420|
                     "hello!!!", = "this is button 2!!!"|
                 ],
 
                 #PRESET(button)
                 [
-                    "69" = "800"|
+                    69, = 800|
                     "hello!!!", = "And this is my personal favourite button :)"|
-                ]
+                ],
+
+                #PRESET(textbox) []
             ]
         },
 
@@ -73,7 +75,8 @@
                     "contents": [
                         69,
                         420,
-                        800
+                        800,
+                        1000
                     ],
                     "scrollSensitivity": 1,
                     "type": "UIVerticalScrollView"

@@ -12,6 +12,12 @@ public static class Input
 {
     private static KeyboardState kstate;
     private static MouseState mstate;
+    public static event Action<string> onCharacterPressed = (i) => { };
+
+    public static void UpdateKeyPress(int unicode)
+    {
+        onCharacterPressed.Invoke(Encoding.Unicode.GetString(BitConverter.GetBytes(unicode), 0, 4));
+    }
 
     public static void UpdateState(KeyboardState ks, MouseState ms)
     {

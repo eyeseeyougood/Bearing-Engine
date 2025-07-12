@@ -42,11 +42,11 @@ public static class UIManager
         uiElements.Remove(element);
     }
 
-    public static UIElement? FindFromID(int id)
+    public static UIElement? FindFromID(int rid)
     {
         foreach (UIElement element in uiElements)
         {
-            if (element.id == id)
+            if (element.rid == rid)
             {
                 return element;
             }
@@ -101,16 +101,25 @@ public static class UIManager
                 Color = SKColors.White
             };
 
-            var textWidth = paint.MeasureText(text);
+            var lines = text.Split('\n');
             var fontMetrics = paint.FontMetrics;
-            var height = (int)(fontMetrics.Descent - fontMetrics.Ascent);
+            var lineHeight = fontMetrics.Descent - fontMetrics.Ascent;
 
-            using var bitmap = new SKBitmap((int)textWidth, height);
+            // Determine maximum width and total height
+            int width = (int)lines.Max(line => paint.MeasureText(line));
+            int height = (int)(lineHeight * lines.Length);
+
+            using var bitmap = new SKBitmap(width, height);
             using var canvas = new SKCanvas(bitmap);
             canvas.Clear(SKColors.Transparent);
-            canvas.DrawText(text, 0, -fontMetrics.Ascent, paint);
 
-            return Texture.FromData((int)textWidth, height, bitmap.Bytes, OpenTK.Graphics.OpenGL4.TextureWrapMode.ClampToBorder);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                float y = -fontMetrics.Ascent + i * lineHeight;
+                canvas.DrawText(lines[i], 0, y, paint);
+            }
+
+            return Texture.FromData(width, height, bitmap.Bytes, OpenTK.Graphics.OpenGL4.TextureWrapMode.ClampToBorder);
         }
     }
 }

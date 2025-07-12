@@ -92,7 +92,7 @@ public static class SceneLoader
             {
                 onPreset = true;
 
-                presets.Add(new PresetRef());
+                presets.Add(new PresetRef()); 
 
                 prevChar = c;
                 continue;
@@ -148,23 +148,6 @@ public static class SceneLoader
                 continue;
             }
 
-            if (onReplacement)
-            {
-                if (c == ',')
-                {
-                    onReplacement = false;
-                    waitingOnValue = true;
-                    prevChar = c;
-
-                    newValue.Clear();
-                    continue;
-                }
-
-                replacement.Append(c);
-                prevChar = c;
-                continue;
-            }
-
             if (c == ']' && prevChar == '[')
             {
                 onNewValue = false;
@@ -174,6 +157,34 @@ public static class SceneLoader
                 pres.lineRefs.Clear();
                 presets[presets.Count - 1] = pres;
 
+                onName = false;
+                waitingOnValue = false;
+                onReplacement = false;
+                gotName = false;
+
+                prevChar = c;
+                continue;
+            }
+
+            if (onReplacement)
+            {
+                if (c == ',')
+                {
+                    onReplacement = false;
+                    waitingOnValue = true;
+                    prevChar = c;
+
+                    PresetRef pres = presets[presets.Count - 1];
+                    PresetLineRef lref = pres.lineRefs[pres.lineRefs.Count - 1];
+                    lref.replacement = replacement.ToString();
+                    pres.lineRefs[pres.lineRefs.Count - 1] = lref;
+                    presets[presets.Count - 1] = pres;
+
+                    newValue.Clear();
+                    continue;
+                }
+
+                replacement.Append(c);
                 prevChar = c;
                 continue;
             }
@@ -199,6 +210,11 @@ public static class SceneLoader
                 lref.newValue = newValue.ToString();
                 pres.lineRefs[pres.lineRefs.Count - 1] = lref;
                 presets[presets.Count-1] = pres;
+
+                onName = false;
+                waitingOnValue = false;
+                onReplacement = false;
+                gotName = false;
 
                 onPreset = false;
                 prevChar = c;
@@ -242,7 +258,6 @@ public static class SceneLoader
                 prevChar = c;
 
                 replacement.Clear();
-                replacement.Append(c);
                 continue;
             }
         }
@@ -276,6 +291,7 @@ public static class SceneLoader
 
         // replacing text with parsed data
         string replaced = data;
+        int distortion = 0;
         foreach (PresetRef p in presets)
         {
             string presetData = Resources.ReadAllText(Resource.FromPath($"./Resources/Scene/{p.presetName}.preset"));
@@ -291,8 +307,10 @@ public static class SceneLoader
                 cleanedPreset = cleanedPreset.Replace(lr.replacement, lr.newValue);
             }
 
-            replaced = data.Remove(p.startIndex, p.length);
-            replaced = replaced.Insert(p.startIndex, cleanedPreset);
+            replaced = replaced.Remove(p.startIndex+distortion, p.length);
+            replaced = replaced.Insert(p.startIndex+distortion, cleanedPreset);
+
+            distortion += cleanedPreset.Length - p.length;
         }
 
         return replaced;

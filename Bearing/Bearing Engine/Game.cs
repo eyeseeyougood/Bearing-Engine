@@ -73,6 +73,13 @@ public class Game : GameWindow
         root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json"));
     }
 
+    protected override void OnTextInput(TextInputEventArgs e)
+    {
+        Input.UpdateKeyPress(e.Unicode);
+
+        base.OnTextInput(e);
+    }
+
     public void CursorLockStateChanged(bool state)
     {
         if (state)
@@ -102,10 +109,6 @@ public class Game : GameWindow
         root.Tick((float)e.Time);
         PhysicsManager.Tick();
         Time.Tick(e.Time);
-        if (Input.GetKeyDown(Keys.Escape))
-        {
-            Input.LockCursor();
-        }
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)

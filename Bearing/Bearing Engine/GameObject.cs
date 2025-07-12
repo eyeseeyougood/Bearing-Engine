@@ -148,14 +148,14 @@ public class GameObject
 
         transform.onTransformChanged += OnTransformChanged;
 
-        foreach (GameObject child in immediateChildren)
+        foreach (GameObject child in immediateChildren.ToList())
         {
             child._parent = this;
             child.transform.parent = transform;
             child.OnParentChanged();
             child.Load();
         }
-        foreach (Component c in components)
+        foreach (Component c in components.ToList())
         {
             c.gameObject = this;
             c.OnLoad();
