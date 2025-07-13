@@ -474,7 +474,7 @@ public class UIVerticalScrollView : UIElement
             float elementOffset = newIndex * elementNormalisedScale.Y * Game.instance.ClientSize.Y;
 
             element.position = new UDim2(position.scale - new Vector2(0, 0.5f * normalisedScale.Y - elementNormalisedScale.Y * (1-element.anchor.Y)), new Vector2(0, newIndex*spacing + elementOffset));
-            element.size = new UDim2(new Vector2(size.scale.X, element.size.scale.Y), element.size.offset);
+            element.size = new UDim2(new Vector2(size.scale.X, element.size.scale.Y), element.size.offset + new Vector2(size.offset.X, 0));
 
             // check if still in bounding box otherwise dont render
 
@@ -488,6 +488,7 @@ public class UIVerticalScrollView : UIElement
             else if (!Extensions.PointInQuad(ebb.Zw, obb))
                 shouldRender = false;
 
+            shouldRender = true;
             element.visible = shouldRender;
 
             index++;

@@ -40,6 +40,12 @@
                     "hello!!!", = "And this is my personal favourite button :)"|
                 ],
 
+                #PRESET(button)
+                [
+                    69, = 700|
+                    "hello!!!", = "And this is :)"|
+                ],
+
                 #PRESET(textbox) []
             ]
         },
@@ -64,18 +70,15 @@
 
                     "size": {
                         "scale": {
-                            "x": 0.0,
-                            "y": 0.0
+                            "x": 0.2,
+                            "y": 1.0
                         },
-                        "offset": {
-                            "x": 240,
-                            "y": 415
-                        }
                     },
                     "contents": [
                         69,
                         420,
                         800,
+                        700,
                         1000
                     ],
                     "scrollSensitivity": 1,
