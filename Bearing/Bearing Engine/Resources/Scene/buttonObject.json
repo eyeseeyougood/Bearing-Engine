@@ -1,0 +1,68 @@
+{
+    "name": "buttonObject",
+    #PRESET(defaultTransform) [],
+    "components": [
+        {
+            "renderLayer": -1,
+
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            },
+
+            "position": {
+                "scale": {
+                    "x": 0.5,
+                    "y": 0.5
+                }
+            },
+
+            "size": {
+                "scale": {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                "offset": {
+                    "x": 0,
+                    "y": 100
+                }
+            },
+            "rid": 69,
+            "type": "UIButton"
+        },
+
+
+        {
+            "parent": 69,
+
+            "renderLayer": 0,
+
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            },
+
+            "position": {
+                "scale": {
+                    "x": 0.5,
+                    "y": 0.5
+                }
+            },
+
+            "size": {
+                "scale": {
+                    "x": 1,
+                    "y": 1
+                },
+                "offset": {
+                    "x": -20,
+                    "y": -20
+                }
+            },
+
+            "font": "Times New Roman",
+            "text": "hello!!!",
+            "type": "UILabel"
+        }
+    ]
+}

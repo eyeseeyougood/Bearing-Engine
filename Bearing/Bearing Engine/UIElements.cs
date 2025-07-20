@@ -13,6 +13,8 @@ public class UIElement : MeshRenderer
 {
     public UIElement(string mesh) : base(mesh, true) { UIManager.AddUI(this); }
 
+    public List<string> consumedInputs = new List<string>();
+
     public int renderLayer { get; set; }
 
     private bool _setVisible = true;
@@ -32,6 +34,7 @@ public class UIElement : MeshRenderer
 
     public Action positionChanged = () => { };
     public Action sizeChanged = () => { };
+    public Action onCleanup = () => { };
 
     protected UIElement _parent;
 
@@ -102,7 +105,7 @@ public class UIElement : MeshRenderer
         return new Vector4i((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y);
     }
 
-    private void UpdateVisibility()
+    protected virtual void UpdateVisibility()
     {
         if (!_setVisible)
         {
@@ -155,6 +158,7 @@ public class UIElement : MeshRenderer
         {
             _parent.positionChanged += UpdatePosition;
             _parent.sizeChanged += UpdateSize;
+            _parent.onCleanup += ParentCleanedUp;
         }
 
         Game.instance.RemoveOpaqueRenderable(this); // ui should not be handled like all other renderables XDD
@@ -177,6 +181,20 @@ public class UIElement : MeshRenderer
 
         float screenW = Game.instance.Size.X;
         float screenH = Game.instance.Size.Y;
+    }
+
+    public void ParentCleanedUp()
+    {
+        gameObject.RemoveComponent(this);
+        Cleanup();
+    }
+
+    public override void Cleanup()
+    {
+        base.Cleanup();
+
+        onCleanup.Invoke();
+        UIManager.RemoveUI(this);
     }
 
     public override void Render()
@@ -420,14 +438,15 @@ public class UIButton : UIElement
 
 public class UIVerticalScrollView : UIElement
 {
-    private UITheme theme = UIManager.currentTheme;
+    public UITheme theme = UIManager.currentTheme;
 
-    public float scrollSensitivity { get; set; } = 1;
-    public float spacing { get; set; } = 5;
+    public int scrollSensitivity { get; set; } = 1;
+    public int spacing { get; set; } = 5;
 
     public List<int> contents { get; set; } = new List<int>();
 
-    private float scroll;
+    private int scroll;
+    private float scrollOffset;
 
     public UIVerticalScrollView() : base("Quad.obj")
     {
@@ -444,36 +463,152 @@ public class UIVerticalScrollView : UIElement
 
         setup3DMatrices = false;
         SetMesh(new Mesh2D("Quad.obj", true));
+
+        consumedInputs.Add("Scroll");
     }
 
     public override void OnTick(float dt)
     {
         base.OnTick(dt);
+        
+        if (!ChildAbsorbedScroll() && MathF.Abs(Input.GetMouseScrollDelta().Y) > 0)
+            if (Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox()))
+            {
+                int delta = (int)Input.GetMouseScrollDelta().Y;
 
-        scroll += Input.GetMouseScrollDelta().Y * scrollSensitivity;
+                int numInvis = GetInvisibleElements();
+
+                scroll += delta * scrollSensitivity;
+
+                if (-scroll >= contents.Count || -scroll < 0 || numInvis == 0)
+                    scroll -= delta * scrollSensitivity;
+            }
 
         material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.zeroToOne));
+    }
+
+    private bool ChildAbsorbedScroll()
+    {
+        bool result = false;
+
+        foreach (int el in contents)
+        {
+            UIElement elem = UIManager.FindFromID(el);
+
+            if (!elem.consumedInputs.Contains("Scroll"))
+                continue;
+
+            if (Extensions.PointInQuad(Game.instance.MousePosition, elem.GetScreenBoundingBox()))
+            {
+                result = true;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    public void ClearContents()
+    {
+        foreach (int elem in contents.ToList())
+        {
+            UIElement element = UIManager.FindFromID(elem);
+
+            if (element != null)
+                element.gameObject.RemoveComponent(element);
+        }
+    }
+
+    public override void Cleanup()
+    {
+        base.Cleanup();
+
+        ClearContents();
+    }
+
+    public void SetScrollAmount(int amount)
+    {
+        scroll = amount;
+    }
+
+    public int GetScrollAmount()
+    {
+        return scroll;
+    }
+
+    protected override void UpdateVisibility()
+    {
+        base.UpdateVisibility();
+
+        foreach (int item in contents)
+        {
+            UIElement? element = UIManager.FindFromID(item);
+
+            element.visible = false;
+        }
+    }
+
+    // TODO: OPTIMISATION - can make this better by just keeping a cache variable that increments and decrements from the beforerender function
+    private int GetInvisibleElements()
+    {
+        int result = 0;
+
+        foreach (int item in contents)
+        {
+            UIElement? element = UIManager.FindFromID(item);
+
+            if (!element.visible)
+            {
+                result++;
+            }
+        }
+
+        return result;
+    }
+
+    private void UpdateScrollOffset()
+    {
+        scrollOffset = 0;
+        for (int i = 0; i < -scroll; i++)
+        {
+            UIElement el = UIManager.FindFromID(contents[i]);
+            Vector2 normalisedScale = el.size.scale + (el.size.offset / Game.instance.ClientSize);
+            scrollOffset += normalisedScale.Y;
+        }
+
+        scrollOffset += spacing / (float)Game.instance.ClientSize.Y * -scroll;
     }
 
     protected override void BeforeRender()
     {
         base.BeforeRender();
 
+        UpdateScrollOffset();
+
         int index = 0;
+        UIElement prevElement = null;
         foreach (int item in contents)
         {
             UIElement? element = UIManager.FindFromID(item);
 
             if (element == null) { continue; }
 
-            Vector2 normalisedScale = size.scale + (size.offset / Game.instance.ClientSize);
-            Vector2 elementNormalisedScale = element.size.scale + (element.size.offset / Game.instance.ClientSize);
-
             float newIndex = index + scroll;
 
-            float elementOffset = newIndex * elementNormalisedScale.Y * Game.instance.ClientSize.Y;
+            Vector2 normalisedScale = size.scale + (size.offset / Game.instance.ClientSize);
+            Vector2 elementNormalisedScale = element.size.scale + (element.size.offset / Game.instance.ClientSize);
+            Vector2 prevElementNormalisedScale = elementNormalisedScale;
 
-            element.position = new UDim2(position.scale, new Vector2(0, newIndex*spacing + elementOffset));
+            Vector2 prevElementNormalisedPos = new Vector2(0, -scrollOffset - elementNormalisedScale.Y) + (position.offset-Vector2.UnitY*spacing) / Game.instance.ClientSize;
+            if (prevElement != null)
+            {
+                prevElementNormalisedScale = prevElement.size.scale + (prevElement.size.offset / Game.instance.ClientSize);
+                prevElementNormalisedPos = prevElement.position.scale + (prevElement.position.offset / Game.instance.ClientSize);
+            }
+
+            float elementOffset = prevElementNormalisedPos.Y * Game.instance.ClientSize.Y + prevElementNormalisedScale.Y * Game.instance.ClientSize.Y;
+
+            element.position = new UDim2(position.scale, new Vector2(0, spacing + elementOffset));
             element.size = new UDim2(new Vector2(size.scale.X, element.size.scale.Y), element.size.offset + new Vector2(size.offset.X, 0));
 
             element.anchor = anchor;
@@ -491,6 +626,8 @@ public class UIVerticalScrollView : UIElement
                 shouldRender = false;
 
             element.visible = shouldRender;
+
+            prevElement = element;
 
             index++;
         }

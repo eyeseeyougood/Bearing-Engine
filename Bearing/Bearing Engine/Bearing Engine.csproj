@@ -11,7 +11,6 @@
   <ItemGroup>
     <Folder Include="EngineData\Audio\" />
     <Folder Include="EngineData\Textures\" />
-    <Folder Include="Resources\Models\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -276,11 +276,12 @@ public static class SceneLoader
                 onPreset = true;
             }
 
-            if (c == ']' && (prevChar == '|' || prevChar == '['))
+            if (c == ']' && (prevChar == '|' || prevChar == '[') && onPreset)
             {
                 PresetRef pres = presets[pid];
                 pres.length = index - pres.startIndex + 1; // +1 accounts for the last bracket
                 presets[pid] = pres;
+                onPreset = false;
             }
 
             if (c != ' ' && c != '\n' && c != '\r' && c != '\t')

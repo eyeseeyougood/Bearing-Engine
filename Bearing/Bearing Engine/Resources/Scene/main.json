@@ -4,54 +4,26 @@
     "components": [],
     "immediateChildren": [
         {
-            "name": "test object",
-            "transform": {
-                "position": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "eRotation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "scale": {
-                    "x": 1,
-                    "y": 1,
-                    "z": 1
-                }
-            },
+            "name": "Cube!",
+            #PRESET(defaultTransform) [],
             "components": [
-                #PRESET(button)
-                [
-                    "hello!!!", = "This button was made with a preset!"|
-                ],
-
-                #PRESET(button)
-                [
-                    69, = 420|
-                    "hello!!!", = "this is button 2!!!"|
-                ],
-
-                #PRESET(button)
-                [
-                    69, = 800|
-                    "hello!!!", = "And this is my personal favourite button :)"|
-                ],
-
-                #PRESET(button)
-                [
-                    69, = 700|
-                    "hello!!!", = "And this is :)"|
-                ],
-
-                #PRESET(textbox) []
+                #PRESET(defaultMeshRenderer) []
+            ]
+        },
+        {
+            "name": "Cube 1",
+            #PRESET(defaultTransform) [],
+            "components": [
+                #PRESET(defaultMeshRenderer) [],
+                {
+                    "type": "TestComponent"
+                }
             ]
         },
 
         {
-            "name": "Vertical Scroll View",
+            "name": "Hierarchy",
+            "tag": "Hierarchy",
             #PRESET(defaultTransform) [],
             "components": [
                 {
@@ -74,18 +46,61 @@
                             "y": 1.0
                         },
                         "offset": {
-                            "y": 150,
+                            "y": 150
                         }
                     },
                     "contents": [
-                        69,
-                        420,
-                        800,
-                        700,
-                        1000
                     ],
+
+                    "rid": 1,
                     "scrollSensitivity": 1,
                     "type": "UIVerticalScrollView"
+                },
+
+                {
+                    "type": "Hierarchy"
+                }
+            ]
+        },
+
+
+        {
+            "name": "Inspector",
+            "tag": "Inspector",
+            #PRESET(defaultTransform) [],
+            "components": [
+                {
+                    "renderLayer": -2,
+                    "anchor": {
+                        "x": 1.0,
+                        "y": 0.0
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 1.0,
+                            "y": 0.0
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+
+                            "x": 0.2,
+                            "y": 1.0
+                        },
+                        "offset": {
+                            "y": 150
+                        }
+                    },
+                    
+                    "rid": 2,
+                    "scrollSensitivity": 1,
+                    "type": "UIVerticalScrollView"
+                },
+
+                {
+                    "type": "Inspector"
                 }
             ]
         }

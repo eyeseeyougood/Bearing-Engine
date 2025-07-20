@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 
 namespace Bearing;
 
-public class GameObject
+public class GameObject : IMetadata
 {
     public string name { get; set; }
     public string tag { get; set; }
     public int id { get; private set; }
-    public List<object> metadata { get; set; }
+
+    public object[] metadata { get; set; } = new object[0];
 
     public Transform3D transform { get; set; }
 
@@ -111,7 +112,6 @@ public class GameObject
         transform ??= new Transform3D();
         immediateChildren ??= new List<GameObject>();
         components ??= new List<Component>();
-        metadata ??= new List<object>();
     }
 
     public GameObject parent
@@ -158,6 +158,8 @@ public class GameObject
         foreach (Component c in components.ToList())
         {
             c.gameObject = this;
+            if (c.id == -1)
+                c.id = GetUniqueCompID();
             c.OnLoad();
         }
     }
@@ -222,9 +224,11 @@ public class GameObject
         component.OnLoad();
     }
 
-    public void RemoveComponent(Component component)
+    public void RemoveComponent(Component component, bool cleanup = true)
     {
-        component.Cleanup();
+        if (cleanup)
+            component.Cleanup();
+
         components.Remove(component);
     }
 
