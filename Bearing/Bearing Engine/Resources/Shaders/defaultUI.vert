@@ -12,6 +12,8 @@ uniform vec2 texSize;
 
 uniform vec2 screenSize;
 
+uniform int fitToTexRatio;
+
 out vec2 texCoord;
 
 void main()
@@ -28,13 +30,28 @@ void main()
 
     gl_Position = vec4(aPosition * sizing + positioning, 0.0, 0.5);
 
-    // To unstretch the text we must apply aspect ratio to each texCoord XD
-    float uiAspect = sizing.x / sizing.y;
+    if (fitToTexRatio == 0)
+    {
+        texCoord = aTexCoord;
+        return;
+    }
+
+    // adjust UVs to fit to text to confines
+    vec2 quadPixels = sizing * screenSize;
+
+    float quadAspect = quadPixels.x / quadPixels.y;
     float texAspect = texSize.x / texSize.y;
 
-    float ratio = texAspect / uiAspect;
+    float scaleX = 1.0;
+    float scaleY = texAspect / quadAspect;
 
-    ratio = mix(1.0, ratio, 0.5); // only do half of this because the other half gets applied to other vertices XD
+    if (scaleY < 1.0)
+    {
+        scaleY = 1.0;
+        scaleX = quadAspect / texAspect;
+    }
 
-    texCoord = vec2(aTexCoord.x, aTexCoord.y * ratio + (1.0 - ratio) * 0.5);
+    vec2 texCenter = aTexCoord - vec2(0.5);
+    texCenter *= vec2(scaleX, scaleY);
+    texCoord = texCenter + vec2(0.5);
 }

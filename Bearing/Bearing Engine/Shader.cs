@@ -21,7 +21,7 @@ namespace Bearing
             this.vert = vert;
             this.frag = frag;
 
-            var shaderSource = Resources.ReadAllText(Resource.GetEngineShader(vert));
+            var shaderSource = Resources.ReadAllText(Resource.GetShader(vert, true));
 
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
 
@@ -29,7 +29,7 @@ namespace Bearing
 
             CompileShader(vertexShader);
 
-            shaderSource = Resources.ReadAllText(Resource.GetEngineShader(frag));
+            shaderSource = Resources.ReadAllText(Resource.GetShader(frag, true));
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, shaderSource);
             CompileShader(fragmentShader);

@@ -9,23 +9,31 @@ namespace Bearing;
 
 public class AudioSource : Component
 {
-    public string resource { get; set; }
+    public Resource resource { get; set; } = new Resource();
     public bool playOnLoad { get; set; }
     public float volume { get; set; }
 
-    public AudioSource() { resource = ""; }
-
-    private WaveChannel32 channel;
+    private List<WaveChannel32> channels = new List<WaveChannel32>();
 
     public override void Cleanup()
     {
-        channel?.Dispose();
+        int c = channels.Count;
+        for (int i = 0; i < c; i++)
+        {
+            channels[0]?.Dispose();
+            channels.RemoveAt(0);
+        }
+    }
+
+    public void ForcePlay()
+    {
+        channels.Add(AudioManager.Play(resource, volume));
     }
 
     public override void OnLoad()
     {
         if (playOnLoad)
-            channel = AudioManager.Play(resource, volume);
+            ForcePlay();
     }
 
     public override void OnTick(float dt)

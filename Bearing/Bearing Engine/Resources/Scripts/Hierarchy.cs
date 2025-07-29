@@ -76,6 +76,8 @@ public class Hierarchy : Component
             
             AddHierarchyObject(obj);
         }
+
+        selectedID = -1;
     }
 
     private void AddHierarchyObject(GameObject go)

@@ -8,40 +8,53 @@ using System.Threading.Tasks;
 
 namespace Bearing;
 
-public class Resource
+public class Resource : IMetadata
 {
+    public object[] metadata { get; set; } = new object[1];
     public string fullpath { get; set; }
 
-    public static Resource FromPath(string path)
+    public static Resource FromPath(string path, string type = "unknown")
     {
         Resource r = new Resource();
         r.fullpath = path;
+        r.metadata[0] = type;
         return r;
     }
 
-    public static Resource GetModel(string name)
+    public static Resource GetModel(string name, bool isEngineData = false)
     {
-        return FromPath("./Resources/Models/"+name);
+        string pref = isEngineData ? "EngineData" : "Resources";
+        return FromPath($"./{pref}/Model/" + name, "model");
     }
 
-    public static Resource GetAudio(string name)
+    public static Resource GetMusic(string name, bool isEngineData = false)
     {
-        return FromPath("./Resources/Audio/" + name);
+        string pref = isEngineData ? "EngineData" : "Resources";
+        return FromPath($"./{pref}/Audio/Music/" + name, "music");
     }
 
-    public static Resource GetShader(string name)
+    public static Resource GetSFX(string name, bool isEngineData = false)
     {
-        return FromPath("./Resources/Shaders/" + name);
+        string pref = isEngineData ? "EngineData" : "Resources";
+        return FromPath($"./{pref}/Audio/SFX/" + name, "sfx");
     }
 
-    public static Resource GetEngineShader(string name)
+    public static Resource GetAudio(string name, bool isEngineData = false)
     {
-        return FromPath("./EngineData/Shaders/" + name);
+        string pref = isEngineData ? "EngineData" : "Resources";
+        return FromPath($"./{pref}/Audio/" + name, "audio");
     }
 
-    public static Resource GetTexture(string name)
+    public static Resource GetShader(string name, bool isEngineData = false)
     {
-        return FromPath("./Resources/Textures/" + name);
+        string pref = isEngineData ? "EngineData" : "Resources";
+        return FromPath($"./{pref}/Shaders/" + name, "shader");
+    }
+
+    public static Resource GetTexture(string name, bool isEngineData = false)
+    {
+        string pref = isEngineData ? "EngineData" : "Resources";
+        return FromPath($"./{pref}/Textures/" + name, "texture");
     }
 }
 

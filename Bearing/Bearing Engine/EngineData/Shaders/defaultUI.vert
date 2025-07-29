@@ -12,6 +12,8 @@ uniform vec2 texSize;
 
 uniform vec2 screenSize;
 
+uniform int fitToTexRatio;
+
 out vec2 texCoord;
 
 void main()
@@ -28,7 +30,13 @@ void main()
 
     gl_Position = vec4(aPosition * sizing + positioning, 0.0, 0.5);
 
-    // Adjust UVs to fit to text to confines
+    if (fitToTexRatio == 0)
+    {
+        texCoord = aTexCoord;
+        return;
+    }
+
+    // adjust UVs to fit to text to confines
     vec2 quadPixels = sizing * screenSize;
 
     float quadAspect = quadPixels.x / quadPixels.y;

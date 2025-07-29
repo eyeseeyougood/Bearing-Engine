@@ -11,6 +11,8 @@ public static class UIManager
 {
     public static List<UIElement> uiElements = new List<UIElement>();
 
+    public static event EventHandler<string> uiEvent = (i,v)=>{};
+
     private static ElementComparer elementComp = new ElementComparer();
 
     public static UITheme currentTheme = new UITheme();
@@ -34,6 +36,7 @@ public static class UIManager
         {
             element.rid = GetUniqueUIID();
         }
+        // TODO: MAGIC - FIGURE OUT WHY THIS BREAKS STUFF
         uiElements.Sort(elementComp);
     }
 
@@ -85,6 +88,11 @@ public static class UIManager
             prevOrder.Add(element.rid);
             indx++;
         }
+    }
+
+    public static void SendEvent(object sender, string eventType)
+    {
+        uiEvent.Invoke(sender, eventType);
     }
 
     public static class UITextHelper

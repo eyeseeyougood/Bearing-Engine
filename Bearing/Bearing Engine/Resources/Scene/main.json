@@ -93,15 +93,16 @@
                             "y": 150
                         }
                     },
-                    
+
                     "rid": 2,
+                    "clipContents": false,
                     "scrollSensitivity": 1,
                     "type": "UIVerticalScrollView"
                 },
 
                 {
                     "type": "Inspector"
-                }
+                },
             ]
         }
     ]

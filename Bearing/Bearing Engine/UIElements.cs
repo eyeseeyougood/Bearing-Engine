@@ -11,14 +11,17 @@ namespace Bearing;
 
 public class UIElement : MeshRenderer
 {
+    public UITheme theme = UIManager.currentTheme;
+    public UITheme themeOverride = UITheme.Empty;
+
     public UIElement(string mesh) : base(mesh, true) { UIManager.AddUI(this); }
 
     public List<string> consumedInputs = new List<string>();
 
     public int renderLayer { get; set; }
 
-    private bool _setVisible = true;
-    private bool _visible = true;
+    protected bool _setVisible = true;
+    protected bool _visible = true;
     public bool visible
     {
         get
@@ -53,7 +56,7 @@ public class UIElement : MeshRenderer
         }
     }
 
-    public Vector2 _anchor { get; set; } = new Vector2(0,0);
+    protected Vector2 _anchor { get; set; } = new Vector2(0,0);
     public Vector2 anchor
     {
         get
@@ -66,8 +69,8 @@ public class UIElement : MeshRenderer
         }
     }
 
-    public UDim2 _setPos{ get; set; } = new UDim2(0.0f, 0.0f, 0, 0);
-    public UDim2 _position { get; set; } = new UDim2(0.0f, 0.0f, 0, 0);
+    protected UDim2 _setPos{ get; set; } = new UDim2(0.0f, 0.0f, 0, 0);
+    protected UDim2 _position { get; set; } = new UDim2(0.0f, 0.0f, 0, 0);
     public UDim2 position { 
         get {
             return _position;
@@ -78,8 +81,8 @@ public class UIElement : MeshRenderer
             positionChanged.Invoke();
         }
     }
-    public UDim2 _setSize { get; set; } = new UDim2(0.0f,0.0f,200,200);
-    public UDim2 _size { get; set; } = new UDim2(0.0f,0.0f,200,200);
+    protected UDim2 _setSize { get; set; } = new UDim2(0.0f,0.0f,200,200);
+    protected UDim2 _size { get; set; } = new UDim2(0.0f,0.0f,200,200);
     public UDim2 size
     {
         get
@@ -91,6 +94,18 @@ public class UIElement : MeshRenderer
             _setSize = value;
             UpdateSize();
             sizeChanged.Invoke();
+        }
+    }
+
+    public T GetThemeValue<T>(string key)
+    {
+        if (typeof(UITheme).GetField(key).GetValue(themeOverride) == null)
+        {
+            return (T)typeof(UITheme).GetField(key).GetValue(theme);
+        }
+        else
+        {
+            return (T)typeof(UITheme).GetField(key).GetValue(themeOverride);
         }
     }
 
@@ -215,12 +230,59 @@ public class UIPanel : UIElement
         setup3DMatrices = false;
         SetMesh(new Mesh2D("Quad.obj", true));
     }
+
+    public override void OnTick(float dt)
+    {
+        base.OnTick(dt);
+
+        material.SetShaderParameter(new ShaderParam("mainColour", GetThemeValue<BearingColour>("uiPanelBG").zeroToOne));
+    }
+}
+
+public class UIImage : UIElement
+{
+    public UIImage() : base("Quad.obj")
+    {
+        material = new Material()
+        {
+            shader = new Shader("defaultUI.vert", "textureUI.frag"),
+            attribs = new List<ShaderAttrib>()
+            {
+                new ShaderAttrib() { name = "aPosition", size = 2 },
+                new ShaderAttrib() { name = "aTexCoord", size = 2 },
+            },
+            parameters = new List<ShaderParam>()
+            {
+                new ShaderParam() { name = "mainColour", vector4 = new Vector4(0.9f, 0.9f, 0.9f, 1.0f) },
+            },
+            is3D = false
+        };
+        setup3DMatrices = false;
+        SetMesh(new Mesh2D("Quad.obj", true));
+    }
+
+    public void SetTexture(Texture texture)
+    {
+        if (texture0 != null)
+        {
+            texture0.Dispose();
+        }
+
+        texture0 = texture;
+    }
+
+    public override void OnTick(float dt)
+    {
+        base.OnTick(dt);
+
+        material.SetShaderParameter(new ShaderParam("mainColour", Vector4.One));
+        material.SetShaderParameter(new ShaderParam("texSize", new Vector2(texture0._width, texture0._height)));
+        material.SetShaderParameter(new ShaderParam("fitToTexRatio", 0));
+    }
 }
 
 public class UILabel : UIElement
 {
-    public UITheme theme = UIManager.currentTheme;
-
     private string _text = "Label";
 
     public string text
@@ -264,7 +326,14 @@ public class UILabel : UIElement
         base.OnLoad();
     }
 
-    protected void ResetTexture()
+    public virtual void SetTextWithoutEventTrigger(string newValue)
+    {
+        _text = newValue;
+
+        ResetTexture();
+    }
+
+    protected virtual void ResetTexture()
     {
         if (texture0 != null)
         {
@@ -285,35 +354,40 @@ public class UILabel : UIElement
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter(new ShaderParam("mainColour", theme.labelText.zeroToOne));
+        material.SetShaderParameter(new ShaderParam("mainColour", theme.labelText.Value.zeroToOne));
         material.SetShaderParameter(new ShaderParam("texSize", new Vector2(texture0._width, texture0._height)));
+        fitHeightToWidth = true;
+        material.SetShaderParameter(new ShaderParam("fitToTexRatio", fitHeightToWidth ? 1:0));
     }
 }
 
 public class UITextBox : UILabel
 {
-    public UITheme theme = UIManager.currentTheme;
-
-    private UITheme buttonTheme = new UITheme();
-
     private UIButton button;
 
     private bool selected = false;
 
-    public UITextBox() : base() { }
+    public bool multiline { get; set; } = true;
+
+    public UITextBox() : base() {
+        consumedInputs = new List<string>()
+        {
+            "leftClick",
+            "enter",
+            "characters",
+            "escape",
+            "leftShift",
+            "backspace"
+        }; }
 
     public override void OnLoad()
     {
-        buttonTheme.buttonUpBackground = theme.selection;
-        buttonTheme.buttonDownBackground = theme.selection;
-        buttonTheme.buttonHoverBackground = theme.selection;
-
         button = new UIButton()
         {
             parent = rid,
-            renderLayer = 0,
+            renderLayer = renderLayer-1,
 
-            theme = buttonTheme,
+            theme = theme,
 
             anchor = new Vector2(0.5f, 0.5f),
 
@@ -324,10 +398,22 @@ public class UITextBox : UILabel
         gameObject.AddComponent(button);
 
         button.buttonPressed += Pressed;
+        UIManager.uiEvent += OnEvent;
 
         base.OnLoad();
 
         Input.onCharacterPressed += OnCharacterPressed;
+    }
+
+    private void OnEvent(object? sender, string e)
+    {
+        if (e != "UIClicked")
+            return;
+
+        if (sender != button)
+        {
+            selected = false;
+        }
     }
 
     private void Pressed(object? sender, EventArgs e)
@@ -339,13 +425,17 @@ public class UITextBox : UILabel
     {
         base.OnTick(dt);
 
-        button.theme = selected ? buttonTheme : theme;
+        button.themeOverride.buttonHoverBackground = selected ? theme.selection : null;
+        button.themeOverride.buttonDownBackground = selected ? theme.selection : null;
+        button.themeOverride.buttonUpBackground = selected ? theme.selection : null;
 
-        if (Input.GetKeyDown(Keys.Backspace))
+        if (Input.GetKeyDown(Keys.Backspace) && selected)
         {
             text = string.Join("",text.SkipLast(1));
+            if (text == "")
+                text = " ";
         }
-        if (Input.GetKeyDown(Keys.Enter) && Input.GetKey(Keys.LeftShift))
+        if (Input.GetKeyDown(Keys.Enter) && Input.GetKey(Keys.LeftShift) && selected && multiline)
         {
             text += "\n";
         }
@@ -368,14 +458,17 @@ public class UITextBox : UILabel
 
 public class UIButton : UIElement
 {
-    public UITheme theme = UIManager.currentTheme;
-
     public event EventHandler buttonPressed = (i, j) => { };
     public event EventHandler buttonHold = (i, j) => { };
     public event EventHandler buttonReleased = (i, j) => { };
 
+    public event EventHandler mouseEnter = (i, j) => { };
+    public event EventHandler mouseLeave = (i, j) => { };
+
     public UIButton() : base("Quad.obj")
     {
+        themeOverride = (UITheme)UIManager.currentTheme.Clone();
+
         material = new Material()
         {
             shader = new Shader("defaultUI.vert", "defaultUI.frag"),
@@ -391,6 +484,8 @@ public class UIButton : UIElement
         SetMesh(new Mesh2D("Quad.obj", true));
     }
 
+    private bool prevHover = false;
+    private bool hover = false;
     private bool prevPressed = false;
     private bool pressed = false;
 
@@ -398,23 +493,47 @@ public class UIButton : UIElement
     {
         base.OnTick(dt);
 
-        BearingColour bg = theme.buttonUpBackground;
+        BearingColour bg = GetThemeValue<BearingColour>("buttonUpBackground");
 
         pressed = false;
+        hover = false;
         if (Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox()) && visible)
         {
-            bg = theme.buttonHoverBackground;
+            hover = true;
+            bg = GetThemeValue<BearingColour>("buttonHoverBackground");
             if (Input.GetMouseButton(0))
             {
-                bg = theme.buttonDownBackground;
+                bg = GetThemeValue<BearingColour>("buttonDownBackground");
                 pressed = true;
             }
+        }
+
+        if (hover && !prevHover)
+        {
+            // mouse entered this frame
+            mouseEnter.Invoke(this, new EventArgs());
+
+            var tg = GetThemeValue<string>("buttonHoverAudio");
+
+            if (GetThemeValue<string>("buttonHoverAudio") != "None")
+                AudioManager.Play(Resource.GetSFX(GetThemeValue<string>("buttonHoverAudio"), true), 1f);
+        }
+
+        if (!hover && prevHover)
+        {
+            // mouse left this frame
+            mouseLeave.Invoke(this, new EventArgs());
         }
 
         if (pressed && !prevPressed)
         {
             // pressed this frame
             buttonPressed.Invoke(this, new EventArgs());
+
+            UIManager.SendEvent(this, "UIClicked");
+
+            if (GetThemeValue<string>("buttonDownAudio") != "None")
+                AudioManager.Play(Resource.GetSFX(GetThemeValue<string>("buttonDownAudio"), true), 1f);
         }
 
         if (pressed)
@@ -427,9 +546,13 @@ public class UIButton : UIElement
         {
             // released this frame
             buttonReleased.Invoke(this, new EventArgs());
+
+            if (GetThemeValue<string>("buttonUpAudio") != "None")
+                AudioManager.Play(Resource.GetSFX(GetThemeValue<string>("buttonUpAudio"), true), 1f);
         }
 
         prevPressed = pressed;
+        prevHover = hover;
 
         // handle colour
         material.SetShaderParameter(new ShaderParam("mainColour", bg.zeroToOne));
@@ -439,9 +562,11 @@ public class UIButton : UIElement
 public class UIVerticalScrollView : UIElement
 {
     public UITheme theme = UIManager.currentTheme;
+    public UITheme themeOverride;
 
     public int scrollSensitivity { get; set; } = 1;
     public int spacing { get; set; } = 5;
+    public bool clipContents { get; set; } = true;
 
     public List<int> contents { get; set; } = new List<int>();
 
@@ -450,6 +575,8 @@ public class UIVerticalScrollView : UIElement
 
     public UIVerticalScrollView() : base("Quad.obj")
     {
+        themeOverride = (UITheme)UIManager.currentTheme.Clone();
+
         material = new Material()
         {
             shader = new Shader("defaultUI.vert", "defaultUI.frag"),
@@ -480,11 +607,11 @@ public class UIVerticalScrollView : UIElement
 
                 scroll += delta * scrollSensitivity;
 
-                if (-scroll >= contents.Count || -scroll < 0 || numInvis == 0)
+                if (-scroll >= contents.Count || -scroll < 0 || (numInvis == 0 && clipContents))
                     scroll -= delta * scrollSensitivity;
             }
 
-        material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.zeroToOne));
+        material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.Value.zeroToOne));
     }
 
     private bool ChildAbsorbedScroll()
@@ -620,10 +747,14 @@ public class UIVerticalScrollView : UIElement
             Vector4 obb = GetScreenBoundingBox();
 
             bool shouldRender = true;
-            if (!Extensions.PointInQuad(ebb.Xy, obb))
-                shouldRender = false;
-            else if (!Extensions.PointInQuad(ebb.Zw, obb))
-                shouldRender = false;
+            
+            if (clipContents)
+            {
+                if (!Extensions.PointInQuad(ebb.Xy, obb))
+                    shouldRender = false;
+                else if (!Extensions.PointInQuad(ebb.Zw, obb))
+                    shouldRender = false;
+            }
 
             element.visible = shouldRender;
 

@@ -104,6 +104,7 @@ public class Game : GameWindow
         MultiplayerManager.Tick((float)e.Time);
 
         SceneLoader.Tick();
+        AudioManager.Tick();
         Input.UpdateState(KeyboardState, MouseState);
         gameTick.Invoke();
         root.Tick((float)e.Time);
