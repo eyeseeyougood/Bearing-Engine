@@ -17,6 +17,8 @@ public static class UIManager
 
     public static UITheme currentTheme = new UITheme();
 
+    public static bool cursorOverUI = false;
+
     private static int currentID = -1;
     private static List<int> usedIDs = new List<int>();
     public static int GetUniqueUIID()
@@ -90,8 +92,20 @@ public static class UIManager
         }
     }
 
+    private static List<object> hoveredObjects = new List<object>();
     public static void SendEvent(object sender, string eventType)
     {
+        if (eventType == "MouseEnter")
+        {
+            hoveredObjects.Add(sender);
+        }
+        if (eventType == "MouseExit")
+        {
+            hoveredObjects.Remove(sender);
+        }
+
+        cursorOverUI = hoveredObjects.Count > 0;
+
         uiEvent.Invoke(sender, eventType);
     }
 

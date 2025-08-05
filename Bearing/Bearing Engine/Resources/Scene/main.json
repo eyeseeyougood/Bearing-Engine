@@ -7,7 +7,11 @@
             "name": "Cube!",
             #PRESET(defaultTransform) [],
             "components": [
-                #PRESET(defaultMeshRenderer) []
+                #PRESET(defaultMeshRenderer)
+                [
+                    0.7, = 0.2|
+                    "z": 0.1, = "z": 0.7|
+                ]
             ]
         },
         {
@@ -17,7 +21,7 @@
                 #PRESET(defaultMeshRenderer) [],
                 {
                     "type": "TestComponent"
-                }
+                }                
             ]
         },
 
@@ -96,13 +100,17 @@
 
                     "rid": 2,
                     "clipContents": false,
-                    "scrollSensitivity": 1,
+                    "scrollSensitivity": 5,
+                    "scrollByComponents": false,
                     "type": "UIVerticalScrollView"
                 },
 
                 {
                     "type": "Inspector"
                 },
+                {
+                    "type": "CameraMovement"
+                }
             ]
         }
     ]

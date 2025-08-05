@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Bearing;
+using OpenTK.Mathematics;
 
 public class TestComponent : Component
 {
     public string objectName { get; set; } = "";
+    public Vector3 SomeVector { get; set; } = Vector3.Zero;
 
     public override void Cleanup()
     {

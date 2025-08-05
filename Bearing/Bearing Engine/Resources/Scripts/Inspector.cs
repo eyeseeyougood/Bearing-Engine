@@ -65,10 +65,43 @@ public class Inspector : Component
         if (Hierarchy.instance.selectedID == -1)
             return;
 
-        foreach (Component c in GameObject.Find(Hierarchy.instance.selectedName).components.ToList())
+        GameObject selected = GameObject.Find(Hierarchy.instance.selectedName);
+
+        AddTransformObject(selected);
+        foreach (Component c in selected.components.ToList())
         {
             AddInspectorObject(c);
         }
+    }
+
+    private void AddTransformObject(GameObject obj)
+    {
+        Transform3D t = obj.transform;
+
+        GameObject prefab = SceneLoader.LoadFromFile("./Resources/Scene/buttonObject.json", true);
+        Component newUI1 = prefab.GetComponent(0);
+        Component newUI2 = prefab.GetComponent(1);
+        prefab.RemoveComponent(newUI1, false);
+        prefab.RemoveComponent(newUI2, false);
+
+        gameObject.AddComponent(newUI1);
+        gameObject.AddComponent(newUI2);
+        newUI1.OnLoad();
+        newUI2.OnLoad();
+
+        ((UIElement)newUI1).rid = UIManager.GetUniqueUIID();
+
+        ((UILabel)newUI2).text = t.GetType().Name;
+        ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
+
+        scrollView.contents.Add(((UIElement)newUI1).rid);
+
+        InspectorItem iI = new InspectorItem();
+        iI.compId = -3; // special value for transform
+        iI.linkedObject = obj;
+        gameObject.AddComponent(iI);
+
+        prefab.Cleanup();
     }
 
     private void AddInspectorObject(Component c)

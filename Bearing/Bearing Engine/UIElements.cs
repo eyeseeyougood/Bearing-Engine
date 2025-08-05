@@ -41,6 +41,8 @@ public class UIElement : MeshRenderer
 
     protected UIElement _parent;
 
+    protected bool mouseOver = false;
+
     public int parent { // id
         get
         {
@@ -51,7 +53,22 @@ public class UIElement : MeshRenderer
         }
         set
         {
+            if (_parent != null)
+            {
+                _parent.positionChanged -= UpdatePosition;
+                _parent.sizeChanged -= UpdateSize;
+                _parent.onCleanup -= ParentCleanedUp;
+            }
+
             _parent = UIManager.FindFromID(value);
+
+            if (_parent != null)
+            {
+                _parent.positionChanged += UpdatePosition;
+                _parent.sizeChanged += UpdateSize;
+                _parent.onCleanup += ParentCleanedUp;
+            }
+
             UpdatePosition();
         }
     }
@@ -169,13 +186,6 @@ public class UIElement : MeshRenderer
     {
         base.OnLoad();
 
-        if (_parent != null)
-        {
-            _parent.positionChanged += UpdatePosition;
-            _parent.sizeChanged += UpdateSize;
-            _parent.onCleanup += ParentCleanedUp;
-        }
-
         Game.instance.RemoveOpaqueRenderable(this); // ui should not be handled like all other renderables XDD
     }
 
@@ -196,19 +206,35 @@ public class UIElement : MeshRenderer
 
         float screenW = Game.instance.Size.X;
         float screenH = Game.instance.Size.Y;
+
+        // TODO: OPTIMISATION - getting bounds box
+        bool m = Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox());
+        if (m && !mouseOver)
+        {
+            // mouse entered
+            UIManager.SendEvent(this, "MouseEnter");
+        }
+        else if (!m && mouseOver)
+        {
+            // mouse left
+            UIManager.SendEvent(this, "MouseExit");
+        }
+
+        mouseOver = m;
     }
 
     public void ParentCleanedUp()
     {
-        gameObject.RemoveComponent(this);
+        gameObject.RemoveComponent(this, false);
+
         Cleanup();
     }
 
     public override void Cleanup()
     {
+        onCleanup.Invoke();
         base.Cleanup();
 
-        onCleanup.Invoke();
         UIManager.RemoveUI(this);
     }
 
@@ -305,6 +331,17 @@ public class UILabel : UIElement
 
     public UILabel() : base("Quad.obj") { }
 
+    public override void Cleanup()
+    {
+        if (onTextChanged != null)
+        {
+            Delegate[] subscribers = onTextChanged.GetInvocationList();
+            foreach (var d in subscribers)
+                onTextChanged -= d as EventHandler<string>;
+        }
+        base.Cleanup();
+    }
+
     public override void OnLoad()
     {
         material = new Material()
@@ -369,6 +406,9 @@ public class UITextBox : UILabel
 
     public bool multiline { get; set; } = true;
 
+    public event EventHandler<string> onTextSubmit = (i, j) => { };
+
+    private bool emptyText = false;
     public UITextBox() : base() {
         consumedInputs = new List<string>()
         {
@@ -379,6 +419,23 @@ public class UITextBox : UILabel
             "leftShift",
             "backspace"
         }; }
+
+    public override void Cleanup()
+    {
+        if (onTextSubmit != null)
+        {
+            Delegate[] subscribers = onTextSubmit.GetInvocationList();
+            foreach (var d in subscribers)
+                onTextSubmit -= d as EventHandler<string>;
+        }
+
+        button.buttonPressed -= Pressed;
+        UIManager.uiEvent -= OnEvent;
+
+        Input.onCharacterPressed -= OnCharacterPressed;
+
+        base.Cleanup();
+    }
 
     public override void OnLoad()
     {
@@ -433,7 +490,10 @@ public class UITextBox : UILabel
         {
             text = string.Join("",text.SkipLast(1));
             if (text == "")
+            {
                 text = " ";
+                emptyText = true;
+            }
         }
         if (Input.GetKeyDown(Keys.Enter) && Input.GetKey(Keys.LeftShift) && selected && multiline)
         {
@@ -442,6 +502,7 @@ public class UITextBox : UILabel
         else if ((Input.GetKeyDown(Keys.Escape) || Input.GetKeyDown(Keys.Enter)) && selected)
         {
             selected = false;
+            onTextSubmit.Invoke(this, text);
         }
     }
 
@@ -451,6 +512,12 @@ public class UITextBox : UILabel
             return;
 
         text += character[0];
+
+        if (emptyText)
+        {
+            text = string.Join("", text.Skip(1));
+            emptyText = false;
+        }
 
         ResetTexture();
     }
@@ -497,7 +564,7 @@ public class UIButton : UIElement
 
         pressed = false;
         hover = false;
-        if (Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox()) && visible)
+        if (mouseOver && visible)
         {
             hover = true;
             bg = GetThemeValue<BearingColour>("buttonHoverBackground");
@@ -567,6 +634,7 @@ public class UIVerticalScrollView : UIElement
     public int scrollSensitivity { get; set; } = 1;
     public int spacing { get; set; } = 5;
     public bool clipContents { get; set; } = true;
+    public bool scrollByComponents { get; set; } = true;
 
     public List<int> contents { get; set; } = new List<int>();
 
@@ -597,18 +665,26 @@ public class UIVerticalScrollView : UIElement
     public override void OnTick(float dt)
     {
         base.OnTick(dt);
-        
+
         if (!ChildAbsorbedScroll() && MathF.Abs(Input.GetMouseScrollDelta().Y) > 0)
-            if (Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox()))
+            if (mouseOver)
             {
                 int delta = (int)Input.GetMouseScrollDelta().Y;
 
                 int numInvis = GetInvisibleElements();
 
                 scroll += delta * scrollSensitivity;
-
-                if (-scroll >= contents.Count || -scroll < 0 || (numInvis == 0 && clipContents))
-                    scroll -= delta * scrollSensitivity;
+                
+                if (scrollByComponents)
+                {
+                    if (-scroll >= contents.Count || -scroll < 0 || (numInvis == 0 && clipContents))
+                        scroll -= delta * scrollSensitivity;
+                }
+                else
+                {
+                    if (-scroll >= GetNormalisedSumOfHeights() * Game.instance.ClientSize.Y || -scroll < 0)
+                        scroll -= delta * scrollSensitivity;
+                }
             }
 
         material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.Value.zeroToOne));
@@ -648,9 +724,9 @@ public class UIVerticalScrollView : UIElement
 
     public override void Cleanup()
     {
-        base.Cleanup();
-
         ClearContents();
+
+        base.Cleanup();
     }
 
     public void SetScrollAmount(int amount)
@@ -693,7 +769,22 @@ public class UIVerticalScrollView : UIElement
         return result;
     }
 
-    private void UpdateScrollOffset()
+    private float GetNormalisedSumOfHeights()
+    {
+        float result = 0;
+        for (int i = 0; i < contents.Count; i++)
+        {
+            UIElement el = UIManager.FindFromID(contents[i]);
+            Vector2 normalisedScale = el.size.scale + (el.size.offset / Game.instance.ClientSize);
+            result += normalisedScale.Y;
+        }
+
+        result += (spacing / (float)Game.instance.ClientSize.Y) * (contents.Count-1);
+
+        return result;
+    }
+
+    private void ScrollOffsetByComponents()
     {
         scrollOffset = 0;
         for (int i = 0; i < -scroll; i++)
@@ -704,6 +795,20 @@ public class UIVerticalScrollView : UIElement
         }
 
         scrollOffset += spacing / (float)Game.instance.ClientSize.Y * -scroll;
+    }
+
+    private void ScrollOffsetByPixels()
+    {
+        scrollOffset = -scroll * scrollSensitivity;
+        scrollOffset /= Game.instance.ClientSize.Y;
+    }
+
+    private void UpdateScrollOffset()
+    {
+        if (scrollByComponents)
+            ScrollOffsetByComponents();
+        else
+            ScrollOffsetByPixels();
     }
 
     protected override void BeforeRender()
