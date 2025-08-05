@@ -49,7 +49,7 @@ public static class UIManager
         uiElements.Remove(element);
     }
 
-    public static UIElement? FindFromID(int rid)
+    public static UIElement? FindFromRID(int rid)
     {
         foreach (UIElement element in uiElements)
         {

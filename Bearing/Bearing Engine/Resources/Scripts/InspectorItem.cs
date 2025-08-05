@@ -42,7 +42,7 @@ public class InspectorItem : Component
         scrollView.consumedInputs.Remove("Scroll");
         scrollView.theme = new UITheme() { verticalScrollBG = new BearingColour() { zeroToOne = new Vector4(0.65f, 0.65f, 0.65f, 1f) } };
         scrollView.size = new UDim2(0, 0, 0, 100);
-        UIVerticalScrollView inspectorScroll = (UIVerticalScrollView)UIManager.FindFromID(2);
+        UIVerticalScrollView inspectorScroll = (UIVerticalScrollView)UIManager.FindFromRID(2);
         inspectorScroll.gameObject.AddComponent(scrollView);
         inspectorScroll.contents.Add(scrollView.rid);
 

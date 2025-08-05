@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Bearing;
+using OpenTK.Mathematics;
 
 public class Inspector : Component
 {
     private UIVerticalScrollView scrollView;
+    private UITextBox addCompTextBox;
 
     public override void Cleanup()
     {
@@ -15,9 +17,43 @@ public class Inspector : Component
 
     public override void OnLoad()
     {
-        scrollView = (UIVerticalScrollView)UIManager.FindFromID(2);
+        scrollView = (UIVerticalScrollView)UIManager.FindFromRID(2);
 
         Hierarchy.instance.itemSelected += UpdateView;
+        ((UIButton)UIManager.FindFromRID(4)).buttonPressed += AddCompButtonPressed;
+
+        addCompTextBox = new UITextBox();
+        addCompTextBox.anchor = new Vector2(0.5f,0.5f);
+        addCompTextBox.position = new UDim2(0.5f,0.5f);
+        addCompTextBox.size = new UDim2(0,0,200f,100f);
+        addCompTextBox.visible = false;
+        addCompTextBox.onTextSubmit += AddComponentToObject;
+        gameObject.AddComponent(addCompTextBox);
+    }
+
+    private void AddComponentToObject(object? sender, string e)
+    {
+        GameObject selected = GameObject.Find(Hierarchy.instance.selectedName);
+
+        Type nType = Type.GetType(e);
+        if (nType == null)
+        {
+            nType = Type.GetType("Bearing."+e);
+        }
+        Component newComp = (Component)Activator.CreateInstance(nType);
+        selected.AddComponent(newComp);
+
+        // close menu
+        addCompTextBox.visible = false;
+        addCompTextBox.SetTextWithoutEventTrigger(" ");
+
+        // refresh inspector
+        UpdateView();
+    }
+
+    private void AddCompButtonPressed(object? sender, EventArgs e)
+    {
+        addCompTextBox.visible = true;
     }
 
     public override void OnTick(float dt)

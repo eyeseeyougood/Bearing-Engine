@@ -19,7 +19,7 @@ public class Hierarchy : Component
     {
         instance = this;
 
-        scrollView = (UIVerticalScrollView)UIManager.FindFromID(1);
+        scrollView = (UIVerticalScrollView)UIManager.FindFromRID(1);
 
         selectionTheme = new UITheme();
         selectionTheme.buttonUpBackground = BearingColour.LightBlue;
@@ -59,7 +59,7 @@ public class Hierarchy : Component
         // remove all UI from hierarchy
         foreach (int elem in scrollView.contents.ToList())
         {
-            UIElement element = UIManager.FindFromID(elem);
+            UIElement element = UIManager.FindFromRID(elem);
 
             element.gameObject.RemoveComponent(element);
         }
@@ -112,7 +112,7 @@ public class Hierarchy : Component
     private void ItemSelected(object? sender, EventArgs e)
     {
         if (selectedID != -1)
-            ((UIButton)UIManager.FindFromID(selectedID)).theme = UIManager.currentTheme;
+            ((UIButton)UIManager.FindFromRID(selectedID)).theme = UIManager.currentTheme;
 
         if (selectedID == ((UIButton)sender).rid)
         {

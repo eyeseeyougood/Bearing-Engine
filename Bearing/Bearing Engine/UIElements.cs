@@ -60,7 +60,7 @@ public class UIElement : MeshRenderer
                 _parent.onCleanup -= ParentCleanedUp;
             }
 
-            _parent = UIManager.FindFromID(value);
+            _parent = UIManager.FindFromRID(value);
 
             if (_parent != null)
             {
@@ -430,6 +430,15 @@ public class UITextBox : UILabel
         base.Cleanup();
     }
 
+    public override void SetTextWithoutEventTrigger(string newValue)
+    {
+        if (newValue == " ")
+        {
+            emptyText = true;
+        }
+        base.SetTextWithoutEventTrigger(newValue);
+    }
+
     public override void OnLoad()
     {
         button = new UIButton()
@@ -464,6 +473,7 @@ public class UITextBox : UILabel
         if (sender != button)
         {
             selected = false;
+            onTextSubmit.Invoke(this, text);
         }
     }
 
@@ -684,7 +694,12 @@ public class UIVerticalScrollView : UIElement
 
         foreach (int el in contents)
         {
-            UIElement elem = UIManager.FindFromID(el);
+            UIElement elem = UIManager.FindFromRID(el);
+
+            if (elem == null)
+            {
+                continue;
+            }
 
             if (!elem.consumedInputs.Contains("Scroll"))
                 continue;
@@ -703,7 +718,7 @@ public class UIVerticalScrollView : UIElement
     {
         foreach (int elem in contents.ToList())
         {
-            UIElement element = UIManager.FindFromID(elem);
+            UIElement element = UIManager.FindFromRID(elem);
 
             if (element != null)
                 element.gameObject.RemoveComponent(element);
@@ -733,7 +748,7 @@ public class UIVerticalScrollView : UIElement
 
         foreach (int item in contents)
         {
-            UIElement? element = UIManager.FindFromID(item);
+            UIElement? element = UIManager.FindFromRID(item);
 
             element.visible = false;
         }
@@ -746,7 +761,7 @@ public class UIVerticalScrollView : UIElement
 
         foreach (int item in contents)
         {
-            UIElement? element = UIManager.FindFromID(item);
+            UIElement? element = UIManager.FindFromRID(item);
 
             if (!element.visible)
             {
@@ -762,7 +777,7 @@ public class UIVerticalScrollView : UIElement
         float result = 0;
         for (int i = 0; i < contents.Count; i++)
         {
-            UIElement el = UIManager.FindFromID(contents[i]);
+            UIElement el = UIManager.FindFromRID(contents[i]);
             Vector2 normalisedScale = el.size.scale + (el.size.offset / Game.instance.ClientSize);
             result += normalisedScale.Y;
         }
@@ -777,7 +792,7 @@ public class UIVerticalScrollView : UIElement
         scrollOffset = 0;
         for (int i = 0; i < -scroll; i++)
         {
-            UIElement el = UIManager.FindFromID(contents[i]);
+            UIElement el = UIManager.FindFromRID(contents[i]);
             Vector2 normalisedScale = el.size.scale + (el.size.offset / Game.instance.ClientSize);
             scrollOffset += normalisedScale.Y;
         }
@@ -809,7 +824,7 @@ public class UIVerticalScrollView : UIElement
         UIElement prevElement = null;
         foreach (int item in contents)
         {
-            UIElement? element = UIManager.FindFromID(item);
+            UIElement? element = UIManager.FindFromRID(item);
 
             if (element == null) { continue; }
 
