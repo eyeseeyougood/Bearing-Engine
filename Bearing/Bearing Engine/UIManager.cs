@@ -19,6 +19,8 @@ public static class UIManager
 
     public static bool cursorOverUI = false;
 
+    public static Mesh2D quadMeshCache = new Mesh2D("Quad.obj", true);
+
     private static int currentID = -1;
     private static List<int> usedIDs = new List<int>();
     public static int GetUniqueUIID()

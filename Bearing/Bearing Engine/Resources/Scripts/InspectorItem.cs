@@ -80,7 +80,6 @@ public class InspectorItem : Component
             propertyLabel.size = new UDim2(1, 1, 0, 0);
             propertyLabel.parent = propertyPanel.rid;
             gameObject.AddComponent(propertyLabel);
-
             scrollView.contents.Add(propertyPanel.rid);
 
             // value
@@ -113,7 +112,6 @@ public class InspectorItem : Component
             panels.Add(panel);
             scrollView.contents.Add(panel.rid);
         }
-
         scrollView.size = new UDim2(0,0,0,100* scrollView.contents.Count + scrollView.spacing*(scrollView.contents.Count-1));
     }
 
@@ -192,7 +190,6 @@ public class InspectorItem : Component
         v3Textbox.metadata = new object[] { property.Name, "Z" };
         v3Textbox.onTextSubmit += PropertyValueVector3Submit;
         gameObject.AddComponent(v3Textbox);
-
 
         v1Textbox.parent = panel.rid;
         v2Textbox.parent = panel.rid;

@@ -18,6 +18,19 @@ public static class Logger
         Log($"Counted \"{key}\": {counts[key]} times");
     }
 
+    private static float startTime = 0;
+    public static void MeasureStart()
+    {
+        startTime = Time.now;
+    }
+
+    public static void MeasureEnd(string taskName = "Default Task")
+    {
+        float diff = Time.now - startTime;
+
+        Log($"'{taskName}' Task took {diff}s");
+    }
+
     public static void Log(object message)
     {
         Console.ForegroundColor = ConsoleColor.White;

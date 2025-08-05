@@ -19,9 +19,10 @@ public class MeshRenderer : Component, IRenderable
     private int vao;
     private int vbo;
 
-    public MeshRenderer(string mesh, bool meshIsEngineResource = false)
+    public MeshRenderer(string mesh, bool meshIsEngineResource = false, bool skipMesh = false)
     {
-        this.mesh = new Mesh3D(mesh, meshIsEngineResource);
+        if (!skipMesh)
+            this.mesh = new Mesh3D(mesh, meshIsEngineResource);
     }
 
     public override void OnLoad()

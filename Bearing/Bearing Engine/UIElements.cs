@@ -14,7 +14,7 @@ public class UIElement : MeshRenderer
     public UITheme theme = UIManager.currentTheme;
     public UITheme themeOverride = UITheme.Empty;
 
-    public UIElement(string mesh) : base(mesh, true) { UIManager.AddUI(this); }
+    public UIElement() : base("NONE", false, true) { UIManager.AddUI(this); setup3DMatrices = false; SetMesh(UIManager.quadMeshCache); }
 
     public List<string> consumedInputs = new List<string>();
 
@@ -250,11 +250,9 @@ public class UIElement : MeshRenderer
 
 public class UIPanel : UIElement
 {
-    public UIPanel() : base("Quad.obj")
+    public UIPanel() : base()
     {
         material = Material.uiFallback;
-        setup3DMatrices = false;
-        SetMesh(new Mesh2D("Quad.obj", true));
     }
 
     public override void OnTick(float dt)
@@ -267,7 +265,7 @@ public class UIPanel : UIElement
 
 public class UIImage : UIElement
 {
-    public UIImage() : base("Quad.obj")
+    public UIImage() : base()
     {
         material = new Material()
         {
@@ -283,8 +281,6 @@ public class UIImage : UIElement
             },
             is3D = false
         };
-        setup3DMatrices = false;
-        SetMesh(new Mesh2D("Quad.obj", true));
     }
 
     public void SetTexture(Texture texture)
@@ -329,7 +325,7 @@ public class UILabel : UIElement
 
     public event EventHandler<string> onTextChanged = (i,j) => { };
 
-    public UILabel() : base("Quad.obj") { }
+    public UILabel() : base() { }
 
     public override void Cleanup()
     {
@@ -354,9 +350,6 @@ public class UILabel : UIElement
             },
             is3D = false
         };
-
-        setup3DMatrices = false;
-        SetMesh(new Mesh2D("Quad.obj", true));
 
         ResetTexture();
 
@@ -452,6 +445,7 @@ public class UITextBox : UILabel
 
             size = new UDim2(1, 1),
         };
+
         gameObject.AddComponent(button);
 
         button.buttonPressed += Pressed;
@@ -532,7 +526,7 @@ public class UIButton : UIElement
     public event EventHandler mouseEnter = (i, j) => { };
     public event EventHandler mouseLeave = (i, j) => { };
 
-    public UIButton() : base("Quad.obj")
+    public UIButton() : base()
     {
         themeOverride = (UITheme)UIManager.currentTheme.Clone();
 
@@ -546,9 +540,6 @@ public class UIButton : UIElement
             },
             is3D = false
         };
-
-        setup3DMatrices = false;
-        SetMesh(new Mesh2D("Quad.obj", true));
     }
 
     private bool prevHover = false;
@@ -641,7 +632,7 @@ public class UIVerticalScrollView : UIElement
     private int scroll;
     private float scrollOffset;
 
-    public UIVerticalScrollView() : base("Quad.obj")
+    public UIVerticalScrollView() : base()
     {
         themeOverride = (UITheme)UIManager.currentTheme.Clone();
 
@@ -655,9 +646,6 @@ public class UIVerticalScrollView : UIElement
             },
             is3D = false
         };
-
-        setup3DMatrices = false;
-        SetMesh(new Mesh2D("Quad.obj", true));
 
         consumedInputs.Add("Scroll");
     }
