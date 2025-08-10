@@ -1,22 +1,62 @@
-﻿using System;
+﻿using Bearing;
+using Newtonsoft.Json;
+using OpenTK.Mathematics;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bearing;
-using OpenTK.Mathematics;
 
 public class Inspector : Component
 {
+    public static Inspector instance;
+
     private UIVerticalScrollView scrollView;
     private UITextBox addCompTextBox;
+    private UIVerticalScrollView jsonEditor;
+    private UITextBox jsonEditorTextBox;
 
+    private StringWriter sw = new StringWriter();
+    private JsonTextWriter writer;
+    private JsonSerializer serialiser;
     public override void Cleanup()
     {
+        sw.Close();
+        writer.Close();
+    }
+
+    public string SerialiseObject(object obj, Type t)
+    {
+        string seriValue = "Failed to parse object!";
+
+        sw.GetStringBuilder().Clear();
+        serialiser.Serialize(writer, obj, t);
+        seriValue = sw.ToString();
+
+        return seriValue;
     }
 
     public override void OnLoad()
     {
+        instance = this;
+
+        writer = new JsonTextWriter(sw);
+        writer.Formatting = Formatting.Indented;
+        writer.IndentChar = ' ';
+        writer.Indentation = 4;
+
+        serialiser = JsonSerializer.Create(new JsonSerializerSettings
+        {
+            Converters = new List<JsonConverter>
+            {
+                new ShaderParamConverter(),
+                new Vector4Converter(),
+                new Vector3Converter(),
+                new Vector2Converter()
+            }
+        });
+
         scrollView = (UIVerticalScrollView)UIManager.FindFromRID(2);
 
         Hierarchy.instance.itemSelected += UpdateView;
@@ -29,6 +69,60 @@ public class Inspector : Component
         addCompTextBox.visible = false;
         addCompTextBox.onTextSubmit += AddComponentToObject;
         gameObject.AddComponent(addCompTextBox);
+
+        InitJsonEditor();
+    }
+
+    public void SetJsonEditorText(string newValue)
+    {
+        jsonEditorTextBox.text = newValue.Replace("\r","");
+        jsonEditorTextBox.CaretToEnd();
+        jsonEditorTextBox.size = new UDim2(1,1,0,50*jsonEditorTextBox.text.Split("\n").Length);
+    }
+
+    public void ShowJsonEditor()
+    {
+        jsonEditor.visible = true;
+    }
+
+    public void HideJsonEditor()
+    {
+        jsonEditor.visible = false;
+        UIManager.SendEvent(jsonEditor, "MouseExit");
+    }
+
+    public void LinkJsonEditor(InspectorItem iI, string propertyName)
+    {
+        jsonEditorTextBox.metadata = new object[] { propertyName };
+        jsonEditorTextBox.ClearSubmitEventSubscribers();
+        jsonEditorTextBox.onTextSubmit += iI.SetPropValue;
+    }
+
+    private void InitJsonEditor()
+    {
+        UIVerticalScrollView panel = new UIVerticalScrollView();
+        panel.renderLayer = 10;
+        panel.anchor = new Vector2(0.5f, 0.0f);
+        panel.position = new UDim2(0.5f, 0.0f, 0, 0);
+        panel.size = new UDim2(0.5f, 1f, 0, 0);
+        panel.visible = false;
+        panel.clipContents = false;
+        panel.scrollByComponents = false;
+        panel.scrollSensitivity = 10;
+        gameObject.AddComponent(panel);
+
+        UITextBox textBox = new UITextBox();
+        textBox.renderLayer = 12;
+        textBox.anchor = new Vector2(0.5f, 0.5f);
+        textBox.position = new UDim2(0.5f, 0.5f, 0, 0);
+        textBox.size = new UDim2(1f, 1f, 0, 0);
+        textBox.font = "Consolas";
+        gameObject.AddComponent(textBox);
+
+        panel.contents.Add(textBox.rid);
+
+        jsonEditor = panel;
+        jsonEditorTextBox = textBox;
     }
 
     private void AddComponentToObject(object? sender, string e)
@@ -103,44 +197,14 @@ public class Inspector : Component
 
         GameObject selected = GameObject.Find(Hierarchy.instance.selectedName);
 
-        AddTransformObject(selected);
+        AddInspectorObject(selected, selected.transform);
         foreach (Component c in selected.components.ToList())
         {
-            AddInspectorObject(c);
+            AddInspectorObject(selected, c);
         }
     }
 
-    private void AddTransformObject(GameObject obj)
-    {
-        Transform3D t = obj.transform;
-
-        GameObject prefab = SceneLoader.LoadFromFile("./Resources/Scene/buttonObject.json", true);
-        Component newUI1 = prefab.GetComponent(0);
-        Component newUI2 = prefab.GetComponent(1);
-        prefab.RemoveComponent(newUI1, false);
-        prefab.RemoveComponent(newUI2, false);
-
-        gameObject.AddComponent(newUI1);
-        gameObject.AddComponent(newUI2);
-        newUI1.OnLoad();
-        newUI2.OnLoad();
-
-        ((UIElement)newUI1).rid = UIManager.GetUniqueUIID();
-
-        ((UILabel)newUI2).text = t.GetType().Name;
-        ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
-
-        scrollView.contents.Add(((UIElement)newUI1).rid);
-
-        InspectorItem iI = new InspectorItem();
-        iI.compId = -3; // special value for transform
-        iI.linkedObject = obj;
-        gameObject.AddComponent(iI);
-
-        prefab.Cleanup();
-    }
-
-    private void AddInspectorObject(Component c)
+    public void AddInspectorObject(GameObject linkedObj, object objectComp)
     {
         GameObject prefab = SceneLoader.LoadFromFile("./Resources/Scene/buttonObject.json", true);
         Component newUI1 = prefab.GetComponent(0);
@@ -155,14 +219,14 @@ public class Inspector : Component
 
         ((UIElement)newUI1).rid = UIManager.GetUniqueUIID();
 
-        ((UILabel)newUI2).text = c.GetType().Name;
+        ((UILabel)newUI2).text = objectComp.GetType().Name;
         ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
 
         scrollView.contents.Add(((UIElement)newUI1).rid);
 
         InspectorItem iI = new InspectorItem();
-        iI.compId = c.id;
-        iI.linkedObject = c.gameObject;
+        iI.linkedObject = linkedObj;
+        iI.objectComp = objectComp;
         gameObject.AddComponent(iI);
 
         prefab.Cleanup();

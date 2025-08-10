@@ -20,11 +20,22 @@ public class Hierarchy : Component
         instance = this;
 
         scrollView = (UIVerticalScrollView)UIManager.FindFromRID(1);
+        ((UIButton)UIManager.FindFromRID(7)).buttonPressed += AddGameObjectPressed;
 
         selectionTheme = new UITheme();
         selectionTheme.buttonUpBackground = BearingColour.LightBlue;
         selectionTheme.buttonDownBackground = BearingColour.LightBlue;
         selectionTheme.buttonHoverBackground = BearingColour.LightBlue;
+    }
+
+    private void AddGameObjectPressed(object? sender, EventArgs e)
+    {
+        GameObject go = new GameObject();
+        go.name = "New GameObject";
+        go.Load();
+        go.parent = Game.instance.root;
+
+        UpdateView();
     }
 
     bool tes;

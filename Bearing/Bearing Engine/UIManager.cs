@@ -92,6 +92,16 @@ public static class UIManager
             prevOrder.Add(element.rid);
             indx++;
         }
+
+        // hover
+        foreach (var hO in hoveredObjects.ToList())
+        {
+            if (!((UIElement)hO).visible)
+            {
+                hoveredObjects.Remove(hO);
+            }
+        }
+        cursorOverUI = hoveredObjects.Count > 0;
     }
 
     private static List<object> hoveredObjects = new List<object>();
@@ -99,7 +109,8 @@ public static class UIManager
     {
         if (eventType == "MouseEnter")
         {
-            hoveredObjects.Add(sender);
+            if (((UIElement)sender).visible)
+                hoveredObjects.Add(sender);
         }
         if (eventType == "MouseExit")
         {
@@ -113,6 +124,40 @@ public static class UIManager
 
     public static class UITextHelper
     {
+        public static Dictionary<string, Dictionary<char, float>> charLengths = new Dictionary<string, Dictionary<char, float>>(); // lengths in pixels of each char for a given font (precached)
+        public static Dictionary<string, float> fontHeights = new Dictionary<string, float>();
+
+        public static int MeasureText(string text, string font = "Arial")
+        {
+            if (!charLengths.ContainsKey(font))
+                GenCharLookup(font);
+
+            float len = 0;
+
+            foreach (char c in text)
+            {
+                len += charLengths[font][c];
+            }
+
+            return (int)len;
+        }
+
+        public static void GenCharLookup(string font)
+        {
+            var fontSize = 48;
+            var typeface = SKTypeface.FromFamilyName(font);
+            var paint = new SKPaint
+            {
+                Typeface = typeface,
+                TextSize = fontSize,
+            };
+
+            if (!charLengths.ContainsKey(font))
+                charLengths.Add(font, new Dictionary<char, float>());
+
+            for (int i = 20; i < 127; i++)
+                charLengths[font].Add((char)i, paint.MeasureText(((char)i).ToString()));
+        }
         public static Texture RenderTextToBmp(string text, string font = "Arial")
         {
             var fontSize = 48;
@@ -128,6 +173,9 @@ public static class UIManager
             var lines = text.Split('\n');
             var fontMetrics = paint.FontMetrics;
             var lineHeight = fontMetrics.Descent - fontMetrics.Ascent;
+
+            if (!fontHeights.ContainsKey(font))
+                fontHeights.Add(font, lineHeight);
 
             // Determine maximum width and total height
             int width = (int)lines.Max(line => paint.MeasureText(line));

@@ -8,6 +8,7 @@ public abstract class Mesh
 {
     public abstract float[] GetVertexData();
     public uint[] indices = new uint[0];
+    public string name { get; set; }
 }
 
 
@@ -20,6 +21,7 @@ public class Mesh3D : Mesh
     public Mesh3D(string filename, bool engineResource = false)
     {
         string res = engineResource ? $"./EngineData/Models/{filename}" : $"./Resources/Models/{filename}";
+        name = filename;
         Mesh3D m = ModelLoader.FileToMesh3D(res);
         vertices = m.vertices;
         indices = m.indices;
@@ -85,6 +87,7 @@ public class Mesh2D : Mesh
     public Mesh2D(string filename, bool engineResource = false)
     {
         string res = engineResource ? $"./EngineData/Models/{filename}" : $"./Resources/Models/{filename}";
+        name = filename;
         Mesh2D m = ModelLoader.FileToMesh2D(res);
         vertices = m.vertices;
         indices = m.indices;

@@ -31,6 +31,33 @@
             #PRESET(defaultTransform) [],
             "components": [
                 {
+                    "renderLayer": -3,
+                    "anchor": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.0,
+                            "y": 0.0
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+
+                            "x": 0.2,
+                            "y": 1.0
+                        }
+                    },
+
+                    "rid": 6,
+                    "type": "UIPanel"
+                },
+
+                {
+                    "parent": 6,
                     "renderLayer": -2,
                     "anchor": {
                         "x": 0.0,
@@ -46,19 +73,84 @@
 
                     "size": {
                         "scale": {
-                            "x": 0.2,
+                            "x": 1.0,
                             "y": 1.0
                         },
                         "offset": {
-                            "y": 150
+                            "y": -100
                         }
                     },
                     "contents": [
                     ],
 
                     "rid": 1,
-                    "scrollSensitivity": 1,
+                    "clipContents": false,
+                    "scrollSensitivity": 5,
+                    "scrollByComponents": false,
                     "type": "UIVerticalScrollView"
+                },
+
+
+                {
+                    "parent": 6,
+                    "renderLayer": 100,
+                    "anchor": {
+                        "x": 0.0,
+                        "y": 1.0
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.0,
+                            "y": 1.0
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+
+                            "x": 1.0,
+                            "y": 0.0
+                        },
+                        "offset": {
+                            "y": 100
+                        }
+                    },
+
+                    "rid": 7,
+                    "type": "UIButton"
+                },
+
+                {
+                    "parent": 6,
+                    "renderLayer": 101,
+                    "anchor": {
+                        "x": 0.0,
+                        "y": 1.0
+                    },
+
+                    "position": {
+                        "scale": {
+                            "x": 0.0,
+                            "y": 1.0
+                        }
+                    },
+
+                    "size": {
+                        "scale": {
+
+                            "x": 1.0,
+                            "y": 0.0
+                        },
+                        "offset": {
+                            "y": 100
+                        }
+                    },
+
+                    "rid": 8,
+                    "font": "Times New Roman",
+                    "text": "Add GameObject",
+                    "type": "UILabel"
                 },
 
                 {
@@ -198,6 +290,11 @@
                 {
                     "type": "Inspector"
                 },
+
+                {
+                    "type": "SceneExporter"
+                },
+
                 {
                     "type": "CameraMovement"
                 }

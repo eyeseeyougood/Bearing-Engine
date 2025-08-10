@@ -5,9 +5,9 @@ namespace Bearing;
 
 public class MeshRenderer : Component, IRenderable
 {
-    public Mesh mesh { get; private set; }
+    [HideFromInspector] public Mesh mesh { get; private set; }
     public Material material { get; set; }
-    public int rid { get; set; } = -1;
+    [HideFromInspector] public int rid { get; set; } = -1;
 
     protected bool setup3DMatrices = true;
 

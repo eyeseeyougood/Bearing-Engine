@@ -34,8 +34,24 @@ public class ComponentConverter : JsonConverter<Component>
 
     public override void WriteJson(JsonWriter writer, Component value, JsonSerializer serializer)
     {
-        var jo = JObject.FromObject(value, serializer);
-        jo.AddFirst(new JProperty("type", value.GetType().Name));
-        jo.WriteTo(writer);
+        writer.WriteStartObject();
+
+        writer.WritePropertyName("type");
+        writer.WriteValue(value.GetType().Name);
+
+        var props = value.GetType().GetProperties();
+        foreach (var prop in props)
+        {
+            if (prop.Name == "gameObject")
+                continue;
+
+            if (prop.CanRead && prop.GetIndexParameters().Length == 0)
+            {
+                writer.WritePropertyName(prop.Name);
+                serializer.Serialize(writer, prop.GetValue(value));
+            }
+        }
+
+        writer.WriteEndObject();
     }
 }

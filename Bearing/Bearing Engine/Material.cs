@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Assimp;
+using Newtonsoft.Json;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using System.Drawing;
@@ -25,7 +26,7 @@ public class ShaderParam // json bullshit
     public Vector4 vector4 { get { return vV4; } set { vV4 = value; use = 4; } }
 
     private Matrix4 vM4;
-    public Matrix4 matrix4{ get { return vM4; } set { vM4 = value; use = 5; } }
+    public Matrix4 matrix4 { get { return vM4; } set { vM4 = value; use = 5; } }
 
     private int use;
 
@@ -82,6 +83,32 @@ public class ShaderParam // json bullshit
         this.name = name;
         this.matrix4 = matrix4;
     }
+    public ShaderParam(string name, object data)
+    {
+        this.name = name;
+
+        switch (use)
+        {
+            case 0:
+                @float = (float)data;
+                break;
+            case 1:
+                @int = (int)data;
+                break;
+            case 2:
+                vector2 = (Vector2)data;
+                break;
+            case 3:
+                vector3 = (Vector3)data;
+                break;
+            case 4:
+                vector4 = (Vector4)data;
+                break;
+            case 5:
+                matrix4 = (Matrix4)data;
+                break;
+        }
+    }
 }
 
 public class ShaderAttrib
@@ -90,6 +117,7 @@ public class ShaderAttrib
     public int size { get; set; }
 }
 
+[InspectorShow]
 public class Material
 {
     public static Material fallback = new Material()

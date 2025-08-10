@@ -18,6 +18,7 @@ public class Transform3D
     public delegate void OnTransformChanged();
     public event OnTransformChanged onTransformChanged = ()=>{};
 
+    [HideFromInspector]
     public Transform3D parent
     {
         get { return _parent; }
@@ -43,12 +44,15 @@ public class Transform3D
         get { return _eRotation; }
         set
         {
+
             _eRotation = value;
             _qRotation = Quaternion.FromEulerAngles(_eRotation * MathHelper.DegToRad);
             UpdateModel();
             onTransformChanged.Invoke();
         }
     }
+
+    [HideFromInspector]
     public Quaternion qRotation
     {
         get { return _qRotation; }

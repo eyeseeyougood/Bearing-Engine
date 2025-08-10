@@ -37,6 +37,8 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <EmbeddedResource Include="HideFromInspectorAttribute.cs" />
+	  <EmbeddedResource Include="InspectorShowAttribute.cs" />
 	  <EmbeddedResource Include="Multiplayer\IClientCode.cs" />
 	</ItemGroup>
 

@@ -16,6 +16,7 @@ namespace Bearing
         public string vert { get; set; }
         public string frag { get; set; }
 
+        private Shader(int handle, Dictionary<string, int> uniformLocations) { Handle = handle; _uniformLocations = uniformLocations; }
         public Shader(string vert, string frag)
         {
             this.vert = vert;
@@ -24,7 +25,7 @@ namespace Bearing
             var shaderSource = Resources.ReadAllText(Resource.GetShader(vert, true));
 
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
-
+            
             GL.ShaderSource(vertexShader, shaderSource);
 
             CompileShader(vertexShader);
@@ -58,6 +59,53 @@ namespace Bearing
 
                 _uniformLocations.Add(key, location);
             }
+        }
+
+        public static Shader FromResources(Resource vert, Resource frag)
+        {
+            var shaderSource = Resources.ReadAllText(vert);
+
+            var vertexShader = GL.CreateShader(ShaderType.VertexShader);
+
+            GL.ShaderSource(vertexShader, shaderSource);
+
+            CompileShader(vertexShader);
+
+            shaderSource = Resources.ReadAllText(frag);
+            var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
+            GL.ShaderSource(fragmentShader, shaderSource);
+            CompileShader(fragmentShader);
+
+            int nHandle = GL.CreateProgram();
+
+            GL.AttachShader(nHandle, vertexShader);
+            GL.AttachShader(nHandle, fragmentShader);
+
+            LinkProgram(nHandle);
+
+            GL.DetachShader(nHandle, vertexShader);
+            GL.DetachShader(nHandle, fragmentShader);
+            GL.DeleteShader(fragmentShader);
+            GL.DeleteShader(vertexShader);
+
+            GL.GetProgram(nHandle, GetProgramParameterName.ActiveUniforms, out var numberOfUniforms);
+
+            Dictionary<string, int> dict = new Dictionary<string, int>();
+
+            for (var i = 0; i < numberOfUniforms; i++)
+            {
+                var key = GL.GetActiveUniform(nHandle, i, out _, out _);
+
+                var location = GL.GetUniformLocation(nHandle, key);
+
+                dict.Add(key, location);
+            }
+
+            Shader result = new Shader(nHandle, dict);
+            result.vert = vert.fullpath;
+            result.frag = frag.fullpath;
+
+            return result;
         }
 
         public bool HasUniform(string val)

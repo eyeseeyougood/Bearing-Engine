@@ -9,6 +9,8 @@ using OpenTK.Mathematics;
 public class TestComponent : Component
 {
     public string objectName { get; set; } = "";
+
+    [HideFromInspector]
     public Vector3 SomeVector { get; set; } = Vector3.Zero;
 
     public override void Cleanup()
@@ -22,6 +24,8 @@ public class TestComponent : Component
         UIManager.currentTheme.buttonHoverAudio = "ButtonEnter.wav";
         UIManager.currentTheme.buttonDownAudio = "ButtonPress.wav";
         UIManager.currentTheme.buttonUpAudio = "ButtonRelease.wav";
+
+        Logger.Log("Added TestComponent!!!", ConsoleColor.Yellow);
     }
 
     private string prevVal = "";

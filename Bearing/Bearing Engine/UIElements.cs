@@ -1,11 +1,12 @@
 ﻿using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Bearing;
 
@@ -32,6 +33,13 @@ public class UIElement : MeshRenderer
         {
             _setVisible = value;
             UpdateVisibility();
+            if (!visible)
+            {
+                if (mouseOver)
+                {
+                    UIManager.SendEvent(this, "MouseExit");
+                }
+            }
         }
     }
 
@@ -207,6 +215,9 @@ public class UIElement : MeshRenderer
         float screenW = Game.instance.Size.X;
         float screenH = Game.instance.Size.Y;
 
+        if (!visible)
+            return;
+
         // TODO: OPTIMISATION - getting bounds box
         bool m = Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox());
         if (m && !mouseOver)
@@ -342,7 +353,7 @@ public class UILabel : UIElement
     {
         material = new Material()
         {
-            shader = new Shader("defaultUI.vert", "textureUI.frag"),
+            shader = new Shader("defaultUI.vert", "textUI.frag"),
             attribs = new List<ShaderAttrib>()
             {
                 new ShaderAttrib() { name = "aPosition", size = 2 },
@@ -402,7 +413,12 @@ public class UITextBox : UILabel
     public event EventHandler<string> onTextSubmit = (i, j) => { };
 
     private bool emptyText = false;
-    public UITextBox() : base() {
+
+    private int caretPos;
+    private int caretLine;
+
+    public UITextBox() : base()
+    {
         consumedInputs = new List<string>()
         {
             "leftClick",
@@ -410,8 +426,26 @@ public class UITextBox : UILabel
             "characters",
             "escape",
             "leftShift",
-            "backspace"
-        }; }
+            "backspace",
+            "leftArrow",
+            "rightArrow",
+            "upArrow",
+            "downArrow",
+        };
+    }
+
+    public void ClearSubmitEventSubscribers()
+    {
+        foreach (var d in onTextSubmit.GetInvocationList())
+        {
+            onTextSubmit -= (EventHandler<string>)d;
+        }
+    }
+
+    protected override void ResetTexture()
+    {
+        base.ResetTexture();
+    }
 
     public override void Cleanup()
     {
@@ -437,6 +471,22 @@ public class UITextBox : UILabel
             emptyText = true;
         }
         base.SetTextWithoutEventTrigger(newValue);
+        CaretToEnd();
+        
+    }
+
+    public void CaretToEnd()
+    {
+        if (!emptyText)
+        {
+            caretPos = text.Split("\n").Last().Length;
+            caretLine = text.Split("\n").Length - 1;
+        }
+        else
+        {
+            caretPos = 0;
+            caretLine = 0;
+        }
     }
 
     public override void OnLoad()
@@ -470,16 +520,32 @@ public class UITextBox : UILabel
         if (e != "UIClicked")
             return;
 
-        if (sender != button)
+        if (sender != button && selected)
         {
-            selected = false;
+            Deselect();
             onTextSubmit.Invoke(this, text);
         }
     }
 
-    private void Pressed(object? sender, EventArgs e)
+    public void Deselect()
+    {
+        selected = false;
+    }
+
+    public void Select()
     {
         selected = true;
+        CaretToEnd();
+    }
+
+    private void Pressed(object? sender, EventArgs e)
+    {
+        Select();
+    }
+
+    private int LenOfCurLine()
+    {
+        return text.Split("\n")[caretLine].Length;
     }
 
     public override void OnTick(float dt)
@@ -492,22 +558,103 @@ public class UITextBox : UILabel
 
         if (Input.GetKeyDown(Keys.Backspace) && selected)
         {
-            text = string.Join("",text.SkipLast(1));
-            if (text == "")
+            if (caretPos > 0 || caretLine > 0)
             {
-                text = " ";
-                emptyText = true;
+                // TODO: OPTIMISATION - sums all chars on every line until the caret
+                text = text.Remove(caretPos+SumOfLineChars(caretLine)-1, 1);
+                caretPos--;
+                if (caretPos < 0 && caretLine == 0) caretPos = 0;
+                else if (caretPos < 0) { caretLine--; caretPos = LenOfCurLine(); }
+                if (text == "")
+                {
+                    text = " ";
+                    emptyText = true;
+                }
             }
         }
         if (Input.GetKeyDown(Keys.Enter) && Input.GetKey(Keys.LeftShift) && selected && multiline)
         {
             text += "\n";
+            caretLine++;
+            caretPos = 0;
         }
         else if ((Input.GetKeyDown(Keys.Escape) || Input.GetKeyDown(Keys.Enter)) && selected)
         {
-            selected = false;
+            Deselect();
             onTextSubmit.Invoke(this, text);
         }
+
+        if (Input.GetKeyDown(Keys.Left) && selected)
+        {
+            caretPos--;
+            if (caretPos < 0)
+            {
+                if (caretLine > 0)
+                {
+                    caretLine--;
+                    caretPos = LenOfCurLine();
+                }
+                else
+                {
+                    caretPos = 0;
+                }
+            }
+        }
+        if (Input.GetKeyDown(Keys.Right) && selected)
+        {
+            caretPos++;
+            if (caretPos > text.Split("\n")[caretLine].Length)
+            {
+                if (caretLine+1 < text.Split("\n").Length)
+                {
+                    caretLine++;
+                    caretPos = 0;
+                }
+                else
+                {
+                    caretPos = text.Split("\n")[caretLine].Length;
+                }
+            }
+        }
+
+        if (Input.GetKeyDown(Keys.Up) && selected)
+        {
+            caretLine--;
+            if (caretLine < 0) caretLine = 0;
+
+            if (caretPos > LenOfCurLine()) caretPos = LenOfCurLine();
+        }
+
+        if (Input.GetKeyDown(Keys.Down) && selected)
+        {
+            caretLine++;
+            if (caretLine >= text.Split("\n").Length) caretLine = text.Split("\n").Length-1;
+
+            if (caretPos > LenOfCurLine()) caretPos = LenOfCurLine();
+        }
+
+        string[] lines = text.Split("\n");
+        string currLine = lines[caretLine];
+        string preText = currLine.Substring(0, caretPos);
+        material.SetShaderParameter(new ShaderParam("caretPos", new Vector2(UIManager.UITextHelper.MeasureText(preText, font), caretLine * UIManager.UITextHelper.fontHeights[font])));
+        material.SetShaderParameter(new ShaderParam("caretSize", new Vector2(2, UIManager.UITextHelper.fontHeights[font]) * (selected?1:0)));
+    }
+
+    private int SumOfLineChars(int n)
+    {
+        int sumOfLines = 0;
+        int idx = 0;
+        foreach (string s in text.Split("\n", StringSplitOptions.None))
+        {
+            if (idx >= n)
+            {
+                break;
+            }
+            sumOfLines += s.Length + 1;
+            idx++;
+        }
+
+        return sumOfLines;
     }
 
     private void OnCharacterPressed(string character)
@@ -515,13 +662,19 @@ public class UITextBox : UILabel
         if (!selected)
             return;
 
-        text += character[0];
-
         if (emptyText)
         {
+            text += character[0];
             text = string.Join("", text.Skip(1));
             emptyText = false;
         }
+        else
+        {
+            // TODO: OPTIMISATION - sums all chars on every line until the caret
+            text = text.Insert(caretPos+SumOfLineChars(caretLine), character[0].ToString());
+        }
+
+        caretPos++;
 
         ResetTexture();
     }
@@ -665,7 +818,7 @@ public class UIVerticalScrollView : UIElement
         base.OnTick(dt);
 
         if (!ChildAbsorbedScroll() && MathF.Abs(Input.GetMouseScrollDelta().Y) > 0)
-            if (mouseOver)
+            if (mouseOver && visible)
             {
                 int delta = (int)Input.GetMouseScrollDelta().Y;
 

@@ -1,23 +1,19 @@
-﻿using System;
+﻿using Bearing;
+using Newtonsoft.Json;
+using OpenTK.Mathematics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Reflection;
-using Bearing;
-using OpenTK.Mathematics;
 
 public class InspectorItem : Component
 {
     public GameObject linkedObject;
-    public int compId;
-
-    private Component comp;
-    private object objectComp;
+    public object objectComp;
 
     private UIVerticalScrollView scrollView;
-
-    private bool isTransform;
 
     private List<UIElement> panels = new List<UIElement>();
 
@@ -46,27 +42,21 @@ public class InspectorItem : Component
         inspectorScroll.gameObject.AddComponent(scrollView);
         inspectorScroll.contents.Add(scrollView.rid);
 
-        // get the linked component
-        comp = linkedObject.GetComponent(compId);
-
-        if (comp == null && compId != -3)
-        {
-            Logger.LogError("Invalid component or linked object!");
-
-            return;
-        }
-
-        Type cType = typeof(Transform3D);
-        objectComp = linkedObject.transform;
-        if (compId != -3)
-        {
-            cType = comp.GetType();
-            objectComp = comp;
-        }
+        Type cType = objectComp.GetType();
 
         // generate all property UI
         foreach (var property in cType.GetProperties())
         {
+            if (property.GetCustomAttribute<HideFromInspectorAttribute>() != null)
+                continue;
+
+            if (property.PropertyType.GetCustomAttribute<InspectorShowAttribute>() != null)
+            {
+                object comp = property.GetValue(objectComp);
+                Inspector.instance.AddInspectorObject(linkedObject, comp);
+                continue;
+            }
+
             // prop title
             UIPanel propertyPanel = new UIPanel();
             propertyPanel.themeOverride.uiPanelBG = BearingColour.FromZeroToOne(new Vector3(0.87f, 0.87f, 0.87f));
@@ -105,7 +95,7 @@ public class InspectorItem : Component
             field.parent = panel.rid;
 
             // json edit button
-            UIButton editButton = CreateJsonEditButton();
+            UIButton editButton = CreateJsonEditButton(property);
 
             editButton.parent = panel.rid;
 
@@ -115,12 +105,14 @@ public class InspectorItem : Component
         scrollView.size = new UDim2(0,0,0,100* scrollView.contents.Count + scrollView.spacing*(scrollView.contents.Count-1));
     }
 
-    private UIButton CreateJsonEditButton()
+    private UIButton CreateJsonEditButton(PropertyInfo property)
     {
         UIButton editButton = new UIButton();
         editButton.renderLayer = 3;
         editButton.position = new UDim2(0.85f, 0, 0, 0);
         editButton.size = new UDim2(0.15f, 1f, 0, 0);
+        editButton.buttonPressed += OpenJsonEditor;
+        editButton.metadata = new object[] { this, property.Name };
         gameObject.AddComponent(editButton);
 
         UIImage editImage = new UIImage();
@@ -133,6 +125,42 @@ public class InspectorItem : Component
         return editButton;
     }
 
+    private void OpenJsonEditor(object? sender, EventArgs e)
+    {
+        UIButton s = (UIButton)sender;
+
+        Inspector insp = Inspector.instance;
+
+        Type cType = objectComp.GetType();
+        PropertyInfo p = cType.GetProperty((string)s.metadata[1]);
+        Type pType = p.PropertyType;
+
+        string seriValue = Inspector.instance.SerialiseObject(p.GetValue(objectComp), pType);
+
+        insp.SetJsonEditorText(seriValue);
+
+        insp.LinkJsonEditor((InspectorItem)s.metadata[0], (string)s.metadata[1]);
+        insp.ShowJsonEditor();
+    }
+
+    public void SetPropValue(object? sender, string newValue)
+    {
+        string propName = (string)((UITextBox)sender).metadata[0];
+
+        Type cType = objectComp.GetType();
+        PropertyInfo p = cType.GetProperty(propName);
+        Type pType = p.PropertyType;
+        string pName = p.Name;
+
+        object newVal = JsonConvert.DeserializeObject(newValue, pType);
+
+        p.SetValue(objectComp, newVal);
+
+        Inspector insp = Inspector.instance;
+        insp.UpdateView();
+        insp.HideJsonEditor();
+    }
+    
     private UIElement CreateStringField(PropertyInfo property)
     {
         // textbox
