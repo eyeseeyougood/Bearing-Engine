@@ -1,0 +1,10 @@
+﻿{
+    "name": "Cube 1",
+    #PRESET(defaultTransform) [],
+    "components": [
+        #PRESET(defaultMeshRenderer) [],
+        {
+            "type": "TestComponent"
+        }
+    ]
+}

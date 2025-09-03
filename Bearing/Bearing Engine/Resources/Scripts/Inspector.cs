@@ -127,7 +127,7 @@ public class Inspector : Component
 
     private void AddComponentToObject(object? sender, string e)
     {
-        GameObject selected = GameObject.Find(Hierarchy.instance.selectedName);
+        GameObject selected = GameObject.Find(Hierarchy.instance.selectedObjID);
 
         Type nType = Type.GetType(e);
         if (nType == null)
@@ -195,7 +195,7 @@ public class Inspector : Component
         if (Hierarchy.instance.selectedID == -1)
             return;
 
-        GameObject selected = GameObject.Find(Hierarchy.instance.selectedName);
+        GameObject selected = GameObject.Find(Hierarchy.instance.selectedObjID);
 
         AddInspectorObject(selected, selected.transform);
         foreach (Component c in selected.components.ToList())

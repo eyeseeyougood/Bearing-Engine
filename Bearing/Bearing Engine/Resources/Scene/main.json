@@ -27,7 +27,7 @@
 
         {
             "name": "Hierarchy",
-            "tag": "Hierarchy",
+            "tag": "EditorObject",
             #PRESET(defaultTransform) [],
             "components": [
                 {
@@ -85,7 +85,7 @@
 
                     "rid": 1,
                     "clipContents": false,
-                    "scrollSensitivity": 5,
+                    "scrollSensitivity": 15,
                     "scrollByComponents": false,
                     "type": "UIVerticalScrollView"
                 },
@@ -162,7 +162,7 @@
 
         {
             "name": "Inspector",
-            "tag": "Inspector",
+            "tag": "EditorObject",
             #PRESET(defaultTransform) [],
             "components": [
 
@@ -220,7 +220,7 @@
 
                     "rid": 2,
                     "clipContents": false,
-                    "scrollSensitivity": 5,
+                    "scrollSensitivity": 7,
                     "scrollByComponents": false,
                     "type": "UIVerticalScrollView"
                 },
@@ -293,6 +293,10 @@
 
                 {
                     "type": "SceneExporter"
+                },
+
+                {
+                    "type": "PresetImporter"
                 },
 
                 {

@@ -56,7 +56,7 @@ public class GameObjectConverter : JsonConverter<GameObject>
 {
     public override void WriteJson(JsonWriter writer, GameObject value, JsonSerializer serializer)
     {
-        if (value.name == "Hierarchy" || value.name == "Inspector")
+        if (value.tag == "EditorObject")
             return;
 
         writer.WriteStartObject();

@@ -15,7 +15,7 @@ public class BearingRigidbody : Component
     public RigidBody rb { get; private set; }
     private CollisionShape collider;
 
-    public bool frozen { get; set; }
+    public bool frozen { get; set; } = true;
 
     public BearingRigidbody() { }
 

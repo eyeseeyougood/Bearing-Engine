@@ -90,6 +90,9 @@ public class InspectorItem : Component
                 case "Vector3":
                     field = CreateVector3Field(property);
                     break;
+                case "Boolean":
+                    field = CreateBoolField(property);
+                    break;
             }
 
             field.parent = panel.rid;
@@ -169,7 +172,23 @@ public class InspectorItem : Component
         propertyTextbox.size = new UDim2(0.85f, 1f, 0, 0);
         propertyTextbox.multiline = false;
         propertyTextbox.text = property.GetValue(objectComp).ToString();
-        propertyTextbox.metadata = new object[] { property.Name };
+        propertyTextbox.metadata = new object[] { property.Name, "System.String" };
+        propertyTextbox.onTextSubmit += PropertyValueTextSubmit;
+        gameObject.AddComponent(propertyTextbox);
+
+        return propertyTextbox;
+    }
+
+    private UIElement CreateBoolField(PropertyInfo property)
+    {
+        // textbox
+        UITextBox propertyTextbox = new UITextBox();
+        propertyTextbox.renderLayer = 5;
+        propertyTextbox.size = new UDim2(0.85f, 1f, 0, 0);
+        propertyTextbox.multiline = false;
+        bool testType = true;
+        propertyTextbox.text = property.GetValue(objectComp).ToString();
+        propertyTextbox.metadata = new object[] { property.Name, "System.Boolean" };
         propertyTextbox.onTextSubmit += PropertyValueTextSubmit;
         gameObject.AddComponent(propertyTextbox);
 
@@ -230,8 +249,12 @@ public class InspectorItem : Component
     {
         UITextBox box = ((UITextBox)sender);
         string propName = (string)box.metadata[0];
+        string type = (string)box.metadata[1];
 
-        objectComp.GetType().GetProperty(propName).SetValue(objectComp, e);
+        Type t = Type.GetType(type);
+        object nVal = Convert.ChangeType(e, t);
+
+        objectComp.GetType().GetProperty(propName).SetValue(objectComp, nVal);
     }
 
     private void PropertyValueVector3Submit(object? sender, string e)

@@ -572,13 +572,13 @@ public class UITextBox : UILabel
                 }
             }
         }
-        if (Input.GetKeyDown(Keys.Enter) && Input.GetKey(Keys.LeftShift) && selected && multiline)
+        if ((Input.GetKeyDown(Keys.Enter)||Input.GetKeyDown(Keys.KeyPadEnter)) && Input.GetKey(Keys.LeftShift) && selected && multiline)
         {
             text += "\n";
             caretLine++;
             caretPos = 0;
         }
-        else if ((Input.GetKeyDown(Keys.Escape) || Input.GetKeyDown(Keys.Enter)) && selected)
+        else if ((Input.GetKeyDown(Keys.Escape) || Input.GetKeyDown(Keys.Enter) || Input.GetKeyDown(Keys.KeyPadEnter)) && selected)
         {
             Deselect();
             onTextSubmit.Invoke(this, text);
@@ -876,6 +876,8 @@ public class UIVerticalScrollView : UIElement
             if (element != null)
                 element.gameObject.RemoveComponent(element);
         }
+
+        contents.Clear();
     }
 
     public override void Cleanup()
@@ -903,7 +905,8 @@ public class UIVerticalScrollView : UIElement
         {
             UIElement? element = UIManager.FindFromRID(item);
 
-            element.visible = false;
+            if (element != null)
+                element.visible = false;
         }
     }
 
@@ -915,6 +918,7 @@ public class UIVerticalScrollView : UIElement
         foreach (int item in contents)
         {
             UIElement? element = UIManager.FindFromRID(item);
+            if (element == null) { continue; }
 
             if (!element.visible)
             {
@@ -931,6 +935,8 @@ public class UIVerticalScrollView : UIElement
         for (int i = 0; i < contents.Count; i++)
         {
             UIElement el = UIManager.FindFromRID(contents[i]);
+            if (el == null) { continue; }
+
             Vector2 normalisedScale = el.size.scale + (el.size.offset / Game.instance.ClientSize);
             result += normalisedScale.Y;
         }
@@ -946,6 +952,8 @@ public class UIVerticalScrollView : UIElement
         for (int i = 0; i < -scroll; i++)
         {
             UIElement el = UIManager.FindFromRID(contents[i]);
+            if (el == null) { continue; }
+
             Vector2 normalisedScale = el.size.scale + (el.size.offset / Game.instance.ClientSize);
             scrollOffset += normalisedScale.Y;
         }
@@ -987,14 +995,14 @@ public class UIVerticalScrollView : UIElement
             Vector2 elementNormalisedScale = element.size.scale + (element.size.offset / Game.instance.ClientSize);
             Vector2 prevElementNormalisedScale = elementNormalisedScale;
 
-            Vector2 prevElementNormalisedPos = new Vector2(0, -scrollOffset - elementNormalisedScale.Y) + (position.offset-Vector2.UnitY*spacing) / Game.instance.ClientSize;
+            Vector2 prevElementOffsetPos = new Vector2(0, -scrollOffset - elementNormalisedScale.Y) + (position.offset-Vector2.UnitY*spacing) / Game.instance.ClientSize;
             if (prevElement != null)
             {
                 prevElementNormalisedScale = prevElement.size.scale + (prevElement.size.offset / Game.instance.ClientSize);
-                prevElementNormalisedPos = prevElement.position.scale + (prevElement.position.offset / Game.instance.ClientSize);
+                prevElementOffsetPos = prevElement.position.offset / Game.instance.ClientSize;
             }
 
-            float elementOffset = prevElementNormalisedPos.Y * Game.instance.ClientSize.Y + prevElementNormalisedScale.Y * Game.instance.ClientSize.Y;
+            float elementOffset = prevElementOffsetPos.Y * Game.instance.ClientSize.Y + prevElementNormalisedScale.Y * Game.instance.ClientSize.Y;
 
             element.position = new UDim2(position.scale, new Vector2(0, spacing + elementOffset));
             element.size = new UDim2(new Vector2(size.scale.X, element.size.scale.Y), element.size.offset + new Vector2(size.offset.X, 0));
@@ -1022,6 +1030,27 @@ public class UIVerticalScrollView : UIElement
             prevElement = element;
 
             index++;
+        }
+    }
+
+    // TODO: IMPLEMENT (cant currently cus scroll view doesnt have good bounds)
+    public class UIVerticalScrollBar : UIPanel
+    {
+        private UIPanel bar;
+
+        protected override void BeforeRender()
+        {
+            if (parent == -1) return;
+
+            // TODO: OPTIMISATION - difficulty:1
+
+            // TODO: for now this assumes parent is uiverticalscrollview, but later once more vertical scrolling ui exists, add an IScrollable interface
+            UIVerticalScrollView par = (UIVerticalScrollView)UIManager.FindFromRID(parent);
+
+            bar.position = par.position;
+            bar.anchor = par.anchor;
+            bar.size = new UDim2(par.size.scale * new Vector2(1,0.5f), par.size.offset);
+            base.BeforeRender();
         }
     }
 }

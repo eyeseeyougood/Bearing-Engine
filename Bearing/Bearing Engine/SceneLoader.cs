@@ -50,6 +50,25 @@ public static class SceneLoader
         return root;
     }
 
+    public static GameObject LoadFromRealFile(string filepath, bool initialise = true)
+    {
+        string data = File.ReadAllText(filepath);
+
+        data = Preprocess(data); // stuff like presets
+
+        JsonSerializerSettings settings = new JsonSerializerSettings()
+        {
+            Converters = new List<JsonConverter>() { new ComponentConverter() }
+        };
+
+        GameObject root = JsonConvert.DeserializeObject<GameObject>(data, settings);
+
+        if (initialise)
+            root.Load();
+
+        return root;
+    }
+
 
     /// <summary>
     /// If you find urself looking through the implementation of this function, gl.
@@ -314,6 +333,6 @@ public static class SceneLoader
             distortion += cleanedPreset.Length - p.length;
         }
 
-        return replaced;
+        return replaced.Trim('\uFEFF');
     }
 }

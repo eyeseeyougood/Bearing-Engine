@@ -72,6 +72,8 @@ public class Hierarchy : Component
         {
             UIElement element = UIManager.FindFromRID(elem);
 
+            if (element == null) continue;
+
             element.gameObject.RemoveComponent(element);
         }
 
@@ -82,7 +84,7 @@ public class Hierarchy : Component
 
         foreach (GameObject obj in allObjects)
         {
-            if (obj.tag == "Hierarchy" || obj.tag == "Inspector")
+            if (obj.tag == "EditorObject")
                 continue;
             
             AddHierarchyObject(obj);
@@ -110,13 +112,13 @@ public class Hierarchy : Component
         ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
 
         ((UIButton)newUI1).buttonPressed += ItemSelected;
-        ((UIButton)newUI1).metadata = new object[] { go.name };
+        ((UIButton)newUI1).metadata = new object[] { go.id };
 
         scrollView.contents.Add(((UIElement)newUI1).rid);
     }
 
     public int selectedID = -1;
-    public string selectedName = "";
+    public int selectedObjID = -1;
     private UITheme selectionTheme;
     public event Action itemSelected = () => { };
 
@@ -128,12 +130,12 @@ public class Hierarchy : Component
         if (selectedID == ((UIButton)sender).rid)
         {
             selectedID = -1;
-            selectedName = "";
+            selectedObjID = -1; // TODO: maybe this could cause bugs
         }
         else
         {
             selectedID = ((UIButton)sender).rid;
-            selectedName = (string)((UIButton)sender).metadata[0];
+            selectedObjID = (int)((UIButton)sender).metadata[0];
         }
 
         if (selectedID != -1)

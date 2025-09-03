@@ -90,5 +90,44 @@ public static class Resources
         stream.DisposeAsync();
 
         return result;
-    } 
+    }
+
+    public static string[] GetFiles(string path)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        string[] all = assembly.GetManifestResourceNames();
+
+        List<string> result = new List<string>();
+
+        foreach (string res in all)
+        {
+            if (res.StartsWith(path))
+            {
+                result.Add(res);
+            }
+        }
+
+        return result.ToArray();
+    }
+
+    public static string[] GetFiles(string path, string ext)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        string[] all = assembly.GetManifestResourceNames();
+
+        List<string> result = new List<string>();
+
+        foreach (string res in all)
+        {
+            string nRes = res.Replace(".","/").Replace("Bearing", ".");
+            string nExt = nRes.Split('/',StringSplitOptions.RemoveEmptyEntries).Last();
+            nRes = string.Join("/", nRes.Split('/').SkipLast(1))+"."+nExt;
+            if (nRes.StartsWith(path) && nExt == ext.Replace(".","").ToLower())
+            {
+                result.Add(nRes);
+            }
+        }
+
+        return result.ToArray();
+    }
 }

@@ -93,5 +93,6 @@ public class MeshRenderer : Component, IRenderable
 
     public override void Cleanup()
     {
+        Game.instance.RemoveOpaqueRenderable(this);
     }
 }

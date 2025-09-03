@@ -44,6 +44,11 @@ public static class UIManager
         uiElements.Sort(elementComp);
     }
 
+    public static void Sort()
+    {
+        uiElements.Sort(elementComp);
+    }
+
     public static void RemoveUI(UIElement element)
     {
         uiElements.Remove(element);
@@ -62,35 +67,11 @@ public static class UIManager
         return null;
     }
 
-    private static bool orderSame = false;
-    private static List<int> prevOrder = new List<int>();
     public static void RenderUI()
     {
-        List<int> orderCopy = prevOrder.ToList();
-        prevOrder.Clear();
-
-        if (!orderSame)
-        {
-            uiElements.Sort(elementComp);
-            Logger.Log("Sorted UI");
-        }
-
-        orderSame = true;
-
-        int indx = 0;
-        foreach (UIElement element in uiElements)
+        foreach (UIElement element in uiElements.ToList())
         {
             element.Render();
-
-            if (indx >= orderCopy.Count)
-                continue;
-
-            if (orderCopy[indx] != element.rid)
-            {
-                orderSame = false;
-            }
-            prevOrder.Add(element.rid);
-            indx++;
         }
 
         // hover
