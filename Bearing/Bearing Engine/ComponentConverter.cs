@@ -26,7 +26,10 @@ public class ComponentConverter : JsonConverter<Component>
         var tempSerializer = new JsonSerializer
         {
             ContractResolver = serializer.ContractResolver,
-            NullValueHandling = serializer.NullValueHandling
+            NullValueHandling = serializer.NullValueHandling,
+            Converters = {
+                new ColliderConverter(),
+            }
         };
 
         return (Component?)jo.ToObject(Type.GetType(typeString), tempSerializer);

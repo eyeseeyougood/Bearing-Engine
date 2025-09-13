@@ -1,15 +1,18 @@
 ﻿{
-    "name": "Cube 1",
+    "name": "Sphere 1",
     #PRESET(defaultTransform) [],
+
     "components": [
-        #PRESET(defaultMeshRenderer) [],
+        #PRESET(defaultMeshRenderer) [
+            Cube, = Sphere|
+        ],
         {
             "type": "TestComponent"
         },
         {
             "Collider": {
-                "boxHalfExtents": 0.5,
-                "type": "BoxShape"
+                "radius": 0.5,
+                "type": "SphereShape"
             },
             "type": "BearingRigidbody"
         }

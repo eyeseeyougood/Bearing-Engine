@@ -31,8 +31,6 @@ public static class PhysicsManager
         timeStep /= ticksPerTick;
         for (int i = 0; i < ticksPerTick; i++)
         {
-            world.StepSimulation(timeStep);
-
             // Get updated cube position
             foreach (GameObject sh in physicsObjects)
             {
@@ -47,7 +45,14 @@ public static class PhysicsManager
 
                 FreezeRigidbody(sh, brb.frozen);
             }
+
+            world.StepSimulation(timeStep);
         }
+    }
+
+    public static DiscreteDynamicsWorld GetWorld()
+    {
+        return world;
     }
 
     private static void FreezeRigidbody(GameObject sender, bool freeze)
@@ -56,54 +61,23 @@ public static class PhysicsManager
         RigidBody rigidBody = brb.rb;
         if (freeze)
         {
-            if (rigidBody.InvMass == 0)
+            if ((rigidBody.CollisionFlags & CollisionFlags.KinematicObject) != 0)
                 return;
 
-            Dispose(rigidBody);
-
-            RigidBody staticBody = CreateStaticCopy(rigidBody);
-
-            brb.UpdateRB(staticBody);
-
-            Register(staticBody);
+            rigidBody.LinearVelocity = Vector3.Zero;
+            rigidBody.AngularVelocity = Vector3.Zero;
+            rigidBody.ForceActivationState(ActivationState.DisableSimulation);
+            rigidBody.CollisionFlags |= CollisionFlags.KinematicObject;
         }
         else
         {
-            if (rigidBody.InvMass == 0)
+            if ((rigidBody.CollisionFlags & CollisionFlags.KinematicObject) != 0)
             {
-                Dispose(rigidBody);
-
-                RigidBody dynamicBody = CreateDynamicCopy(rigidBody);
-
-                brb.UpdateRB(dynamicBody);
-
-                Register(dynamicBody);
+                rigidBody.CollisionFlags &= ~CollisionFlags.KinematicObject;
+                rigidBody.ForceActivationState(ActivationState.ActiveTag);
+                rigidBody.Activate(true);
             }
         }
-    }
-
-    private static RigidBody CreateStaticCopy(RigidBody original)
-    {
-        CollisionShape shape = original.CollisionShape;
-        Matrix transform;
-        original.MotionState.GetWorldTransform(out transform);
-
-        RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(0, new DefaultMotionState(transform), shape);
-        return new RigidBody(rbInfo);
-    }
-
-    private static RigidBody CreateDynamicCopy(RigidBody original)
-    {
-        CollisionShape shape = original.CollisionShape;
-        Matrix transform;
-        original.MotionState.GetWorldTransform(out transform);
-
-        float mass = 1.0f;
-        Vector3 localInertia;
-        shape.CalculateLocalInertia(mass, out localInertia);
-
-        RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, new DefaultMotionState(transform), shape, localInertia);
-        return new RigidBody(rbInfo);
     }
 
     public static void Register(RigidBody body)

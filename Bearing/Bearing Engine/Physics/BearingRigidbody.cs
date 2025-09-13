@@ -13,7 +13,15 @@ namespace Bearing;
 public class BearingRigidbody : Component
 {
     public RigidBody rb { get; private set; }
+    public float mass { get; set; } = 1.0f;
     private CollisionShape collider;
+    public CollisionShape Collider
+    {
+        get { return collider; }
+        set {
+            UpdateCollider(value);
+        }
+    }
 
     public bool frozen { get; set; } = true;
 
@@ -31,22 +39,41 @@ public class BearingRigidbody : Component
         rb = newRb;
     }
 
+    public void UpdateCollider(CollisionShape newShape)
+    {
+        if (newShape == null) return;
+
+        collider = newShape;
+        collider.CalculateLocalInertia(mass, out BulletSharp.Math.Vector3 localInertia);
+
+        if (rb == null) return;
+
+        rb.CollisionShape = collider;
+        rb.SetMassProps(mass, localInertia);
+    }
+
     public override void OnLoad()
     {
-        Mesh3D mesh = (Mesh3D)((MeshRenderer)gameObject.GetComponent(typeof(MeshRenderer))).mesh;
+        if (collider == null)
+        {
+            Mesh3D mesh = (Mesh3D)((MeshRenderer)gameObject.GetComponent(typeof(MeshRenderer))).mesh;
 
-        Vector3 half = mesh.GetBoundingBox() / 2.0f;
-        BulletSharp.Math.Vector3 halfExt = new BulletSharp.Math.Vector3(
-        half.X,
-        half.Y,
-            half.Z
-            );
-        collider = new BoxShape(halfExt);
+            Vector3 half = mesh.GetBoundingBox() / 2.0f;
+            BulletSharp.Math.Vector3 halfExt = new BulletSharp.Math.Vector3(
+                half.X,
+                half.Y,
+                half.Z
+                );
+            collider = new BoxShape(halfExt);
+        }
+
+        // link to transform
+        gameObject.transform.onTransformChanged += TranformChanged;
 
         // setting up rigidbody
         float mass = 1.0f;
         BulletSharp.Math.Vector3 localInertia;
-        collider.CalculateLocalInertia(mass, out localInertia); // Calculate inertia
+        collider.CalculateLocalInertia(mass, out localInertia);
         var motionState = new DefaultMotionState(gameObject.transform.GetModelMatrix().ToBulletMatrix());
         var rbInfo = new RigidBodyConstructionInfo(mass, motionState, collider, localInertia);
         rb = new RigidBody(rbInfo);
@@ -56,15 +83,26 @@ public class BearingRigidbody : Component
         PhysicsManager.Register(rb);
     }
 
-    public void SetPosition(Vector3 newPosition)
+    private void TranformChanged()
     {
-        gameObject.transform.position = newPosition;
+        SetPosition(gameObject.transform.position, false);
+    }
+
+    public void SetPosition(Vector3 newPosition, bool setTransform = true)
+    {
+        if (setTransform)
+            gameObject.transform.position = newPosition;
         UpdateFromModelMatrix();
     }
 
     private void UpdateFromModelMatrix()
     {
-        rb.MotionState = new DefaultMotionState(gameObject.transform.GetModelMatrix().ToBulletMatrix());
+        BulletSharp.Math.Matrix m = gameObject.transform.GetModelMatrix().ToBulletMatrix();
+        rb.MotionState.SetWorldTransform(ref m);
+        if (frozen)
+        {
+            PhysicsManager.GetWorld().UpdateSingleAabb(rb);
+        }
     }
 
     public override void OnTick(float dt)
@@ -73,5 +111,8 @@ public class BearingRigidbody : Component
 
     public override void Cleanup()
     {
+        PhysicsManager.Dispose(rb);
+        rb.MotionState?.Dispose();
+        rb.Dispose();
     }
 }

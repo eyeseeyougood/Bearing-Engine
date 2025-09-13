@@ -53,7 +53,8 @@ public class Inspector : Component
                 new ShaderParamConverter(),
                 new Vector4Converter(),
                 new Vector3Converter(),
-                new Vector2Converter()
+                new Vector2Converter(),
+                new ColliderConverter()
             }
         });
 

@@ -35,11 +35,12 @@ public static class SceneLoader
     {
         string data = Resources.ReadAllText(Resource.FromPath(filepath));
 
-        data = Preprocess(data); // stuff like presets
+        while (data.Contains("#PRESET("))
+            data = Preprocess(data); // stuff like presets
 
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {
-            Converters = new List<JsonConverter>() { new ComponentConverter() }
+            Converters = new List<JsonConverter>() { new ComponentConverter(), new ColliderConverter(), new RBConverter() }
         };
 
         GameObject root = JsonConvert.DeserializeObject<GameObject>(data, settings);
@@ -58,7 +59,7 @@ public static class SceneLoader
 
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {
-            Converters = new List<JsonConverter>() { new ComponentConverter() }
+            Converters = new List<JsonConverter>() { new ComponentConverter(), new ColliderConverter(), new RBConverter() }
         };
 
         GameObject root = JsonConvert.DeserializeObject<GameObject>(data, settings);

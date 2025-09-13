@@ -149,10 +149,12 @@ public class SceneExporter : Component
                         new Vector4Converter(),
                         new Vector3Converter(),
                         new Vector2Converter(),
+                        new ColliderConverter(),
+                        new RBConverter(),
                         new ComponentConverter(),
                         new GameObjectConverter(),
                         new MeshConverter(),
-                        new ShaderConverter()
+                        new ShaderConverter(),
                     }
                 }).Serialize(jw, Game.instance.root);
                 f = sw.ToString();

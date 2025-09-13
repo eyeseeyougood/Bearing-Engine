@@ -155,7 +155,7 @@ public class InspectorItem : Component
         Type pType = p.PropertyType;
         string pName = p.Name;
 
-        object newVal = JsonConvert.DeserializeObject(newValue, pType);
+        object newVal = JsonConvert.DeserializeObject(newValue, pType, new ColliderConverter());
 
         p.SetValue(objectComp, newVal);
 
