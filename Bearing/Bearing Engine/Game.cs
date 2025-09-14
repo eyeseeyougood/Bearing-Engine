@@ -57,7 +57,6 @@ public class Game : GameWindow
 
         camera = new Camera(new Vector3(0,2,4f), 8f/6f);
 
-
         // init stuff
         Time.Init();
 

@@ -72,6 +72,9 @@ public class Inspector : Component
         gameObject.AddComponent(addCompTextBox);
 
         InitJsonEditor();
+
+        PluginManager.InitManager();
+        PluginManager.InitPlugins();
     }
 
     public void SetJsonEditorText(string newValue)

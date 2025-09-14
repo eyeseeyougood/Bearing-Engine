@@ -13,9 +13,9 @@ namespace Bearing;
 public class UIElement : MeshRenderer
 {
     public UITheme theme = UIManager.currentTheme;
-    public UITheme themeOverride = UITheme.Empty;
+    public UITheme themeOverride;
 
-    public UIElement() : base("NONE", false, true) { UIManager.AddUI(this); setup3DMatrices = false; SetMesh(UIManager.quadMeshCache); }
+    public UIElement() : base("NONE", false, true) { themeOverride = (UITheme)UITheme.Empty.Clone(); UIManager.AddUI(this); setup3DMatrices = false; SetMesh(UIManager.quadMeshCache); }
 
     public List<string> consumedInputs = new List<string>();
 
@@ -245,6 +245,11 @@ public class UIElement : MeshRenderer
     {
         onCleanup.Invoke();
         base.Cleanup();
+
+        if (mouseOver)
+        {
+            UIManager.SendEvent(this, "MouseExit");
+        }
 
         UIManager.RemoveUI(this);
     }
@@ -782,9 +787,6 @@ public class UIButton : UIElement
 
 public class UIVerticalScrollView : UIElement
 {
-    public UITheme theme = UIManager.currentTheme;
-    public UITheme themeOverride;
-
     public int scrollSensitivity { get; set; } = 1;
     public int spacing { get; set; } = 5;
     public bool clipContents { get; set; } = true;
@@ -797,8 +799,6 @@ public class UIVerticalScrollView : UIElement
 
     public UIVerticalScrollView() : base()
     {
-        themeOverride = (UITheme)UIManager.currentTheme.Clone();
-
         material = new Material()
         {
             shader = new Shader("defaultUI.vert", "defaultUI.frag"),
@@ -838,7 +838,7 @@ public class UIVerticalScrollView : UIElement
                 }
             }
 
-        material.SetShaderParameter(new ShaderParam("mainColour", theme.verticalScrollBG.Value.zeroToOne));
+        material.SetShaderParameter(new ShaderParam("mainColour", GetThemeValue<BearingColour>("verticalScrollBG").zeroToOne));
     }
 
     private bool ChildAbsorbedScroll()
