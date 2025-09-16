@@ -31,6 +31,7 @@ public class CameraMovement : Component
         if (Input.GetMouseButtonDown(1) && !UIManager.cursorOverUI)
         {
             moving = true;
+            Input.LockCursor();
         }
 
         if (moving)
@@ -68,6 +69,7 @@ public class CameraMovement : Component
         if (Input.GetMouseButtonUp(1) && moving)
         {
             moving = false;
+            Input.UnlockCursor();
         }
     }
 }

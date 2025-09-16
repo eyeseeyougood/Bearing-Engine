@@ -23,6 +23,7 @@ public class Game : GameWindow
     private List<IRenderable> opaqueRenderables = new List<IRenderable>();
 
     public event Action gameTick = () => {};
+    public event Action rootLoaded = () => {};
 
     public Camera camera;
 
@@ -73,6 +74,8 @@ public class Game : GameWindow
         PhysicsManager.Init();
         
         root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json"));
+
+        rootLoaded.Invoke();
     }
 
     protected override void OnTextInput(TextInputEventArgs e)

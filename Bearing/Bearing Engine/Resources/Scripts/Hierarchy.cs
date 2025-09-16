@@ -84,7 +84,7 @@ public class Hierarchy : Component
 
         foreach (GameObject obj in allObjects)
         {
-            if (obj.tag == "EditorObject")
+            if (obj.tag == "EditorObject" || obj.tag == "HierarchyHidden")
                 continue;
             
             AddHierarchyObject(obj);

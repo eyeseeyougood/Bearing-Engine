@@ -74,7 +74,7 @@ public class Inspector : Component
         InitJsonEditor();
 
         PluginManager.InitManager();
-        PluginManager.InitPlugins();
+        Game.instance.rootLoaded += PluginManager.InitPlugins;
     }
 
     public void SetJsonEditorText(string newValue)

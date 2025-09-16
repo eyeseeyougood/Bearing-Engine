@@ -17,7 +17,7 @@ public class UIElement : MeshRenderer
 
     public UIElement() : base("NONE", false, true) { themeOverride = (UITheme)UITheme.Empty.Clone(); UIManager.AddUI(this); setup3DMatrices = false; SetMesh(UIManager.quadMeshCache); }
 
-    public List<string> consumedInputs = new List<string>();
+    public List<string> consumedInputs = new List<string>() { "mouseEnter" }; // this really needs a better way to standardise this
 
     public int renderLayer { get; set; }
 
@@ -220,7 +220,7 @@ public class UIElement : MeshRenderer
 
         // TODO: OPTIMISATION - getting bounds box
         bool m = Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox());
-        if (m && !mouseOver)
+        if (m && !mouseOver && consumedInputs.Contains("mouseEnter"))
         {
             // mouse entered
             UIManager.SendEvent(this, "MouseEnter");
@@ -727,7 +727,7 @@ public class UIButton : UIElement
         {
             hover = true;
             bg = GetThemeValue<BearingColour>("buttonHoverBackground");
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButtonDown(0))
             {
                 bg = GetThemeValue<BearingColour>("buttonDownBackground");
                 pressed = true;

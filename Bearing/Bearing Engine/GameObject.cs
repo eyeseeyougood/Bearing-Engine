@@ -11,7 +11,7 @@ namespace Bearing;
 
 public class GameObject : IMetadata
 {
-    public string name { get; set; }
+    public string name { get; set; } = "";
     public string tag { get; set; }
     public int id { get; private set; }
 
@@ -255,10 +255,11 @@ public class GameObject : IMetadata
         {
             RemoveComponent(c);
         }
-        foreach (GameObject child in immediateChildren)
+        foreach (GameObject child in immediateChildren.ToList())
         {
             child.Cleanup();
         }
+        parent = null;
     }
 
     protected virtual void OnParentChanged() { }
