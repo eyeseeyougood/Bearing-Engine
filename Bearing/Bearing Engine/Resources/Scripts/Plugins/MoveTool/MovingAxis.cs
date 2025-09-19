@@ -42,6 +42,7 @@ public class MovingAxis : Component
     }
 
     private Vector3 startPoint = Vector3.Zero;
+    private Vector3 selectedStart = Vector3.Zero;
     private bool clicked = false;
     public override void OnTick(float dt)
     {
@@ -50,6 +51,7 @@ public class MovingAxis : Component
         mat.SetShaderParameter(new ShaderParam() { name = "mainColour", vector4 = axisColour.zeroToOne });
 
         if (Hierarchy.instance.selectedObjID == -1) return;
+        GameObject selected = GameObject.Find(Hierarchy.instance.selectedObjID);
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -57,16 +59,31 @@ public class MovingAxis : Component
 
             if (clicked)
             {
+                selectedStart = selected.transform.position;
                 startPoint = gameObject.transform.position;
             }
         }
 
-        if (Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0) && clicked)
         {
             clicked = false;
-        }
 
-        GameObject selected = GameObject.Find(Hierarchy.instance.selectedObjID);
+            Vector3 endPos = new Vector3(selected.transform.position);
+            Vector3 capturedStart = new Vector3(selectedStart);
+            GameObject capturedObj = selected;
+
+            CommandManager.Register(
+            /**/(/* Do */)=>
+            {
+                capturedObj.transform.position = endPos;
+                Inspector.instance.UpdateView();
+            },
+            /**/(/*Undo*/)=>
+            {
+                capturedObj.transform.position = capturedStart;
+                Inspector.instance.UpdateView();
+            });
+        }
 
         if (clicked)
         {

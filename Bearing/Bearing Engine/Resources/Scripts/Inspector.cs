@@ -156,23 +156,7 @@ public class Inspector : Component
 
     public override void OnTick(float dt)
     {
-    }
-
-    private List<GameObject> TraverseForChildren(GameObject root)
-    {
-        List<GameObject> result = new List<GameObject>();
-
-        if (root.immediateChildren.Count == 0)
-        {
-            result.Add(root);
-            return result;
-        }
-
-        for (int i = 0; i < root.immediateChildren.Count; i++)
-            result.AddRange(TraverseForChildren(root.immediateChildren[i]));
-
-        result.Add(root);
-        return result;
+        CommandManager.Tick();
     }
 
     public void UpdateView()
@@ -194,8 +178,6 @@ public class Inspector : Component
         scrollView.contents.Clear();
 
         // add back new, updated UI
-        List<GameObject> allObjects = TraverseForChildren(Game.instance.root).SkipLast(1).ToList();
-
         if (Hierarchy.instance.selectedID == -1)
             return;
 
@@ -210,29 +192,27 @@ public class Inspector : Component
 
     public void AddInspectorObject(GameObject linkedObj, object objectComp)
     {
-        GameObject prefab = SceneLoader.LoadFromFile("./Resources/Scene/buttonObject.json", true);
-        Component newUI1 = prefab.GetComponent(0);
-        Component newUI2 = prefab.GetComponent(1);
-        prefab.RemoveComponent(newUI1, false);
-        prefab.RemoveComponent(newUI2, false);
+        UIButton button = new UIButton();
+        button.renderLayer = -2;
+        button.anchor = new Vector2(0.0f, 1.0f);
+        button.position = new UDim2(0.4f, 1.0f);
+        button.size = new UDim2(0.2f, 0, 0, 100);
+        gameObject.AddComponent(button);
 
-        gameObject.AddComponent(newUI1);
-        gameObject.AddComponent(newUI2);
-        newUI1.OnLoad();
-        newUI2.OnLoad();
+        UILabel label = new UILabel();
+        label.renderLayer = 0;
+        label.anchor = new Vector2(0.5f, 0.5f);
+        label.position = new UDim2(0.5f, 0.5f);
+        label.size = new UDim2(1f, 1f, -20, -20);
+        label.text = objectComp.GetType().Name;
+        label.parent = button.rid;
+        gameObject.AddComponent(label);
 
-        ((UIElement)newUI1).rid = UIManager.GetUniqueUIID();
-
-        ((UILabel)newUI2).text = objectComp.GetType().Name;
-        ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
-
-        scrollView.contents.Add(((UIElement)newUI1).rid);
+        scrollView.contents.Add(button.rid);
 
         InspectorItem iI = new InspectorItem();
         iI.linkedObject = linkedObj;
         iI.objectComp = objectComp;
         gameObject.AddComponent(iI);
-
-        prefab.Cleanup();
     }
 }

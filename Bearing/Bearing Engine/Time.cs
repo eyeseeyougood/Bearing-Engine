@@ -18,9 +18,18 @@ public static class Time
     }
 
     private static Stopwatch sw;
+    public static float evaluationTime = 0.05f;
 
     public static void Init()
     {
         sw = Stopwatch.StartNew();
+    }
+
+    public static async Task WaitTillTime(float time)
+    {
+        while (sw.Elapsed.TotalSeconds < time)
+        {
+            await Task.Delay((int)(evaluationTime*1000));
+        }
     }
 }

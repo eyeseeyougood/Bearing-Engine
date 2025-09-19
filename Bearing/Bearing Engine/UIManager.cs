@@ -73,7 +73,7 @@ public static class UIManager
         {
             element.Render();
         }
-
+        
         // hover
         foreach (var hO in hoveredObjects.ToList())
         {

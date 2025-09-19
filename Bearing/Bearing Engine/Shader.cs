@@ -211,5 +211,10 @@ namespace Bearing
             GL.UseProgram(Handle);
             GL.Uniform4(_uniformLocations[name], data);
         }
+
+        public void Cleanup()
+        {
+            GL.DeleteProgram(Handle);
+        }
     }
 }

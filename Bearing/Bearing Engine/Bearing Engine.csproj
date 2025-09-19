@@ -35,7 +35,6 @@
 	  <None Remove="Resources\Shaders\defaultUI.frag" />
 	  <None Remove="Resources\Shaders\defaultUI.vert" />
 	</ItemGroup>
-	
 	<ItemGroup>
 	  <EmbeddedResource Include="HideFromInspectorAttribute.cs" />
 	  <EmbeddedResource Include="InspectorShowAttribute.cs" />

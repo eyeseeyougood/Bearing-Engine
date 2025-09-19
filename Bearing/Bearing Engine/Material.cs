@@ -228,4 +228,9 @@ public class Material
         GL.EnableVertexAttribArray(texLoc);
         attribAllocCache += numFloats;
     }
+
+    public void Cleanup()
+    {
+        shader.Cleanup();
+    }
 }

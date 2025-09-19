@@ -245,7 +245,7 @@ public class UIElement : MeshRenderer
     {
         onCleanup.Invoke();
         base.Cleanup();
-
+        Logger.Count("cleaning up");
         if (mouseOver)
         {
             UIManager.SendEvent(this, "MouseExit");
@@ -350,6 +350,10 @@ public class UILabel : UIElement
             Delegate[] subscribers = onTextChanged.GetInvocationList();
             foreach (var d in subscribers)
                 onTextChanged -= d as EventHandler<string>;
+        }
+        if (texture0 != null)
+        {
+            texture0.Dispose();
         }
         base.Cleanup();
     }
@@ -714,6 +718,27 @@ public class UIButton : UIElement
     private bool hover = false;
     private bool prevPressed = false;
     private bool pressed = false;
+
+    private void RemoveSubscribers(EventHandler del)
+    {
+        if (del != null)
+        {
+            Delegate[] subscribers = del.GetInvocationList();
+            foreach (var d in subscribers)
+                del -= d as EventHandler;
+        }
+    }
+
+    public override void Cleanup()
+    {
+        RemoveSubscribers(buttonPressed);
+        RemoveSubscribers(buttonHold);
+        RemoveSubscribers(buttonReleased);
+        RemoveSubscribers(mouseEnter);
+        RemoveSubscribers(mouseLeave);
+
+        base.Cleanup();
+    }
 
     public override void OnTick(float dt)
     {

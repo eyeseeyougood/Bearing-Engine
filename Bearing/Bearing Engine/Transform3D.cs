@@ -117,4 +117,14 @@ public class Transform3D
         _scale = model.ExtractScale();
         UpdateModel();
     }
+
+    public void Cleanup()
+    {
+        if (onTransformChanged != null)
+        {
+            Delegate[] subscribers = onTransformChanged.GetInvocationList();
+            foreach (var d in subscribers)
+                onTransformChanged -= d as OnTransformChanged;
+        }
+    }
 }

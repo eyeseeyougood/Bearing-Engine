@@ -33,6 +33,7 @@ public partial class CrosshairPlugin : Plugin
         crosshair.anchor = new Vector2(0.5f, 0.5f);
         crosshair.position = new UDim2(0.5f, 0.5f);
         crosshair.size = new UDim2(0,0,3,3);
+        crosshair.consumedInputs.Clear();
         Inspector.instance.gameObject.AddComponent(crosshair);
     }
 

@@ -93,6 +93,19 @@ public class MeshRenderer : Component, IRenderable
 
     public override void Cleanup()
     {
+        GL.DeleteBuffer(ebo);
+        GL.DeleteBuffer(vbo);
+        GL.DeleteVertexArray(vao);
+
+        if (texture0 != null)
+            texture0.Dispose();
+        
+        if (texture1 != null)
+            texture1.Dispose();
+
+        if (texture2 != null)
+            texture2.Dispose();
+
         Game.instance.RemoveOpaqueRenderable(this);
     }
 }

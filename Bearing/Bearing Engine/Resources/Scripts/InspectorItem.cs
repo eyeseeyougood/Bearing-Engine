@@ -22,10 +22,12 @@ public class InspectorItem : Component
         foreach (var panel in panels.ToList())
         {
             if (panel != null)
-                panel.Cleanup();
+                panel.gameObject.RemoveComponent(panel);
         }
 
-        scrollView.Cleanup();
+        scrollView.ClearContents();
+
+        scrollView.gameObject.RemoveComponent(scrollView);
     }
 
     public override void OnLoad()
@@ -157,7 +159,10 @@ public class InspectorItem : Component
 
         object newVal = JsonConvert.DeserializeObject(newValue, pType, new ColliderConverter());
 
-        p.SetValue(objectComp, newVal);
+        object capturedComp = objectComp;
+        var currVal = p.GetValue(objectComp);
+
+        SetNewValue(p, objectComp, newVal);
 
         Inspector insp = Inspector.instance;
         insp.UpdateView();
@@ -254,7 +259,7 @@ public class InspectorItem : Component
         Type t = Type.GetType(type);
         object nVal = Convert.ChangeType(e, t);
 
-        objectComp.GetType().GetProperty(propName).SetValue(objectComp, nVal);
+        SetNewValue(objectComp.GetType().GetProperty(propName), objectComp, nVal);
     }
 
     private void PropertyValueVector3Submit(object? sender, string e)
@@ -275,7 +280,23 @@ public class InspectorItem : Component
             "Z" => new Vector3(cVal.X, cVal.Y, f)
         };
 
-        objectComp.GetType().GetProperty(propName).SetValue(objectComp, nVal);
+        SetNewValue(objectComp.GetType().GetProperty(propName), objectComp, nVal);
+    }
+
+    private void SetNewValue(PropertyInfo p, object obj, object newVal)
+    {
+        object capturedComp = obj;
+        var currVal = p.GetValue(obj);
+
+        CommandManager.Do(() =>
+        {
+            p.SetValue(capturedComp, newVal);
+            Inspector.instance.UpdateView();
+        }, () =>
+        {
+            p.SetValue(capturedComp, currVal);
+            Inspector.instance.UpdateView();
+        });
     }
 
     public override void OnTick(float dt)

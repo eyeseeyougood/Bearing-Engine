@@ -251,6 +251,7 @@ public class GameObject : IMetadata
     public virtual void Cleanup()
     {
         transform.onTransformChanged -= OnTransformChanged;
+        transform.Cleanup();
         foreach (Component c in components.ToList())
         {
             RemoveComponent(c);
