@@ -1,12 +1,5 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bearing;
 
@@ -245,7 +238,14 @@ public class UIElement : MeshRenderer
     {
         onCleanup.Invoke();
         base.Cleanup();
-        Logger.Count("cleaning up");
+
+        if (_parent != null)
+        {
+            _parent.positionChanged -= UpdatePosition;
+            _parent.sizeChanged -= UpdateSize;
+            _parent.onCleanup -= ParentCleanedUp;
+        }
+
         if (mouseOver)
         {
             UIManager.SendEvent(this, "MouseExit");
@@ -899,7 +899,9 @@ public class UIVerticalScrollView : UIElement
             UIElement element = UIManager.FindFromRID(elem);
 
             if (element != null)
+            {
                 element.gameObject.RemoveComponent(element);
+            }
         }
 
         contents.Clear();

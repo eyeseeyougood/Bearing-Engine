@@ -106,6 +106,8 @@ public class MeshRenderer : Component, IRenderable
         if (texture2 != null)
             texture2.Dispose();
 
+        material.Cleanup();
+
         Game.instance.RemoveOpaqueRenderable(this);
     }
 }

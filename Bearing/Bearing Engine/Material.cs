@@ -150,8 +150,8 @@ public class Material
         is3D = false
     };
 
-    public List<ShaderParam> parameters { get; set; }
-    public List<ShaderAttrib> attribs { get; set; }
+    public List<ShaderParam> parameters { get; set; } = new List<ShaderParam>();
+    public List<ShaderAttrib> attribs { get; set; } = new List<ShaderAttrib>();
     public Shader shader { get; set; }
     public bool is3D { get; set; } = true;
 
@@ -232,5 +232,7 @@ public class Material
     public void Cleanup()
     {
         shader.Cleanup();
+        attribs.Clear();
+        parameters.Clear();
     }
 }

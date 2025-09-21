@@ -15,19 +15,12 @@ public class InspectorItem : Component
 
     private UIVerticalScrollView scrollView;
 
-    private List<UIElement> panels = new List<UIElement>();
-
     public override void Cleanup()
     {
-        foreach (var panel in panels.ToList())
-        {
-            if (panel != null)
-                panel.gameObject.RemoveComponent(panel);
-        }
+        UIVerticalScrollView inspectorScroll = (UIVerticalScrollView)UIManager.FindFromRID(2);
+        inspectorScroll.contents.Remove(scrollView.rid);
 
-        scrollView.ClearContents();
-
-        scrollView.gameObject.RemoveComponent(scrollView);
+        scrollView.Cleanup();
     }
 
     public override void OnLoad()
@@ -45,7 +38,7 @@ public class InspectorItem : Component
         inspectorScroll.contents.Add(scrollView.rid);
 
         Type cType = objectComp.GetType();
-
+        
         // generate all property UI
         foreach (var property in cType.GetProperties())
         {
@@ -58,7 +51,7 @@ public class InspectorItem : Component
                 Inspector.instance.AddInspectorObject(linkedObject, comp);
                 continue;
             }
-
+            
             // prop title
             UIPanel propertyPanel = new UIPanel();
             propertyPanel.themeOverride.uiPanelBG = BearingColour.FromZeroToOne(new Vector3(0.87f, 0.87f, 0.87f));
@@ -73,7 +66,7 @@ public class InspectorItem : Component
             propertyLabel.parent = propertyPanel.rid;
             gameObject.AddComponent(propertyLabel);
             scrollView.contents.Add(propertyPanel.rid);
-
+            
             // value
 
             // panel
@@ -104,7 +97,6 @@ public class InspectorItem : Component
 
             editButton.parent = panel.rid;
 
-            panels.Add(panel);
             scrollView.contents.Add(panel.rid);
         }
         scrollView.size = new UDim2(0,0,0,100* scrollView.contents.Count + scrollView.spacing*(scrollView.contents.Count-1));
@@ -165,8 +157,8 @@ public class InspectorItem : Component
         SetNewValue(p, objectComp, newVal);
 
         Inspector insp = Inspector.instance;
-        insp.UpdateView();
         insp.HideJsonEditor();
+        insp.UpdateView();
     }
     
     private UIElement CreateStringField(PropertyInfo property)

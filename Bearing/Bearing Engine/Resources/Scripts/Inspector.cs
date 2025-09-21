@@ -165,18 +165,15 @@ public class Inspector : Component
         scrollView.SetScrollAmount(0);
 
         // remove all UI from inspector
-        scrollView.ClearContents();
-
         foreach (Component c in gameObject.components.ToList())
         {
             if (c.GetType() != typeof(InspectorItem))
                 continue;
 
-            gameObject.RemoveComponent(c, true);
+            gameObject.RemoveComponent(c);
         }
 
-        scrollView.contents.Clear();
-
+        scrollView.ClearContents();
         // add back new, updated UI
         if (Hierarchy.instance.selectedID == -1)
             return;
