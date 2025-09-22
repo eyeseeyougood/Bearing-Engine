@@ -95,9 +95,9 @@ public static class Extensions
     {
         Vector3 result = Vector3.Zero;
 
-        result.X = BitConverter.ToSingle(data.ToList().GetRange(0,4).ToArray());
-        result.Y = BitConverter.ToSingle(data.ToList().GetRange(4,4).ToArray());
-        result.Z = BitConverter.ToSingle(data.ToList().GetRange(8,4).ToArray());
+        result.X = BitConverter.ToSingle(data.ToList().GetRange(0, 4).ToArray());
+        result.Y = BitConverter.ToSingle(data.ToList().GetRange(4, 4).ToArray());
+        result.Z = BitConverter.ToSingle(data.ToList().GetRange(8, 4).ToArray());
 
         return result;
     }
@@ -176,5 +176,100 @@ public static class Extensions
         Vector3 intersectionPoint = lineStart + t * lineDirection;
 
         return intersectionPoint;
+    }
+
+    /// <summary>
+    /// Checks if a ray is intersecting a given mesh. Avoid using this function too much as it is very slow. Use broad phase checks first such as a bounding box check when applicable.
+    /// </summary>
+    /// <param name="mesh">The mesh to check against</param>
+    /// <param name="ray">The ray</param>
+    /// <returns>True if the ray is intersecting the mesh</returns>
+    public static bool RayMeshIntersection(Mesh mesh, Transform3D transform, Ray ray)
+    {
+        bool result = false;
+
+        float[] vData = mesh.GetVertexData();
+
+        Matrix4 model = transform.GetModelMatrix();
+        for (int i = 0; i < mesh.indices.Length; i += 3)
+        {
+            Vector3 p1 = new Vector3(vData[mesh.indices[i]], vData[mesh.indices[i]+ 1], vData[mesh.indices[i] + 2]);
+            Vector3 p2 = new Vector3(vData[mesh.indices[i + 1]], vData[mesh.indices[i + 1] + 1], vData[mesh.indices[i + 1] + 2]);
+            Vector3 p3 = new Vector3(vData[mesh.indices[i + 2]], vData[mesh.indices[i + 2] + 1], vData[mesh.indices[i + 2] + 2]);
+
+            p1 = (model * new Vector4(p1, 1.0f)).Xyz;
+            p2 = (model * new Vector4(p2, 1.0f)).Xyz;
+            p3 = (model * new Vector4(p3, 1.0f)).Xyz;
+
+            if (RayTriangleIntersection(p1, p2, p3, ray))
+            {
+                result = true;
+                break;
+            }
+        }
+        return result;
+    }
+
+    public static bool RayTriangleIntersection(Vector3 p1, Vector3 p2, Vector3 p3, Ray ray)
+    {
+        bool result = false;
+
+        // find line plane intersection point
+        Vector3 intersectionPoint = LinePlaneIntersection(p1, p2, p3, ray.origin, ray.direction);
+
+        Vector3 l1 = p2 - p1;
+        Vector3 l2 = p3 - p2;
+        Vector3 l3 = p1 - p3;
+
+        float d1 = Vector3.Dot(intersectionPoint - p1, l1.Normalized());
+        float d2 = Vector3.Dot(intersectionPoint - p2, l2.Normalized());
+        float d3 = Vector3.Dot(intersectionPoint - p3, l3.Normalized());
+
+        // check dot product sign
+        if (d1 >= 0)
+        {
+            if (d2 >= 0)
+            {
+                if (d3 >= 0)
+                {
+                    result = true;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static bool RayQuadIntersection(Vector3 p1, Vector3 p2, Vector3 p3, Ray ray)
+    {
+        bool result = false;
+
+        // find line plane intersection point
+        Vector3 intersectionPoint = LinePlaneIntersection(p1, p2, p3, ray.origin, ray.direction);
+
+        // find two perpendicular vectors of quad and do dot product comparisons
+        Vector3 bottomLeftUp = p2 - p3;
+        Vector3 bottomLeftRight = p1 - p3;
+        Vector3 intersectionPointDifference = intersectionPoint - p3;
+
+        float verticalProduct = Vector3.Dot(intersectionPointDifference, bottomLeftUp.Normalized());
+        float horizontalProduct = Vector3.Dot(intersectionPointDifference, bottomLeftRight.Normalized());
+
+        // check dot product size and sign
+        if (verticalProduct >= 0)
+        {
+            if (verticalProduct <= bottomLeftUp.Length)
+            {
+                if (horizontalProduct >= 0)
+                {
+                    if (horizontalProduct <= bottomLeftRight.Length)
+                    {
+                        result = true;
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 }

@@ -71,8 +71,14 @@ public partial class Plugin : Component
         return result;
     }
 
+    protected virtual void OnUpdate(float dt)
+    {
+    }
+
     public sealed override void OnTick(float dt)
     {
+        if (enabled)
+            OnUpdate(dt);
     }
 
     public sealed override void Cleanup()

@@ -138,15 +138,21 @@ public class Inspector : Component
         {
             nType = Type.GetType("Bearing."+e);
         }
+        if (nType == null) { CloseAddCompMenu(); return; }
         Component newComp = (Component)Activator.CreateInstance(nType);
         selected.AddComponent(newComp);
 
         // close menu
-        addCompTextBox.visible = false;
-        addCompTextBox.SetTextWithoutEventTrigger(" ");
+        CloseAddCompMenu();
 
         // refresh inspector
         UpdateView();
+    }
+
+    private void CloseAddCompMenu()
+    {
+        addCompTextBox.visible = false;
+        addCompTextBox.SetTextWithoutEventTrigger(" ");
     }
 
     private void AddCompButtonPressed(object? sender, EventArgs e)

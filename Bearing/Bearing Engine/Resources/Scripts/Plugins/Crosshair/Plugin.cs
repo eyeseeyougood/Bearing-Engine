@@ -1,5 +1,6 @@
 ﻿using Bearing;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Common.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,9 +26,28 @@ public partial class CrosshairPlugin : Plugin
         base.OnLoad();
     }
 
+    GameObject testMarker;
+    Material mat;
     public override void OnEnable()
     {
         base.OnEnable();
+        
+        testMarker = new GameObject();
+        testMarker.name = "TestMarker";
+        testMarker.transform.position = Vector3.One;
+        testMarker.parent = Game.instance.root;
+
+        MeshRenderer mr = new MeshRenderer("Sphere.obj");
+        mat = new Material();
+        mr.material = mat;
+        mr.material.shader = new Shader("default.vert", "default.frag");
+        mr.material.attribs = new List<ShaderAttrib>()
+        {
+            new ShaderAttrib() { name = "aPosition", size = 3 },
+            new ShaderAttrib() { name = "aTexCoord", size = 2 },
+            new ShaderAttrib() { name = "aNormal", size = 3 },
+        };
+        testMarker.AddComponent(mr);
 
         crosshair = new UIPanel();
         crosshair.anchor = new Vector2(0.5f, 0.5f);
@@ -42,5 +62,24 @@ public partial class CrosshairPlugin : Plugin
         base.OnDisable();
 
         crosshair.Cleanup();
+    }
+
+    protected override void OnUpdate(float dt)
+    {
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            Camera cam = Game.instance.camera;
+            Ray ray = new Ray(cam.Position, cam.Front);
+
+            if (Extensions.RayMeshIntersection(testMarker.GetComponent<MeshRenderer>().mesh, testMarker.transform, ray))
+            {
+                mat.SetShaderParameter(new ShaderParam("mainColour", new Vector4(0, 1, 0, 1)));
+            }
+            else
+            {
+                mat.SetShaderParameter(new ShaderParam("mainColour", new Vector4(1, 0, 0, 1)));
+            }
+        }
     }
 }
