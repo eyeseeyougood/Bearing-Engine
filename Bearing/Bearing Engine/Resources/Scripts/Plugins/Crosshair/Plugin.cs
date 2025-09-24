@@ -66,6 +66,7 @@ public partial class CrosshairPlugin : Plugin
 
     protected override void OnUpdate(float dt)
     {
+        Gizmos.CreateSphere(Vector3.One * 3, 0.2f);
 
         if (Input.GetMouseButtonDown(0))
         {

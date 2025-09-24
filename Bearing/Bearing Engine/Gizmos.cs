@@ -15,7 +15,23 @@ public static class Gizmos
 
     private static Material gizmoMaterial = new Material();
 
-    public static void CreateSphere(Vector3 center, float time)
+    public static void CreateSphere(Vector3 center, float time = 0)
+    {
+        MeshRenderer mr = new MeshRenderer("ICOSphere.obj", true);
+        mr.material = gizmoMaterial;
+
+        GameObject go = new GameObject();
+        go.components.Add(mr);
+        go.Load();
+        go.transform.position = center;
+
+        Game.instance.RemoveOpaqueRenderable(mr); // prevent this from rendering like normal objects
+
+        spheres.Add(go);
+        gizmos.Add((mr, Time.now + time));
+    }
+
+    public static void CreateVector(Vector3 vector, Vector3 center = default, float time = 0)
     {
         MeshRenderer mr = new MeshRenderer("ICOSphere.obj", true);
         mr.material = gizmoMaterial;
