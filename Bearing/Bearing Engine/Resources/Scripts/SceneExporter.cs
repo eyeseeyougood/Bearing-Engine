@@ -1,4 +1,5 @@
-﻿using Bearing;
+﻿using Assimp;
+using Bearing;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -106,6 +107,8 @@ public class SceneExporter : Component
                 go.Cleanup();
             }
         }
+
+        LightManager.lights.Clear();
 
         // load all of the objects from the exported scene
 
