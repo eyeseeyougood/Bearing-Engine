@@ -4,9 +4,6 @@
     "components": [
         #PRESET(defaultMeshRenderer) [],
         {
-            "type": "TestComponent"
-        },
-        {
             "Collider": {
                 "boxHalfExtents": 0.5,
                 "type": "BoxShape"

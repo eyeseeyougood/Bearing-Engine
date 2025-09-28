@@ -13,6 +13,13 @@ public class Texture
     public int _width { get; private set; }
     public int _height { get; private set; }
 
+    private byte[] data = new byte[0];
+
+    public byte[] GetData()
+    {
+        return data;
+    }
+
     public static Texture FromData(int width, int height, byte[] data, TextureWrapMode wrapMode = TextureWrapMode.Repeat, TextureMinFilter minF = TextureMinFilter.Linear, TextureMagFilter magF = TextureMagFilter.Linear)
     {
         int handle = GL.GenTexture();
@@ -33,6 +40,7 @@ public class Texture
 
         result._width = width;
         result._height = height;
+        result.data = data;
 
         return result;
     }
@@ -74,6 +82,7 @@ public class Texture
 
             result._width = image.Width;
             result._height = image.Height;
+            result.data = image.Data;
         }
 
         // Now that our texture is loaded, we can set a few settings to affect how the image appears on rendering.

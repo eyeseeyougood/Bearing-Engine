@@ -7,9 +7,6 @@
             Cube, = Sphere|
         ],
         {
-            "type": "TestComponent"
-        },
-        {
             "Collider": {
                 "radius": 0.5,
                 "type": "SphereShape"

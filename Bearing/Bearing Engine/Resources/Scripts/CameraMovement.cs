@@ -53,6 +53,7 @@ public class CameraMovement : Component
                 moveDir.Normalize();
 
             currentSpeed = camSpeed * (Input.GetKey(Keys.LeftShift) ? speedMultiplier : 1);
+            currentSpeed = camSpeed * (Input.GetKey(Keys.Space) ? 1f/speedMultiplier : currentSpeed);
 
             cam.Position += moveDir * currentSpeed * dt;
 

@@ -159,6 +159,16 @@ public class Material
 
     public Material() { }
 
+    public Material Clone()
+    {
+        Material clone = new Material();
+        clone.shader = new Shader(shader.vert, shader.frag);
+        clone.attribs = attribs.ToList();
+        clone.is3D = is3D;
+        clone.parameters = parameters.ToList();
+        return clone;
+    }
+
     public void SetShaderParameter(ShaderParam param)
     {
         // this can be done in a much smaller way (oneliner) by using reflection:

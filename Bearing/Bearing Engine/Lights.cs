@@ -20,6 +20,6 @@ public class Light : Component
 
 public class PointLight : Light
 {
-    public float intensity { get; set; }
-    public float range { get; set; }
+    public float intensity { get; set; } = 1;
+    public float range { get; set; } = 10;
 }

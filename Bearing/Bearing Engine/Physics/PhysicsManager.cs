@@ -46,7 +46,7 @@ public static class PhysicsManager
                 FreezeRigidbody(sh, brb.frozen);
             }
 
-            world.StepSimulation(timeStep);
+            world.StepSimulation(timeStep, 200);
         }
     }
 

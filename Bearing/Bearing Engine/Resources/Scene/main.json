@@ -28,14 +28,44 @@
             "components": [
                 #PRESET(defaultMeshRenderer) [],
                 {
-                    "type": "TestComponent"
-                },
-                {
                     "Collider": {
                         "boxHalfExtents": 0.5,
                         "type": "BoxShape"
                     },
                     "type": "BearingRigidbody"
+                }
+            ]
+        },
+
+        {
+            "name": "Light",
+    
+            "transform": {
+                "position": {
+                    "x": 2,
+                    "y": 2,
+                    "z": 0
+                },
+                "eRotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            },
+
+            "components": [
+                {
+                    "type": "TestComponent"
+                },
+                {
+                    "range": 10,
+                    "intensity": 1,
+                    "type": "PointLight"
                 }
             ]
         },

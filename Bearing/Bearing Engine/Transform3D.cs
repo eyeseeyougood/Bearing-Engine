@@ -92,17 +92,17 @@ public class Transform3D
 
     public Vector3 GetForward()
     {
-        return model.Row2.Xyz;
+        return model.Row2.Xyz.Normalized();
     }
 
     public Vector3 GetRight()
     {
-        return model.Row0.Xyz;
+        return model.Row0.Xyz.Normalized();
     }
 
     public Vector3 GetUp()
     {
-        return model.Row1.Xyz;
+        return model.Row1.Xyz.Normalized();
     }
 
     public Matrix4 GetModelMatrix()

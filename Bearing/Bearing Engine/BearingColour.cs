@@ -65,4 +65,14 @@ public struct BearingColour
     {
         return zeroToOne;
     }
+
+    public static bool operator ==(BearingColour own, BearingColour other)
+    {
+        return own.zeroToOne == other.zeroToOne;
+    }
+
+    public static bool operator !=(BearingColour own, BearingColour other)
+    {
+        return own.zeroToOne != other.zeroToOne;
+    }
 }

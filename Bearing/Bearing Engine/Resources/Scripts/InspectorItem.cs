@@ -17,9 +17,6 @@ public class InspectorItem : Component
 
     public override void Cleanup()
     {
-        UIVerticalScrollView inspectorScroll = (UIVerticalScrollView)UIManager.FindFromRID(2);
-        inspectorScroll.contents.Remove(scrollView.rid);
-
         scrollView.Cleanup();
     }
 

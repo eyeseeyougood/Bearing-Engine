@@ -188,15 +188,19 @@ public static class Extensions
     {
         bool result = false;
 
-        float[] vData = mesh.GetVertexData();
+        float[] vData = mesh.GetVertexPositions();
 
         Matrix4 model = transform.GetModelMatrix();
         for (int i = 0; i < mesh.indices.Length; i += 3)
         {
-            Vector3 p1 = new Vector3(vData[mesh.indices[i]], vData[mesh.indices[i]+ 1], vData[mesh.indices[i] + 2]);
-            Vector3 p2 = new Vector3(vData[mesh.indices[i + 1]], vData[mesh.indices[i + 1] + 1], vData[mesh.indices[i + 1] + 2]);
-            Vector3 p3 = new Vector3(vData[mesh.indices[i + 2]], vData[mesh.indices[i + 2] + 1], vData[mesh.indices[i + 2] + 2]);
+            uint i0 = mesh.indices[i] * 3;
+            uint i1 = mesh.indices[i + 1] * 3;
+            uint i2 = mesh.indices[i + 2] * 3;
 
+            Vector3 p1 = new Vector3(vData[i0], vData[i0 + 1], vData[i0 + 2]);
+            Vector3 p2 = new Vector3(vData[i1], vData[i1 + 1], vData[i1 + 2]);
+            Vector3 p3 = new Vector3(vData[i2], vData[i2 + 1], vData[i2 + 2]);
+            
             p1 = (model * new Vector4(p1, 1.0f)).Xyz;
             p2 = (model * new Vector4(p2, 1.0f)).Xyz;
             p3 = (model * new Vector4(p3, 1.0f)).Xyz;

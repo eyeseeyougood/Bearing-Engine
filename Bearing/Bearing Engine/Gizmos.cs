@@ -11,39 +11,61 @@ namespace Bearing;
 public static class Gizmos
 {
     private static List<(IRenderable,float)> gizmos = new List<(IRenderable, float)>();
-    private static List<GameObject> spheres = new List<GameObject>();
+    private static Dictionary<IRenderable,GameObject> objects = new Dictionary<IRenderable,GameObject>();
 
     private static Material gizmoMaterial = new Material();
 
-    public static void CreateSphere(Vector3 center, float time = 0)
+    public static void CreateSphere(Vector3 center, float radius = 1f, float time = 0, BearingColour colour = default)
     {
         MeshRenderer mr = new MeshRenderer("ICOSphere.obj", true);
-        mr.material = gizmoMaterial;
+        mr.material = gizmoMaterial.Clone();
+        BearingColour c = colour;
+        if (colour == default)
+            c = BearingColour.White;
+
+        mr.material.parameters = new List<ShaderParam>()
+        {
+            new ShaderParam() { name = "mainColour", vector4 = c.GetZeroToOneA() },
+        };
 
         GameObject go = new GameObject();
         go.components.Add(mr);
         go.Load();
         go.transform.position = center;
+        go.transform.scale = Vector3.One * radius;
 
         Game.instance.RemoveOpaqueRenderable(mr); // prevent this from rendering like normal objects
 
-        spheres.Add(go);
+        objects.Add(mr, go);
         gizmos.Add((mr, Time.now + time));
     }
 
-    public static void CreateVector(Vector3 vector, Vector3 center = default, float time = 0)
+    public static void CreateVector(Vector3 vector, Vector3 center = default, float time = 0, BearingColour colour = default)
     {
-        MeshRenderer mr = new MeshRenderer("ICOSphere.obj", true);
-        mr.material = gizmoMaterial;
+        MeshRenderer mr = new MeshRenderer("SBP.obj", true);
+        mr.material = gizmoMaterial.Clone();
+        BearingColour c = colour;
+        if (colour == default)
+            c = BearingColour.White;
+
+        mr.material.parameters = new List<ShaderParam>()
+        {
+            new ShaderParam() { name = "mainColour", vector4 = c.GetZeroToOneA() },
+        };
 
         GameObject go = new GameObject();
+        go.transform.scale = new Vector3(0.02f, vector.Length, 0.02f);
+        Vector3 axis = Vector3.Cross(vector.Normalized(), Vector3.UnitY).Normalized();
+        float angle = MathF.Acos(Vector3.Dot(vector.Normalized(), Vector3.UnitY));
+        if (vector != Vector3.UnitY)
+            go.transform.qRotation = Quaternion.FromAxisAngle(axis, -angle);
         go.components.Add(mr);
         go.Load();
-        go.transform.position = center;
+        go.transform.position = center + go.transform.GetUp()*vector.Length/2f;
 
         Game.instance.RemoveOpaqueRenderable(mr); // prevent this from rendering like normal objects
 
-        spheres.Add(go);
+        objects.Add(mr, go);
         gizmos.Add((mr, Time.now + time));
     }
 
@@ -55,10 +77,6 @@ public static class Gizmos
             new ShaderAttrib() { name = "aPosition", size = 3 },
             new ShaderAttrib() { name = "aTexCoord", size = 2 },
             new ShaderAttrib() { name = "aNormal", size = 3 }
-        };
-        gizmoMaterial.parameters = new List<ShaderParam>()
-        {
-            new ShaderParam() { name = "mainColour", vector4 = new Vector4(0.0f, 0.2f, 0.5f, 1.0f) },
         };
     }
 
@@ -80,6 +98,8 @@ public static class Gizmos
         foreach ((IRenderable, float) item in remove)
         {
             gizmos.Remove(item);
+            objects[item.Item1].Cleanup();
+            objects.Remove(item.Item1);
         }
     }
 }

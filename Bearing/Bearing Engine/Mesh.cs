@@ -7,6 +7,7 @@ namespace Bearing;
 public abstract class Mesh
 {
     public abstract float[] GetVertexData();
+    public abstract float[] GetVertexPositions();
     public uint[] indices = new uint[0];
     public string name { get; set; }
 }
@@ -36,6 +37,20 @@ public class Mesh3D : Mesh
             vertices = verts,
             indices = indices
         };
+    }
+
+    public override float[] GetVertexPositions()
+    {
+        List<float> result = new();
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            result.Add(vertices[i].position.X);
+            result.Add(vertices[i].position.Y);
+            result.Add(vertices[i].position.Z);
+        }
+
+        return result.ToArray();
     }
 
     public override float[] GetVertexData()
@@ -103,6 +118,19 @@ public class Mesh2D : Mesh
             vertices = verts,
             indices = indices
         };
+    }
+
+    public override float[] GetVertexPositions()
+    {
+        List<float> result = new();
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            result.Add(vertices[i].position.X);
+            result.Add(vertices[i].position.Y);
+        }
+
+        return result.ToArray();
     }
 
     public override float[] GetVertexData()

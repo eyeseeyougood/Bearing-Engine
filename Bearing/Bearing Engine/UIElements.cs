@@ -268,7 +268,7 @@ public class UIPanel : UIElement
 {
     public UIPanel() : base()
     {
-        material = Material.uiFallback;
+        material = Material.uiFallback.Clone();
     }
 
     public override void OnTick(float dt)
