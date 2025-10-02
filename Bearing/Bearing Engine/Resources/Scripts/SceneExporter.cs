@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 
 public class SceneExporter : Component
 {
-    private UITextBox exportPathBox;
+    public static SceneExporter instance;
+    public UITextBox exportPathBox;
 
     public override void Cleanup()
     {
@@ -18,6 +19,8 @@ public class SceneExporter : Component
 
     public override void OnLoad()
     {
+        instance = this;
+
         GameObject prefab = SceneLoader.LoadFromFile("./Resources/Scene/buttonObject.json", true);
         Component newUI1 = prefab.GetComponent(0);
         Component newUI2 = prefab.GetComponent(1);

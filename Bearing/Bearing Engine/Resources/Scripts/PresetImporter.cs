@@ -74,7 +74,7 @@ public class PresetImporter : Component
         object[] meta = ((UIButton)sender).metadata;
         string file = (string)meta[0];
 
-        GameObject nRoot = SceneLoader.LoadFromFile(file, false);
+        GameObject nRoot = SceneLoader.LoadFromRealFile(file, false);
 
         nRoot.parent = Game.instance.root;
         nRoot.Load();
@@ -110,10 +110,13 @@ public class PresetImporter : Component
 
         // add new files
 
-        string[] files = Resources.GetFiles("./Resources/Scene/", ".preset");
+        string[] files = Directory.GetFiles(SceneExporter.instance.exportPathBox.text);
 
         foreach (string file in files)
         {
+            if (file.Split('.').Last() != "preset")
+                continue;
+
             UIPanel panel = new UIPanel();
             panel.anchor = new Vector2(0.0f, 0.0f);
             panel.position = new UDim2(0.0f, 0.0f);
