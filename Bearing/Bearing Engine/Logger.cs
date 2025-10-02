@@ -9,6 +9,8 @@ namespace Bearing;
 public static class Logger
 {
     private static Dictionary<string, int> counts = new Dictionary<string, int>();
+    public static Action<object, ConsoleColor> onLog = (i,j)=>{};
+
     public static void Count(string key)
     {
         if (!counts.ContainsKey(key))
@@ -33,19 +35,18 @@ public static class Logger
 
     public static void Log(object message)
     {
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.WriteLine($"[{MathF.Round(Time.now, 3)}] "+message);
+        Log(message, ConsoleColor.White);
     }
 
     public static void Log(object message, ConsoleColor color)
     {
         Console.ForegroundColor = color;
         Console.WriteLine($"[{MathF.Round(Time.now, 3)}] " + message);
+        onLog.Invoke(message, color);
     }
 
     public static void LogError(object message)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"[{MathF.Round(Time.now, 3)}] ERROR: "+message);
+        Log(message, ConsoleColor.Red);
     }
 }

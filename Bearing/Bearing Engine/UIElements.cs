@@ -395,7 +395,8 @@ public class UILabel : UIElement
 
     protected virtual void TextChanged(string val)
     {
-        onTextChanged.Invoke(this, val);
+        if (onTextChanged != null)
+            onTextChanged.Invoke(this, val);
 
         ResetTexture();
     }
