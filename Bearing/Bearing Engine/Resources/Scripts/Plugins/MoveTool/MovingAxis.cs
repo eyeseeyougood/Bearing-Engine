@@ -53,7 +53,7 @@ public class MovingAxis : Component
         if (Hierarchy.instance.selectedObjID == -1) return;
         GameObject selected = GameObject.Find(Hierarchy.instance.selectedObjID);
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !UIManager.cursorOverUI)
         {
             if (CheckDistTo(gameObject.transform.position) < 0.5f) { clicked = true; }
 
@@ -89,18 +89,18 @@ public class MovingAxis : Component
         {
             Vector3 axis = axisToMove switch { MovingAxisType.X => Vector3.UnitX, MovingAxisType.Y => Vector3.UnitY, MovingAxisType.Z => Vector3.UnitZ };
             gameObject.transform.position = startPoint + (startPoint - Extensions.FindClosestPointLineAxis(startPoint, axis, Game.instance.camera.Position, Game.instance.camera.Front));
+
+            selected.transform.position = new Vector3(
+            axisToMove == MovingAxisType.X ? (gameObject.transform.position.X - gameObject.transform.scale.X / 2 - selected.transform.scale.X / 2) : selected.transform.position.X,
+            axisToMove == MovingAxisType.Y ? (gameObject.transform.position.Y - gameObject.transform.scale.Y / 2 - selected.transform.scale.Y / 2) : selected.transform.position.Y,
+            axisToMove == MovingAxisType.Z ? (gameObject.transform.position.Z - gameObject.transform.scale.Z / 2 - selected.transform.scale.Z / 2) : selected.transform.position.Z
+        );
         }
         else
             gameObject.transform.position = new Vector3(
             axisToMove == MovingAxisType.X ? (selected.transform.position.X + gameObject.transform.scale.X / 2 + selected.transform.scale.X / 2) : selected.transform.position.X,
             axisToMove == MovingAxisType.Y ? (selected.transform.position.Y + gameObject.transform.scale.Y / 2 + selected.transform.scale.Y / 2) : selected.transform.position.Y,
             axisToMove == MovingAxisType.Z ? (selected.transform.position.Z + gameObject.transform.scale.Z / 2 + selected.transform.scale.Z / 2) : selected.transform.position.Z
-        );
-
-        selected.transform.position = new Vector3(
-            axisToMove == MovingAxisType.X ? (gameObject.transform.position.X - gameObject.transform.scale.X / 2 - selected.transform.scale.X / 2) : selected.transform.position.X,
-            axisToMove == MovingAxisType.Y ? (gameObject.transform.position.Y - gameObject.transform.scale.Y / 2 - selected.transform.scale.Y / 2) : selected.transform.position.Y,
-            axisToMove == MovingAxisType.Z ? (gameObject.transform.position.Z - gameObject.transform.scale.Z / 2 - selected.transform.scale.Z / 2) : selected.transform.position.Z
         );
     }
 
