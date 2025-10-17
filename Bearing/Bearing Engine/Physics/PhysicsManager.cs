@@ -40,44 +40,20 @@ public static class PhysicsManager
 
                 RigidBody rb = brb.rb;
                 rb.MotionState.GetWorldTransform(out Matrix worldTransform);
-                sh.transform.FromModel(worldTransform.ToTKMatrix());
-                Vector3 position = worldTransform.Origin;
-
-                FreezeRigidbody(sh, brb.frozen);
+                OpenTK.Mathematics.Vector3 sBefore = sh.transform.scale;
+                OpenTK.Mathematics.Matrix4 m = worldTransform.ToTKMatrix();
+                m = m.ClearScale();
+                m = OpenTK.Mathematics.Matrix4.CreateScale(sBefore) * m;
+                sh.transform.FromModel(m, false);
             }
 
-            world.StepSimulation(timeStep, 200);
+            world.StepSimulation(timeStep, 20);
         }
     }
 
     public static DiscreteDynamicsWorld GetWorld()
     {
         return world;
-    }
-
-    private static void FreezeRigidbody(GameObject sender, bool freeze)
-    {
-        BearingRigidbody brb = (BearingRigidbody)sender.GetComponent(typeof(BearingRigidbody));
-        RigidBody rigidBody = brb.rb;
-        if (freeze)
-        {
-            if ((rigidBody.CollisionFlags & CollisionFlags.KinematicObject) != 0)
-                return;
-
-            rigidBody.LinearVelocity = Vector3.Zero;
-            rigidBody.AngularVelocity = Vector3.Zero;
-            rigidBody.ForceActivationState(ActivationState.DisableSimulation);
-            rigidBody.CollisionFlags |= CollisionFlags.KinematicObject;
-        }
-        else
-        {
-            if ((rigidBody.CollisionFlags & CollisionFlags.KinematicObject) != 0)
-            {
-                rigidBody.CollisionFlags &= ~CollisionFlags.KinematicObject;
-                rigidBody.ForceActivationState(ActivationState.ActiveTag);
-                rigidBody.Activate(true);
-            }
-        }
     }
 
     public static void Register(RigidBody body)

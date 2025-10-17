@@ -25,6 +25,10 @@ public class MeshRenderer : Component, IRenderable
             this.mesh = new Mesh3D(mesh, meshIsEngineResource);
     }
 
+    private MeshRenderer() {}
+
+    public static MeshRenderer FromMesh(Mesh _mesh) { return new MeshRenderer() { mesh = _mesh }; }
+
     public override void OnLoad()
     {
         float[] vertexData = mesh.GetVertexData();

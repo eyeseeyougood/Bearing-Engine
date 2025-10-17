@@ -11,6 +11,7 @@ public struct BearingColour
 {
     public static readonly BearingColour Transparent = new BearingColour() { zeroToOne = new Vector4(0,0,0,0) };
     public static readonly BearingColour Black = new BearingColour() { zeroToOne = new Vector4(0,0,0,1) };
+    public static readonly BearingColour BrightBlack = new BearingColour() { zeroToOne = new Vector4(0.1f, 0.1f, 0.1f, 1) };
     public static readonly BearingColour White = new BearingColour() { zeroToOne = new Vector4(1f, 1f, 1f, 1f) };
     public static readonly BearingColour DarkWhite = new BearingColour() { zeroToOne = new Vector4(0.82f, 0.82f, 0.82f, 1f) };
     public static readonly BearingColour LightGray = new BearingColour() { zeroToOne = new Vector4(0.75f, 0.75f, 0.75f, 1f) };

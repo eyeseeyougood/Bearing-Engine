@@ -25,7 +25,6 @@ public class Transform3D
         set
         {
             _parent = value;
-
         }
     }
 
@@ -39,6 +38,7 @@ public class Transform3D
             onTransformChanged.Invoke();
         }
     }
+
     public Vector3 eRotation
     {
         get { return _eRotation; }
@@ -64,6 +64,7 @@ public class Transform3D
             onTransformChanged.Invoke();
         }
     }
+
     public Vector3 scale
     {
         get { return _scale; }
@@ -110,12 +111,14 @@ public class Transform3D
         return model;
     }
 
-    public void FromModel(Matrix4 model)
+    public void FromModel(Matrix4 model, bool triggerTransformChanged = true)
     {
         _position = model.ExtractTranslation(); // using underscore to avoid calling transform changed
         _qRotation = model.ExtractRotation();
         _scale = model.ExtractScale();
         UpdateModel();
+        if (triggerTransformChanged)
+            onTransformChanged.Invoke();
     }
 
     public void Cleanup()

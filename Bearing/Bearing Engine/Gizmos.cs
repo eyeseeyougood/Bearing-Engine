@@ -15,6 +15,8 @@ public static class Gizmos
 
     private static Material gizmoMaterial = new Material();
 
+    private static MeshRenderer sbp;
+
     public static void CreateSphere(Vector3 center, float radius = 1f, float time = 0, BearingColour colour = default)
     {
         MeshRenderer mr = new MeshRenderer("ICOSphere.obj", true);
@@ -42,7 +44,11 @@ public static class Gizmos
 
     public static void CreateVector(Vector3 vector, Vector3 center = default, float time = 0, BearingColour colour = default)
     {
-        MeshRenderer mr = new MeshRenderer("SBP.obj", true);
+        if (sbp == null)
+        {
+            sbp = new MeshRenderer("SBP.obj", true);
+        }
+        MeshRenderer mr = MeshRenderer.FromMesh(sbp.mesh);
         mr.material = gizmoMaterial.Clone();
         BearingColour c = colour;
         if (colour == default)

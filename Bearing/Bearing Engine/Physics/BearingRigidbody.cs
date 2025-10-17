@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Assimp;
 using BulletSharp;
 using OpenTK.Mathematics;
+using SkiaSharp;
 
 namespace Bearing;
 
@@ -15,6 +16,8 @@ public class BearingRigidbody : Component
     public RigidBody rb { get; private set; }
     public float mass { get; set; } = 1.0f;
     private CollisionShape collider;
+
+    [HideFromInspector]
     public CollisionShape Collider
     {
         get { return collider; }
@@ -23,7 +26,19 @@ public class BearingRigidbody : Component
         }
     }
 
-    public bool frozen { get; set; } = true;
+    private bool _frozen = true;
+    public bool frozen
+    {
+        get
+        {
+            return _frozen;
+        }
+        set
+        {
+            _frozen = value;
+            UpdateFreezeState();
+        }
+    }
 
     public BearingRigidbody() { }
 
@@ -42,6 +57,9 @@ public class BearingRigidbody : Component
     public void UpdateCollider(CollisionShape newShape)
     {
         if (newShape == null) return;
+
+        if (collider != null)
+            collider.Dispose();
 
         collider = newShape;
         collider.CalculateLocalInertia(mass, out BulletSharp.Math.Vector3 localInertia);
@@ -78,18 +96,45 @@ public class BearingRigidbody : Component
         var rbInfo = new RigidBodyConstructionInfo(mass, motionState, collider, localInertia);
         rb = new RigidBody(rbInfo);
 
-        // Add the rigidbody to the world
+        // Add the rigidbody to the world 
         PhysicsManager.physicsObjects.Add(gameObject);
         PhysicsManager.Register(rb);
     }
 
+    private Vector3 prevPos = Vector3.One;
+    private Vector3 prevRot = Vector3.Zero;
     private void TranformChanged()
     {
-        SetPosition(gameObject.transform.position, false);
+        UpdatePhysicsScaling();
+        if (prevPos != gameObject.transform.position)
+        {
+            prevPos = gameObject.transform.position;
+            SetPosition(gameObject.transform.position, false);
+        }
+
+        if (prevRot != gameObject.transform.eRotation)
+        {
+            prevRot = gameObject.transform.eRotation;
+            UpdateFromModelMatrix();
+        }
+    }
+
+    private Vector3 prevScale = Vector3.One;
+    public void UpdatePhysicsScaling()
+    {
+        if (gameObject.transform.scale == prevScale) return;
+        prevScale = gameObject.transform.scale;
+
+        Unfreeze();
+        collider.LocalScaling = gameObject.transform.scale.ToBulletVector();
+        rb.CollisionShape = collider;
+        Logger.Log(gameObject.transform.scale);
+        UpdateFreezeState();
     }
 
     public void SetPosition(Vector3 newPosition, bool setTransform = true)
     {
+        Logger.Log("moving to: " + newPosition);
         if (setTransform)
             gameObject.transform.position = newPosition;
         UpdateFromModelMatrix();
@@ -98,15 +143,57 @@ public class BearingRigidbody : Component
     private void UpdateFromModelMatrix()
     {
         BulletSharp.Math.Matrix m = gameObject.transform.GetModelMatrix().ToBulletMatrix();
-        rb.MotionState.SetWorldTransform(ref m);
+        rb.WorldTransform = m;
+    }
+
+    private void UpdateFreezeState()
+    {
         if (frozen)
         {
-            PhysicsManager.GetWorld().UpdateSingleAabb(rb);
+            Freeze();
         }
+        else
+        {
+            Unfreeze();
+        }
+    }
+
+    private void Unfreeze(bool force = false)
+    {
+        if (rb.InvMass == mass && !force)
+            return;
+
+        rb.SetMassProps(mass, rb.CollisionShape.CalculateLocalInertia(mass));
+        rb.UpdateInertiaTensor();
+        rb.CollisionFlags &= ~CollisionFlags.KinematicObject;
+        rb.CollisionFlags &= ~CollisionFlags.StaticObject;
+
+        Logger.Log("unfrozen");
+    }
+
+    private void Freeze()
+    {
+        if (rb.InvMass == 0)
+            return;
+
+        rb.SetMassProps(0, BulletSharp.Math.Vector3.Zero);
+        rb.UpdateInertiaTensor();
+        rb.AngularVelocity = BulletSharp.Math.Vector3.Zero;
+        rb.LinearVelocity = BulletSharp.Math.Vector3.Zero;
+        rb.CollisionFlags &= CollisionFlags.KinematicObject;
+
+        Logger.Log("frozen");
     }
 
     public override void OnTick(float dt)
     {
+        rb.Activate(true);
+        UpdateFreezeState();
+
+        if (rb.CollisionShape.LocalScaling != gameObject.transform.scale.ToBulletVector())
+        {
+            TranformChanged();
+        }
     }
 
     public override void Cleanup()

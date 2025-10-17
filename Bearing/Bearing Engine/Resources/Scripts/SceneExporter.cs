@@ -46,7 +46,6 @@ public class SceneExporter : Component
 
         prefab.Cleanup();
 
-
         prefab = SceneLoader.LoadFromFile("./Resources/Scene/buttonObject.json", true);
         newUI1 = prefab.GetComponent(0);
         newUI2 = prefab.GetComponent(1);
@@ -125,6 +124,7 @@ public class SceneExporter : Component
         nRoot.Cleanup();
 
         Hierarchy.instance.UpdateView();
+        Inspector.instance.UpdateView();
     }
 
     public override void OnTick(float dt)
@@ -133,6 +133,10 @@ public class SceneExporter : Component
 
     public void ExportScene()
     {
+        // remove all plugins so their objects dont save
+        PluginManager.DisableAll(true);
+
+        // proceed to exporting
         string path = exportPathBox.text;
 
         if (!Directory.Exists(path))
@@ -168,5 +172,8 @@ public class SceneExporter : Component
         }
 
         File.WriteAllText($"{path}/main.json", f);
+
+        // re-enable the plugins that where enabled
+        PluginManager.EnableAll(true);
     }
 }

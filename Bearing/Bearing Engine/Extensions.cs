@@ -62,6 +62,16 @@ public static class Extensions
             );
     }
 
+    public static BulletSharp.Math.Vector3 ToBulletVector(this Vector3 vector)
+    {
+        return new BulletSharp.Math.Vector3(vector.X, vector.Y, vector.Z);
+    }
+
+    public static Vector3 ToTKVector(this BulletSharp.Math.Vector3 vector)
+    {
+        return new Vector3(vector.X, vector.Y, vector.Z);
+    }
+
     public static float LerpAngle(this float a, float b, float t)
     {
         float delta = Repeat((b - a) + 180f, 360f) - 180f;

@@ -154,11 +154,30 @@ public static partial class PluginManager
         return result;
     }
 
-    public static void EnableAll()
+    private static List<string> preferenceCache = new List<string>();
+    public static void EnableAll(bool usePreferences = false)
     {
         foreach (var kvp in plugins)
         {
-            kvp.Value.OnEnable();
+            if (usePreferences)
+            {
+                if (preferenceCache.Contains(kvp.Key))
+                    kvp.Value.OnEnable();
+            }
+            else
+                kvp.Value.OnEnable();
+        }
+    }
+
+    public static void DisableAll(bool rememberPreferences = false)
+    {
+        preferenceCache.Clear();
+
+        foreach (var kvp in plugins)
+        {
+            if (kvp.Value.IsEnabled() && rememberPreferences)
+                preferenceCache.Add(kvp.Key);
+            kvp.Value.OnDisable();
         }
     }
 

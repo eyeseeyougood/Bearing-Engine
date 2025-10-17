@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Bearing;
+using BulletSharp;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bearing;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 
 public class CameraMovement : Component
 {
@@ -28,6 +29,12 @@ public class CameraMovement : Component
 
     public override void OnTick(float dt)
     {
+        PhysicsManager.GetWorld().DebugDrawWorld();
+        if (Input.GetKeyDown(Keys.G))
+        {
+            PhysicsManager.GetWorld().DebugDrawer = new BulletDebugDrawer() { DebugMode = DebugDrawModes.DrawWireframe };
+        }
+
         if (Input.GetMouseButtonDown(1) && !UIManager.cursorOverUI)
         {
             moving = true;
