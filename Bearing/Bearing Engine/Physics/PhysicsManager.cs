@@ -27,27 +27,24 @@ public static class PhysicsManager
 
     public static void Tick()
     {
-        float timeStep = 1f / 60f; // 60 FPS
-        timeStep /= ticksPerTick;
-        for (int i = 0; i < ticksPerTick; i++)
+        float timeStep = 1f / 60f;
+        world.StepSimulation(timeStep, 10, 1 / 600f);
+        
+        // Get updated cube position
+        foreach (GameObject sh in physicsObjects)
         {
-            // Get updated cube position
-            foreach (GameObject sh in physicsObjects)
-            {
-                BearingRigidbody brb = (BearingRigidbody)sh.GetComponent(typeof(BearingRigidbody));
-                if (brb == null) // I think this can be the case during cleanup or sum idrk
-                    continue;
+            BearingRigidbody brb = (BearingRigidbody)sh.GetComponent(typeof(BearingRigidbody));
+            if (brb == null) // I think this can be the case during cleanup or sum idrk
+                continue;
 
-                RigidBody rb = brb.rb;
-                rb.MotionState.GetWorldTransform(out Matrix worldTransform);
-                OpenTK.Mathematics.Vector3 sBefore = sh.transform.scale;
-                OpenTK.Mathematics.Matrix4 m = worldTransform.ToTKMatrix();
-                m = m.ClearScale();
-                m = OpenTK.Mathematics.Matrix4.CreateScale(sBefore) * m;
-                sh.transform.FromModel(m, false);
-            }
+            RigidBody rb = brb.rb;
+            rb.MotionState.GetWorldTransform(out Matrix worldTransform);
 
-            world.StepSimulation(timeStep, 20);
+            OpenTK.Mathematics.Vector3 sBefore = sh.transform.scale;
+            OpenTK.Mathematics.Matrix4 m = worldTransform.ToTKMatrix();
+            m = m.ClearScale();
+            m = OpenTK.Mathematics.Matrix4.CreateScale(sBefore) * m;
+            sh.transform.FromModel(m, false);
         }
     }
 

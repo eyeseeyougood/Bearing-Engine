@@ -17,6 +17,9 @@ public class Transform3D
 
     public delegate void OnTransformChanged();
     public event OnTransformChanged onTransformChanged = ()=>{};
+    public event OnTransformChanged onPositionChanged = ()=>{};
+    public event OnTransformChanged onRotationChanged = ()=>{};
+    public event OnTransformChanged onScaleChanged = ()=>{};
 
     [HideFromInspector]
     public Transform3D parent
@@ -35,6 +38,7 @@ public class Transform3D
         {
             _position = value;
             UpdateModel();
+            onPositionChanged.Invoke();
             onTransformChanged.Invoke();
         }
     }
@@ -48,6 +52,7 @@ public class Transform3D
             _eRotation = value;
             _qRotation = Quaternion.FromEulerAngles(_eRotation * MathHelper.DegToRad);
             UpdateModel();
+            onRotationChanged.Invoke();
             onTransformChanged.Invoke();
         }
     }
@@ -61,6 +66,7 @@ public class Transform3D
             _qRotation = value;
             _eRotation = _qRotation.ToEulerAngles();
             UpdateModel();
+            onRotationChanged.Invoke();
             onTransformChanged.Invoke();
         }
     }
@@ -72,6 +78,7 @@ public class Transform3D
         {
             _scale = value;
             UpdateModel();
+            onScaleChanged.Invoke();
             onTransformChanged.Invoke();
         }
     }
