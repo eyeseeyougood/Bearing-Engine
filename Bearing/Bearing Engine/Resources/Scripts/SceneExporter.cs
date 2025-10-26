@@ -97,6 +97,7 @@ public class SceneExporter : Component
         {
             Logger.LogError("Cannot load due to invalid path!");
             Logger.LogError("Usage: The path of the folder containing your main.json!");
+            return;
         }
 
         // remove all current objects exept editor objects

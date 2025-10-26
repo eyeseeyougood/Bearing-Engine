@@ -108,9 +108,18 @@ public class PresetImporter : Component
 
         scroll.ClearContents();
 
+        // check that export folder exists, if not then don't proceed
+        string exportFolder = SceneExporter.instance.exportPathBox.text;
+        if (!Directory.Exists(exportFolder))
+        {
+            Logger.LogError("Cannot load due to invalid path!");
+            Logger.LogError("Usage: The path of the folder containing your main.json!");
+            return;
+        }
+
         // add new files
 
-        string[] files = Directory.GetFiles(SceneExporter.instance.exportPathBox.text);
+        string[] files = Directory.GetFiles(exportFolder);
 
         foreach (string file in files)
         {

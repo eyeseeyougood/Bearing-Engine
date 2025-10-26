@@ -85,6 +85,12 @@ public class InspectorItem : Component
                 case "Boolean":
                     field = CreateBoolField(property);
                     break;
+                case "Single":
+                    field = CreateFloatField(property);
+                    break;
+                case "Double":
+                    field = CreateDoubleField(property);
+                    break;
             }
 
             field.parent = panel.rid;
@@ -176,13 +182,47 @@ public class InspectorItem : Component
     private UIElement CreateBoolField(PropertyInfo property)
     {
         // textbox
+        UIButton toggleButton = new UIButton();
+        toggleButton.renderLayer = 5;
+        toggleButton.size = new UDim2(0.85f, 1f, 0, 0);
+        toggleButton.metadata = new object[] { property.Name, "System.Boolean" };
+        UILabel toggleLabel = new UILabel();
+        toggleLabel.renderLayer = 6;
+        toggleLabel.parent = toggleButton.rid;
+        toggleLabel.size = new UDim2(1, 1);
+        toggleLabel.text = property.GetValue(objectComp).ToString();
+        toggleButton.buttonReleased += (i,j) => { toggleLabel.text = toggleLabel.text == "True" ? "False" : "True"; PropertyValueTextSubmit(toggleButton, toggleLabel.text); };
+        
+        gameObject.AddComponent(toggleButton);
+        gameObject.AddComponent(toggleLabel);
+
+        return toggleButton;
+    }
+
+    private UIElement CreateFloatField(PropertyInfo property)
+    {
+        // textbox
         UITextBox propertyTextbox = new UITextBox();
         propertyTextbox.renderLayer = 5;
         propertyTextbox.size = new UDim2(0.85f, 1f, 0, 0);
         propertyTextbox.multiline = false;
-        bool testType = true;
         propertyTextbox.text = property.GetValue(objectComp).ToString();
-        propertyTextbox.metadata = new object[] { property.Name, "System.Boolean" };
+        propertyTextbox.metadata = new object[] { property.Name, "System.Single" };
+        propertyTextbox.onTextSubmit += PropertyValueTextSubmit;
+        gameObject.AddComponent(propertyTextbox);
+
+        return propertyTextbox;
+    }
+
+    private UIElement CreateDoubleField(PropertyInfo property)
+    {
+        // textbox
+        UITextBox propertyTextbox = new UITextBox();
+        propertyTextbox.renderLayer = 5;
+        propertyTextbox.size = new UDim2(0.85f, 1f, 0, 0);
+        propertyTextbox.multiline = false;
+        propertyTextbox.text = property.GetValue(objectComp).ToString();
+        propertyTextbox.metadata = new object[] { property.Name, "System.Double" };
         propertyTextbox.onTextSubmit += PropertyValueTextSubmit;
         gameObject.AddComponent(propertyTextbox);
 
@@ -241,7 +281,7 @@ public class InspectorItem : Component
 
     private void PropertyValueTextSubmit(object? sender, string e)
     {
-        UITextBox box = ((UITextBox)sender);
+        UIElement box = (UIElement)sender;
         string propName = (string)box.metadata[0];
         string type = (string)box.metadata[1];
 

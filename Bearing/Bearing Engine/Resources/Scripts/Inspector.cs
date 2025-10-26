@@ -167,9 +167,6 @@ public class Inspector : Component
 
     public void UpdateView()
     {
-        // reset scroll value to ensure items are in view
-        scrollView.SetScrollAmount(0);
-
         // remove all UI from inspector
         foreach (Component c in gameObject.components.ToList())
         {
