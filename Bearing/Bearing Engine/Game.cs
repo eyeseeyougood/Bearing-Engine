@@ -69,8 +69,7 @@ public class Game : GameWindow
 
         MultiplayerManager.Init();
 
-        // TODO: OPTIMISATION
-        PhysicsManager.ticksPerTick = 20; // testing value
+        PhysicsManager.tps = 60;
         PhysicsManager.Init();
         
         root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json"));
@@ -113,7 +112,7 @@ public class Game : GameWindow
         Input.UpdateState(KeyboardState, MouseState);
         gameTick.Invoke();
         root.Tick((float)e.Time);
-        PhysicsManager.Tick();
+        //PhysicsManager.Tick((float)e.Time);
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)

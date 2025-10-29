@@ -1,6 +1,7 @@
 ﻿using BulletSharp;
 using BulletSharp.Math;
-using System.Reflection;
+using System.Timers;
+using Timer = System.Timers.Timer;
 
 namespace Bearing;
 
@@ -9,7 +10,7 @@ public static class PhysicsManager
     private static DiscreteDynamicsWorld world;
     public static List<GameObject> physicsObjects = new List<GameObject>();
 
-    public static int ticksPerTick = 1;
+    public static int tps = 40;
 
     public static float gravity { get; private set; } = -9.81f;
 
@@ -23,12 +24,20 @@ public static class PhysicsManager
         // Create the physics world
         world = new DiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
         world.Gravity = new Vector3(0, -9.81f, 0);
+
+        DateTime startTime = DateTime.Now;
+        Timer timer = new Timer(1000f / tps);
+        timer.Elapsed += (s, e) => {
+            Tick((float)(e.SignalTime - startTime).TotalSeconds);
+            startTime = DateTime.Now;
+        };
+        timer.AutoReset = true;
+        timer.Enabled = true;
     }
 
-    public static void Tick()
+    public static void Tick(float delta)
     {
-        float timeStep = 1f / 60f;
-        world.StepSimulation(timeStep, 10, 1 / 600f);
+        world.StepSimulation(delta, 10, delta / 10f);
         
         // Get updated cube position
         foreach (GameObject sh in physicsObjects)
