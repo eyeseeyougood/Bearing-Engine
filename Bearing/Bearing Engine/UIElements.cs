@@ -1,5 +1,6 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.Drawing;
 
 namespace Bearing;
 
@@ -268,7 +269,16 @@ public class UIPanel : UIElement
 {
     public UIPanel() : base()
     {
-        material = Material.uiFallback.Clone();
+        material = new Material()
+        {
+            shader = new Shader("defaultUI.vert", "defaultUI.frag"),
+            attribs = new List<ShaderAttrib>()
+            {
+                new ShaderAttrib() { name = "aPosition", size = 2 },
+                new ShaderAttrib() { name = "aTexCoord", size = 2 },
+            },
+            is3D = false
+        };
     }
 
     public override void OnTick(float dt)
@@ -701,8 +711,6 @@ public class UIButton : UIElement
 
     public UIButton() : base()
     {
-        themeOverride = (UITheme)UIManager.currentTheme.Clone();
-
         material = new Material()
         {
             shader = new Shader("defaultUI.vert", "defaultUI.frag"),
@@ -741,19 +749,24 @@ public class UIButton : UIElement
         base.Cleanup();
     }
 
+    private bool mouseDown;
+    private bool prevMouseDown;
+    private bool wasPressed;
     public override void OnTick(float dt)
     {
         base.OnTick(dt);
 
         BearingColour bg = GetThemeValue<BearingColour>("buttonUpBackground");
 
+        mouseDown = Input.GetMouseButton(0);
+
         pressed = false;
         hover = false;
-        if (mouseOver && visible)
+        if (mouseOver && visible && (UIManager.mouseUsingObject == this || UIManager.mouseUsingObject == null))
         {
             hover = true;
             bg = GetThemeValue<BearingColour>("buttonHoverBackground");
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButton(0))
             {
                 bg = GetThemeValue<BearingColour>("buttonDownBackground");
                 pressed = true;
@@ -781,6 +794,8 @@ public class UIButton : UIElement
         {
             // pressed this frame
             buttonPressed.Invoke(this, new EventArgs());
+            wasPressed = true;
+            UIManager.mouseUsingObject = this;
 
             UIManager.SendEvent(this, "UIClicked");
 
@@ -794,10 +809,12 @@ public class UIButton : UIElement
             buttonHold.Invoke(this, new EventArgs());
         }
 
-        if (!pressed && prevPressed)
+        if (!mouseDown && prevMouseDown && wasPressed)
         {
             // released this frame
             buttonReleased.Invoke(this, new EventArgs());
+            wasPressed = false;
+            UIManager.mouseUsingObject = null;
 
             if (GetThemeValue<string>("buttonUpAudio") != "None")
                 AudioManager.Play(Resource.GetSFX(GetThemeValue<string>("buttonUpAudio"), true), 1f);
@@ -805,9 +822,89 @@ public class UIButton : UIElement
 
         prevPressed = pressed;
         prevHover = hover;
+        prevMouseDown = mouseDown;
 
         // handle colour
         material.SetShaderParameter(new ShaderParam("mainColour", bg.zeroToOne));
+    }
+}
+
+/// <summary>
+/// Simple Slider for getting a value from 0 to 1.
+///
+/// Uses 2 RenderLayers above own
+/// </summary>
+public class UIVerticalSlider : UIPanel
+{
+    private UIPanel fill;
+    private UIButton button;
+    private bool dragging = false;
+    public bool showFillLine = true;
+    public float value = 0.5f;
+
+    public override void OnLoad()
+    {
+        base.OnLoad();
+
+        themeOverride.uiPanelBG = UIManager.currentTheme.sliderBackground;
+
+        button = new UIButton();
+        button.parent = rid;
+        button.anchor = new Vector2(0.5f,0.5f);
+        button.position = new UDim2(0.5f,0.5f);
+        button.size = new UDim2(1f,0,10,10);
+        button.renderLayer = renderLayer + 2;
+        button.buttonPressed += ButtonClicked;
+        button.buttonReleased += ButtonReleased;
+        gameObject.AddComponent(button);
+
+        fill = new UIPanel();
+        fill.parent = rid;
+        fill.anchor = new Vector2(0.5f, 1.0f);
+        fill.position = new UDim2(0.5f, 1.0f);
+        fill.size = new UDim2(1f, 0.5f);
+        fill.renderLayer = renderLayer + 1;
+        fill.themeOverride.uiPanelBG = UIManager.currentTheme.sliderFill;
+        gameObject.AddComponent(fill);
+    }
+
+    public void ButtonClicked(object? sender, EventArgs e)
+    {
+        dragging = true;
+    }
+
+    public void ButtonReleased(object? sender, EventArgs e)
+    {
+        dragging = false;
+    }
+
+    public override void OnTick(float dt)
+    {
+        base.OnTick(dt);
+
+        fill.visible = showFillLine;
+        fill.size = new UDim2(1f, value);
+
+        if (!dragging)
+            return;
+
+        // TODO:
+        // this maths doesnt work when the size offset is changed, so dont use size offset on this object until i figure out how to neatly normalise UDims with propagation
+        var mouseRatio = (Game.instance.MousePosition.Y-position.offset.Y) / (Game.instance.Size.Y);
+        var sliderTopRatio = position.scale.Y- (anchor.Y * size.scale.Y);
+        var sliderBottomRatio = sliderTopRatio + size.scale.Y;
+        var percent = (mouseRatio - sliderTopRatio) / (sliderBottomRatio - sliderTopRatio);
+        percent = Math.Clamp(percent, 0, 1);
+        value = 1f-percent;
+        button.position = new UDim2(0.5f, percent);
+    }
+
+    public override void Cleanup()
+    {
+        base.Cleanup();
+
+        button.Cleanup();
+        fill.Cleanup();
     }
 }
 

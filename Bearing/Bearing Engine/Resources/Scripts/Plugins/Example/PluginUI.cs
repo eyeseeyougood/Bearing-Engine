@@ -33,6 +33,15 @@ public partial class ExamplePlugin : Plugin
         label.parent = button.rid;
         gameObject.AddComponent(label);
 
+        // slider
+
+        UIVerticalSlider slider = new UIVerticalSlider();
+        slider.renderLayer = -2;
+        slider.anchor = new Vector2(0.0f, 0.5f);
+        slider.position = new UDim2(0.4f, 0.5f,0, 0);
+        slider.size = new UDim2(0, 0.4f, 10, 0);
+        gameObject.AddComponent(slider);
+
         ui.Add(button);
     }
 

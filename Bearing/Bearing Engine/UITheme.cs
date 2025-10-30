@@ -18,6 +18,8 @@ public class UITheme : ICloneable
         buttonHoverBackground = null,
         verticalScrollBG = null,
         uiPanelBG = null,
+        sliderBackground = null,
+        sliderFill = null,
 
         buttonHoverAudio = null,
         buttonDownAudio = null,
@@ -31,6 +33,8 @@ public class UITheme : ICloneable
     public BearingColour? buttonHoverBackground = BearingColour.DarkWhite;
     public BearingColour? verticalScrollBG = BearingColour.DarkGray;
     public BearingColour? uiPanelBG = BearingColour.LightGray;
+    public BearingColour? sliderBackground = BearingColour.DarkGray;
+    public BearingColour? sliderFill = BearingColour.LightGray;
 
     // audio
     public string buttonHoverAudio = "None";
@@ -50,6 +54,8 @@ public class UITheme : ICloneable
         result.buttonHoverBackground = buttonHoverBackground;
         result.verticalScrollBG = verticalScrollBG;
         result.uiPanelBG = uiPanelBG;
+        result.sliderBackground = sliderBackground;
+        result.sliderFill = sliderFill;
 
         // audio
         result.buttonHoverAudio = buttonHoverAudio;

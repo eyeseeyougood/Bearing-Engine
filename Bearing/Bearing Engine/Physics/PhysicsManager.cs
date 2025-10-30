@@ -40,7 +40,7 @@ public static class PhysicsManager
         world.StepSimulation(delta, 10, delta / 10f);
         
         // Get updated cube position
-        foreach (GameObject sh in physicsObjects)
+        foreach (GameObject sh in physicsObjects.ToList())
         {
             BearingRigidbody brb = (BearingRigidbody)sh.GetComponent(typeof(BearingRigidbody));
             if (brb == null) // I think this can be the case during cleanup or sum idrk

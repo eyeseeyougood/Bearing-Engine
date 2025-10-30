@@ -18,6 +18,10 @@ public static class UIManager
     public static UITheme currentTheme = new UITheme();
 
     public static bool cursorOverUI = false;
+    /// <summary>
+    /// This stores the object that the mouse is currently using
+    /// </summary>
+    public static object mouseUsingObject;
 
     public static Mesh2D quadMeshCache = new Mesh2D("Quad.obj", true);
 
