@@ -1,9 +1,9 @@
-﻿using OpenTK.Mathematics;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
@@ -100,17 +100,35 @@ public class Transform3D
 
     public Vector3 GetForward()
     {
-        return model.Row2.Xyz.Normalized();
+        Vector3 result = new Vector3(
+                model.M13,
+                model.M23,
+                model.M33
+            );
+
+        return result.Normalized();
     }
 
     public Vector3 GetRight()
     {
-        return model.Row0.Xyz.Normalized();
+        Vector3 result = new Vector3(
+                model.M11,
+                model.M21,
+                model.M31
+            );
+
+        return result.Normalized();
     }
 
     public Vector3 GetUp()
     {
-        return model.Row1.Xyz.Normalized();
+        Vector3 result = new Vector3(
+                model.M12,
+                model.M22,
+                model.M32
+            );
+
+        return result.Normalized();
     }
 
     public Matrix4 GetModelMatrix()

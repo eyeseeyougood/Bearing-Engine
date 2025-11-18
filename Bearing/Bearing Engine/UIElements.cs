@@ -1,6 +1,6 @@
-﻿using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using System.Drawing;
+﻿using System.Drawing;
+using Silk.NET.Input;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
@@ -128,15 +128,15 @@ public class UIElement : MeshRenderer
         }
     }
 
-    public Vector4i GetScreenBoundingBox()
+    public Vector4 GetScreenBoundingBox()
     {
         Vector2 sizing = size.scale * Game.instance.ClientSize + size.offset;
-        Vector2d positioning = position.scale * Game.instance.ClientSize + position.offset + sizing / 2 - anchor * sizing;
+        Vector2 positioning = position.scale * Game.instance.ClientSize + position.offset + sizing / 2.0f - anchor * sizing;
 
-        Vector2d p1 = new Vector2d(-0.5f, -0.5f) * sizing + positioning;
-        Vector2d p2 = new Vector2d(0.5f, 0.5f) * sizing + positioning;
+        Vector2 p1 = new Vector2(-0.5f, -0.5f) * sizing + positioning;
+        Vector2 p2 = new Vector2(0.5f, 0.5f) * sizing + positioning;
 
-        return new Vector4i((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y);
+        return new Vector4((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y);
     }
 
     protected virtual void UpdateVisibility()
@@ -206,14 +206,14 @@ public class UIElement : MeshRenderer
         UpdatePosition();
         UpdateSize();
 
-        float screenW = Game.instance.Size.X;
-        float screenH = Game.instance.Size.Y;
+        float screenW = Game.instance.ClientSize.X;
+        float screenH = Game.instance.ClientSize.Y;
 
         if (!visible)
             return;
 
         // TODO: OPTIMISATION - getting bounds box
-        bool m = Extensions.PointInQuad(Game.instance.MousePosition, GetScreenBoundingBox());
+        bool m = Extensions.PointInQuad(Input.GetMousePosition(), GetScreenBoundingBox());
         if (m && !mouseOver && consumedInputs.Contains("mouseEnter"))
         {
             // mouse entered
@@ -576,7 +576,7 @@ public class UITextBox : UILabel
         button.themeOverride.buttonDownBackground = selected ? theme.selection : null;
         button.themeOverride.buttonUpBackground = selected ? theme.selection : null;
 
-        if (Input.GetKeyDown(Keys.Backspace) && selected)
+        if (Input.GetKeyDown(Key.Backspace) && selected)
         {
             if (caretPos > 0 || caretLine > 0)
             {
@@ -592,19 +592,19 @@ public class UITextBox : UILabel
                 }
             }
         }
-        if ((Input.GetKeyDown(Keys.Enter)||Input.GetKeyDown(Keys.KeyPadEnter)) && Input.GetKey(Keys.LeftShift) && selected && multiline)
+        if ((Input.GetKeyDown(Key.Enter)||Input.GetKeyDown(Key.KeypadEnter)) && Input.GetKey(Key.ShiftLeft) && selected && multiline)
         {
             text += "\n";
             caretLine++;
             caretPos = 0;
         }
-        else if ((Input.GetKeyDown(Keys.Escape) || Input.GetKeyDown(Keys.Enter) || Input.GetKeyDown(Keys.KeyPadEnter)) && selected)
+        else if ((Input.GetKeyDown(Key.Escape) || Input.GetKeyDown(Key.Enter) || Input.GetKeyDown(Key.KeypadEnter)) && selected)
         {
             Deselect();
             onTextSubmit.Invoke(this, text);
         }
 
-        if (Input.GetKeyDown(Keys.Left) && selected)
+        if (Input.GetKeyDown(Key.Left) && selected)
         {
             caretPos--;
             if (caretPos < 0)
@@ -620,7 +620,7 @@ public class UITextBox : UILabel
                 }
             }
         }
-        if (Input.GetKeyDown(Keys.Right) && selected)
+        if (Input.GetKeyDown(Key.Right) && selected)
         {
             caretPos++;
             if (caretPos > text.Split("\n")[caretLine].Length)
@@ -637,7 +637,7 @@ public class UITextBox : UILabel
             }
         }
 
-        if (Input.GetKeyDown(Keys.Up) && selected)
+        if (Input.GetKeyDown(Key.Up) && selected)
         {
             caretLine--;
             if (caretLine < 0) caretLine = 0;
@@ -645,7 +645,7 @@ public class UITextBox : UILabel
             if (caretPos > LenOfCurLine()) caretPos = LenOfCurLine();
         }
 
-        if (Input.GetKeyDown(Keys.Down) && selected)
+        if (Input.GetKeyDown(Key.Down) && selected)
         {
             caretLine++;
             if (caretLine >= text.Split("\n").Length) caretLine = text.Split("\n").Length-1;
@@ -779,9 +779,13 @@ public class UIButton : UIElement
             mouseEnter.Invoke(this, new EventArgs());
 
             var tg = GetThemeValue<string>("buttonHoverAudio");
+            Logger.Log("hover audio: " + tg);
 
             if (GetThemeValue<string>("buttonHoverAudio") != "None")
+            {
+                Logger.Log("playing hover");
                 AudioManager.Play(Resource.GetSFX(GetThemeValue<string>("buttonHoverAudio"), true), 1f);
+            }
         }
 
         if (!hover && prevHover)
@@ -855,7 +859,6 @@ public class UIVerticalSlider : UIPanel
         button.size = new UDim2(1f,0,10,10);
         button.renderLayer = renderLayer + 2;
         button.buttonPressed += ButtonClicked;
-        button.buttonReleased += ButtonReleased;
         gameObject.AddComponent(button);
 
         fill = new UIPanel();
@@ -873,11 +876,6 @@ public class UIVerticalSlider : UIPanel
         dragging = true;
     }
 
-    public void ButtonReleased(object? sender, EventArgs e)
-    {
-        dragging = false;
-    }
-
     public override void OnTick(float dt)
     {
         base.OnTick(dt);
@@ -885,12 +883,17 @@ public class UIVerticalSlider : UIPanel
         fill.visible = showFillLine;
         fill.size = new UDim2(1f, value);
 
+        if (dragging && Input.GetMouseButtonUp(0))
+        {
+            dragging = false;
+        }
+
         if (!dragging)
             return;
 
         // TODO:
         // this maths doesnt work when the size offset is changed, so dont use size offset on this object until i figure out how to neatly normalise UDims with propagation
-        var mouseRatio = (Game.instance.MousePosition.Y-position.offset.Y) / (Game.instance.Size.Y);
+        var mouseRatio = (Input.GetMousePosition().Y-position.offset.Y) / (Game.instance.ClientSize.Y);
         var sliderTopRatio = position.scale.Y- (anchor.Y * size.scale.Y);
         var sliderBottomRatio = sliderTopRatio + size.scale.Y;
         var percent = (mouseRatio - sliderTopRatio) / (sliderBottomRatio - sliderTopRatio);
@@ -980,7 +983,7 @@ public class UIVerticalScrollView : UIElement
             if (!elem.consumedInputs.Contains("Scroll"))
                 continue;
 
-            if (Extensions.PointInQuad(Game.instance.MousePosition, elem.GetScreenBoundingBox()))
+            if (Extensions.PointInQuad(Input.GetMousePosition(), elem.GetScreenBoundingBox()))
             {
                 result = true;
                 break;
@@ -1144,9 +1147,9 @@ public class UIVerticalScrollView : UIElement
             
             if (clipContents)
             {
-                if (!Extensions.PointInQuad(ebb.Xy, obb))
+                if (!Extensions.PointInQuad(new Vector2(ebb.X, ebb.Y), obb))
                     shouldRender = false;
-                else if (!Extensions.PointInQuad(ebb.Zw, obb))
+                else if (!Extensions.PointInQuad(new Vector2(ebb.Z, ebb.W), obb))
                     shouldRender = false;
             }
 

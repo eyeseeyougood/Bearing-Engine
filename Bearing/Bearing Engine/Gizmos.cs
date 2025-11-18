@@ -1,10 +1,9 @@
-﻿using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
@@ -61,9 +60,9 @@ public static class Gizmos
 
         GameObject go = new GameObject();
         go.transform.scale = new Vector3(0.02f, vector.Length, 0.02f);
-        Vector3 axis = Vector3.Cross(vector.Normalized(), Vector3.UnitY).Normalized();
-        float angle = MathF.Acos(Vector3.Dot(vector.Normalized(), Vector3.UnitY));
-        if (vector != Vector3.UnitY)
+        Vector3 axis = vector.Normalized().Cross(Vector3.UnitY).Normalized();
+        float angle = MathF.Acos(vector.Normalized().Dot(Vector3.UnitY));
+        if (vector != Vector3.UnitY && vector != -Vector3.UnitY)
             go.transform.qRotation = Quaternion.FromAxisAngle(axis, -angle);
         go.components.Add(mr);
         go.Load();
@@ -97,7 +96,7 @@ public static class Gizmos
                 remove.Add(gizmo);
                 continue;
             }
-            GL.Disable(EnableCap.DepthTest);
+            GLContext.gl.Disable(Silk.NET.OpenGL.EnableCap.DepthTest);
             gizmo.Item1.Render();
         }
 

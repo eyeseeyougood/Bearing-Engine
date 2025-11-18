@@ -2,6 +2,8 @@
 using BulletSharp.Math;
 using System.Timers;
 using Timer = System.Timers.Timer;
+using OpenTK.Mathematics;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Bearing;
 
@@ -23,7 +25,7 @@ public static class PhysicsManager
 
         // Create the physics world
         world = new DiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
-        world.Gravity = new Vector3(0, -9.81f, 0);
+        world.Gravity = new Vector3(0, -9.81f, 0).ToBulletVector();
 
         DateTime startTime = DateTime.Now;
         Timer timer = new Timer(1000f / tps);
@@ -49,10 +51,10 @@ public static class PhysicsManager
             RigidBody rb = brb.rb;
             rb.MotionState.GetWorldTransform(out Matrix worldTransform);
 
-            OpenTK.Mathematics.Vector3 sBefore = sh.transform.scale;
-            OpenTK.Mathematics.Matrix4 m = worldTransform.ToTKMatrix();
+            Vector3 sBefore = sh.transform.scale;
+            Matrix4 m = worldTransform.ToTKMatrix();
             m = m.ClearScale();
-            m = OpenTK.Mathematics.Matrix4.CreateScale(sBefore) * m;
+            m = Matrix4.CreateScale(sBefore) * m;
             sh.transform.FromModel(m, false);
         }
     }

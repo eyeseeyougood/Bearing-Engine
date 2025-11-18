@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using Silk.NET.OpenGL;
 using StbImageSharp;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ namespace Bearing;
 
 public class Texture
 {
-    public readonly int Handle;
+    public readonly uint Handle;
 
     public int _width { get; private set; }
     public int _height { get; private set; }
@@ -20,13 +20,16 @@ public class Texture
         return data;
     }
 
-    public static Texture FromData(int width, int height, byte[] data, TextureWrapMode wrapMode = TextureWrapMode.Repeat, TextureMinFilter minF = TextureMinFilter.Linear, TextureMagFilter magF = TextureMagFilter.Linear)
+    public static unsafe Texture FromData(int width, int height, byte[] data, TextureWrapMode wrapMode = TextureWrapMode.Repeat, TextureMinFilter minF = TextureMinFilter.Linear, TextureMagFilter magF = TextureMagFilter.Linear)
     {
-        int handle = GL.GenTexture();
+        GL GL = GLContext.gl;
+
+        uint handle = GL.GenTexture();
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, handle);
         
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+        fixed (void* ptr = data)
+            GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
 
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minF);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magF);
@@ -34,7 +37,7 @@ public class Texture
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)wrapMode);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)wrapMode);
 
-        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+        GL.GenerateMipmap(TextureTarget.Texture2D);
 
         Texture result = new Texture(handle);
 
@@ -45,10 +48,12 @@ public class Texture
         return result;
     }
 
-    public static Texture LoadFromFile(string path)
+    public static unsafe Texture LoadFromFile(string path)
     {
+        GL GL = GLContext.gl;
+
         // Generate handle
-        int handle = GL.GenTexture();
+        uint handle = GL.GenTexture();
 
         Texture result = new Texture(handle);
 
@@ -78,7 +83,8 @@ public class Texture
             //   The format of the pixels, explained above. Since we loaded the pixels as RGBA earlier, we need to use PixelFormat.Rgba.
             //   Data type of the pixels.
             //   And finally, the actual pixels.
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+            fixed (void* ptr = image.Data)
+                GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)image.Width, (uint)image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
 
             result._width = image.Width;
             result._height = image.Height;
@@ -107,19 +113,19 @@ public class Texture
         // This prevents moiré effects, as well as saving on texture bandwidth.
         // Here you can see and read about the morié effect https://en.wikipedia.org/wiki/Moir%C3%A9_pattern
         // Here is an example of mips in action https://en.wikipedia.org/wiki/File:Mipmap_Aliasing_Comparison.png
-        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+        GL.GenerateMipmap(TextureTarget.Texture2D);
 
         return result;
     }
 
-    public Texture(int glHandle)
+    public Texture(uint glHandle)
     {
         Handle = glHandle;
     }
 
     public void Dispose()
     {
-        GL.DeleteTexture(Handle);
+        GLContext.gl.DeleteTexture(Handle);
     }
 
     // Activate texture
@@ -128,6 +134,8 @@ public class Texture
     // The OpenGL standard requires that there be at least 16, but there can be more depending on your graphics card.
     public void Use(TextureUnit unit)
     {
+        GL GL = GLContext.gl;
+
         GL.ActiveTexture(unit);
         GL.BindTexture(TextureTarget.Texture2D, Handle);
     }

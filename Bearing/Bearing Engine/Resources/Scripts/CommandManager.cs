@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using Bearing;
+using Silk.NET.Input;
 
 public static class CommandManager
 {
@@ -58,9 +58,9 @@ public static class CommandManager
 
     public static void Tick()
     {
-        if (Input.GetKey(Keys.LeftControl) && Input.GetKeyDown(Keys.Z))
+        if (Input.GetKey(Key.ControlLeft) && Input.GetKeyDown(Key.Z))
         {
-            if (!Input.GetKey(Keys.LeftShift))
+            if (!Input.GetKey(Key.ShiftLeft))
                 Undo();
             else
                 Redo();

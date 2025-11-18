@@ -1,5 +1,5 @@
-using OpenTK.Mathematics;
 using System;
+using OpenTK.Mathematics;
 
 namespace Bearing
 {
@@ -40,7 +40,7 @@ namespace Bearing
             get => MathHelper.RadiansToDegrees(_pitch);
             set
             {
-                var angle = MathHelper.Clamp(value, -89f, 89f);
+                var angle = Math.Clamp(value, -89f, 89f);
                 _pitch = MathHelper.DegreesToRadians(angle);
                 UpdateVectors();
             }
@@ -61,7 +61,7 @@ namespace Bearing
             get => MathHelper.RadiansToDegrees(_fov);
             set
             {
-                var angle = MathHelper.Clamp(value, 1f, 90f);
+                var angle = Math.Clamp(value, 1f, 90f);
                 _fov = MathHelper.DegreesToRadians(angle);
             }
         }
@@ -85,10 +85,10 @@ namespace Bearing
             _front.Y = MathF.Sin(_pitch);
             _front.Z = MathF.Cos(_pitch) * MathF.Sin(_yaw);
 
-            _front = Vector3.Normalize(_front);
+            _front.Normalize();
 
-            _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitY));
-            _up = Vector3.Normalize(Vector3.Cross(_right, _front));
+            _right = _front.Cross(Vector3.UnitY).Normalized();
+            _up = _right.Cross(_front).Normalized();
         }
     }
 }

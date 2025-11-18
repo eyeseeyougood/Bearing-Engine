@@ -1,12 +1,12 @@
 ﻿using Bearing;
 using BulletSharp;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Silk.NET.Input;
+using OpenTK.Mathematics;
 
 public class CameraMovement : Component
 {
@@ -30,7 +30,7 @@ public class CameraMovement : Component
     public override void OnTick(float dt)
     {
         PhysicsManager.GetWorld().DebugDrawWorld();
-        if (Input.GetKeyDown(Keys.G))
+        if (Input.GetKeyDown(Key.G))
         {
             PhysicsManager.GetWorld().DebugDrawer = new BulletDebugDrawer() { DebugMode = DebugDrawModes.DrawWireframe };
         }
@@ -49,18 +49,18 @@ public class CameraMovement : Component
 
             Camera cam = Game.instance.camera;
 
-            Vector3 moveDir = (Input.GetKey(Keys.W) ? 1 : 0) * cam.Front
-                            + (Input.GetKey(Keys.S) ? 1 : 0) * -cam.Front
-                            + (Input.GetKey(Keys.A) ? 1 : 0) * -cam.Right
-                            + (Input.GetKey(Keys.D) ? 1 : 0) * cam.Right
-                            + (Input.GetKey(Keys.Q) ? 1 : 0) * -cam.Up
-                            + (Input.GetKey(Keys.E) ? 1 : 0) * cam.Up;
+            Vector3 moveDir = (Input.GetKey(Key.W) ? 1 : 0) * cam.Front
+                            + (Input.GetKey(Key.S) ? 1 : 0) * -cam.Front
+                            + (Input.GetKey(Key.A) ? 1 : 0) * -cam.Right
+                            + (Input.GetKey(Key.D) ? 1 : 0) * cam.Right
+                            + (Input.GetKey(Key.Q) ? 1 : 0) * -cam.Up
+                            + (Input.GetKey(Key.E) ? 1 : 0) * cam.Up;
 
             if (moveDir.Length != 0)
                 moveDir.Normalize();
 
-            currentSpeed = camSpeed * (Input.GetKey(Keys.LeftShift) ? speedMultiplier : 1);
-            currentSpeed = camSpeed * (Input.GetKey(Keys.Space) ? 1f/speedMultiplier : currentSpeed);
+            currentSpeed = camSpeed * (Input.GetKey(Key.ShiftLeft) ? speedMultiplier : 1);
+            currentSpeed = camSpeed * (Input.GetKey(Key.Space) ? 1f/speedMultiplier : currentSpeed);
 
             cam.Position += moveDir * currentSpeed * dt;
 

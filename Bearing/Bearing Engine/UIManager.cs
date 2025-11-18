@@ -176,7 +176,7 @@ public static class UIManager
                 canvas.DrawText(lines[i], 0, y, paint);
             }
 
-            return Texture.FromData(width, height, bitmap.Bytes, OpenTK.Graphics.OpenGL4.TextureWrapMode.ClampToBorder);
+            return Texture.FromData(width, height, bitmap.Bytes, Silk.NET.OpenGL.TextureWrapMode.ClampToBorder);
         }
     }
 }

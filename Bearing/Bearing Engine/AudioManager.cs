@@ -5,113 +5,104 @@ using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using Silk.NET.OpenAL;
+using Silk.NET.OpenAL.Extensions.Enumeration;
 
 namespace Bearing;
 
 public static class AudioManager
 {
-    private static WaveOutEvent output;
+    private static ALContext? alc;
+    private static AL? al;
+    private static unsafe Device* device;
+    private static unsafe Context* alContext;
 
-    private static WaveMixerStream32 mixer;
-
-    private static List<WaveChannel32> channels = new List<WaveChannel32>();
-
-    public static void Init()
+    public static unsafe void Init()
     {
-        output = new WaveOutEvent() { DesiredLatency = 50 };
-        mixer = new WaveMixerStream32() { AutoStop = false };
+        alc = ALContext.GetApi(true);
+        al = AL.GetApi(true);
 
-        output.Init(mixer);
-        output.Play();
-    }
-
-    public static void Tick()
-    {
-        int id = 0;
-        int distortion = 0;
-        foreach (WaveChannel32 c in channels.ToList())
+        string deviceSpecifier = "";
+        if (alc.IsExtensionPresent(null, "ALC_ENUMERATION_EXT"))
         {
-            if (c.Position >= c.Length)
+            alc.TryGetExtension<Enumeration>(null, out Enumeration enumeration);
+            foreach (var d in enumeration.GetStringList(GetEnumerationContextStringList.DeviceSpecifiers))
             {
-                c.Dispose();
-                mixer.RemoveInputStream(c);
-                channels.RemoveAt(id - distortion);
-                distortion++;
+                deviceSpecifier = d;
             }
-            id++;
-        }
-    }
-
-    public static WaveChannel32 Play(Resource resource, float volume)
-    {
-        var reader = new BearingAudioReader(resource);
-
-        IWaveProvider provider = reader;
-        if (reader.WaveFormat.SampleRate != mixer.WaveFormat.SampleRate || // fixes formatting incase it doesnt match the mixer XD
-            reader.WaveFormat.Channels != mixer.WaveFormat.Channels)
-        {
-            provider = new MediaFoundationResampler(reader, mixer.WaveFormat)
-            {
-                ResamplerQuality = 60
-            };
         }
 
-        TimeSpan duration = reader.TotalTime;
-
-        int bps = mixer.WaveFormat.AverageBytesPerSecond;
-        long resampledLength = (long)(bps * duration.TotalSeconds);
-
-        var waveStream = new WaveProviderToWaveStream(provider, resampledLength);
-
-        var channel = new WaveChannel32(waveStream) { Volume = volume };
-        channels.Add(channel);
-        mixer.AddInputStream(channel);
-        return channel;
+        device = alc.OpenDevice(deviceSpecifier);
+        Context* ctx = alc.CreateContext(device, null);
+        alc.MakeContextCurrent(ctx);
+        Console.WriteLine("AudioManager initialised");
     }
 
-    public static void Stop()
+    public static unsafe void Play(Resource resource, float volume = 1f)
     {
-        output.Stop();
-    }
+        if (alc == null || al == null)
+            throw new Exception("Audio not initialized. Call Audio.Init() first.");
 
-    public static void Cleanup()
-    {
-        output?.Dispose();
-    }
+        byte[] wavData = Resources.ReadAllBytes(resource);
+        int channels, sampleRate;
+        byte[] pcm = LoadWave(wavData, out channels, out sampleRate, out BufferFormat format);
 
-    public static bool IsPlaying()
-    {
-        return output.PlaybackState == PlaybackState.Playing;
-    }
-
-    private class WaveProviderToWaveStream : WaveStream
-    {
-        private readonly IWaveProvider sourceProvider;
-        private long position;
-
-        private long _length;
-
-        public WaveProviderToWaveStream(IWaveProvider sourceProvider, long length)
+        uint buffer = al.GenBuffer();
+        fixed (byte* pcmptr = pcm)
         {
-            this.sourceProvider = sourceProvider;
-            _length = length;
+            al.BufferData(buffer, format, pcmptr, pcm.Length, sampleRate);
         }
 
-        public override WaveFormat WaveFormat => sourceProvider.WaveFormat;
+        uint source = al.GenSource();
+        al.SetSourceProperty(source, SourceFloat.Gain, volume);
+        al.SetSourceProperty(source, SourceInteger.Buffer, (int)buffer);
 
-        public override long Length => _length;
+        al.SourcePlay(source);
 
-        public override long Position
+        int state;
+        do
         {
-            get => position;
-            set => position = value; // IWaveProvider cannot set position, so this is just here to prevent errors with compatibility XDDDDDD
-        }
+            al.GetSourceProperty(source, GetSourceInteger.SourceState, out state);
+        } while ((SourceState)state == SourceState.Playing);
 
-        public override int Read(byte[] buffer, int offset, int count)
+        al.DeleteSource(source);
+        al.DeleteBuffer(buffer);
+    }
+
+    ///<summary>
+    ///Loads a Wav File directly into a byte array. WARNING!!! This is a bad method of doing this, large files will likely cause the program to crash due to running out of memory.
+    ///</summary>
+    private static byte[] LoadWave(byte[] file, out int channels, out int sampleRate, out BufferFormat format)
+    {
+        using var mem = new MemoryStream(file);
+        using var br = new BinaryReader(mem);
+
+        br.ReadBytes(22);
+        channels = br.ReadInt16();
+        sampleRate = br.ReadInt32();
+        br.ReadBytes(6);
+        int bitsPerSample = br.ReadInt16();
+
+        while (br.ReadInt32() != 0x61746164)
+            br.ReadInt32();
+
+        int dataSize = br.ReadInt32();
+        byte[] data = br.ReadBytes(dataSize);
+
+        if (channels == 1 && bitsPerSample == 8) format = BufferFormat.Mono8;
+        else if (channels == 1 && bitsPerSample == 16) format = BufferFormat.Mono16;
+        else if (channels == 2 && bitsPerSample == 8) format = BufferFormat.Stereo8;
+        else format = BufferFormat.Stereo16;
+
+        return data;
+    }
+
+    public static unsafe void Cleanup()
+    {
+        if (alc != null)
         {
-            int read = sourceProvider.Read(buffer, offset, count);
-            position += read;
-            return read;
+            alc.DestroyContext(alContext);
+            alc.CloseDevice(device);
         }
     }
 }

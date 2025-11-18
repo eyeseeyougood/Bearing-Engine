@@ -1,8 +1,8 @@
 ﻿using Assimp;
 using Newtonsoft.Json;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
 using System.Drawing;
+using Silk.NET.OpenGL;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
@@ -231,11 +231,13 @@ public class Material
     /// <param name="name">what dus ur sheder say abut the 'in vecc...'?</param>
     /// <param name="numFloats">how many floats for this pointer</param>
     /// <param name="normalised">do u want me to normalise ur data for you pall ???                                     XDD</param>
-    private void AllocAttribPointer(string name, int numFloats, bool normalised = false)
+    private unsafe void AllocAttribPointer(string name, int numFloats, bool normalised = false)
     {
-        int texLoc = GL.GetAttribLocation(shader.GetHandle(), name);
-        GL.VertexAttribPointer(texLoc, numFloats, VertexAttribPointerType.Float, normalised, is3D ? MeshVertex3D.sizeInBytes : MeshVertex2D.sizeInBytes, attribAllocCache * sizeof(float));
-        GL.EnableVertexAttribArray(texLoc);
+        GL GL = GLContext.gl;
+
+        int texLoc = GL.GetAttribLocation((uint)shader.GetHandle(), name);
+        GL.VertexAttribPointer((uint)texLoc, numFloats, VertexAttribPointerType.Float, normalised, (uint)(is3D ? MeshVertex3D.sizeInBytes : MeshVertex2D.sizeInBytes), (void*)(attribAllocCache * sizeof(float)));
+        GL.EnableVertexAttribArray((uint)texLoc);
         attribAllocCache += numFloats;
     }
 

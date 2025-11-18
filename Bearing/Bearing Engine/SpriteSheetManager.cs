@@ -11,9 +11,9 @@ public class SpriteSheetManager
         sheets.Add(sheet, new SpriteSheet(sheet, sliceWidth, sliceHeight));
     }
 
-    public Texture GetSprite(Resource sheet, Vector2i position)
+    public Texture GetSprite(Resource sheet, Vector2 position)
     {
-        int index = position.X + sheets[sheet].sWidth * position.Y;
+        int index = (int)(position.X + sheets[sheet].sWidth * position.Y);
 
         return sheets[sheet].textures[index];
     }

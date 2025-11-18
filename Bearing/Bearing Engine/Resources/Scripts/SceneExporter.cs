@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Mathematics;
 
 public class SceneExporter : Component
 {
@@ -38,7 +39,7 @@ public class SceneExporter : Component
         ((UILabel)newUI2).text = "Export Scene";
         ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
 
-        ((UIElement)newUI1).anchor = new OpenTK.Mathematics.Vector2(0.0f, 0f);
+        ((UIElement)newUI1).anchor = new Vector2(0.0f, 0f);
         ((UIElement)newUI1).position = new UDim2(0.2f,0f);
         ((UIElement)newUI1).size = new UDim2(0.2f,0f,0f, 50f);
         ((UIElement)newUI1).parent = -1;
@@ -63,7 +64,7 @@ public class SceneExporter : Component
         ((UILabel)newUI2).text = "Load Scene";
         ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
 
-        ((UIElement)newUI1).anchor = new OpenTK.Mathematics.Vector2(0.0f, 0f);
+        ((UIElement)newUI1).anchor = new Vector2(0.0f, 0f);
         ((UIElement)newUI1).position = new UDim2(0.2f, 0f, 0, 50f);
         ((UIElement)newUI1).size = new UDim2(0.2f, 0f, 0f, 50f);
         ((UIElement)newUI1).parent = -1;
@@ -72,7 +73,7 @@ public class SceneExporter : Component
         prefab.Cleanup();
 
         exportPathBox = new UITextBox();
-        exportPathBox.anchor = new OpenTK.Mathematics.Vector2(0.0f, 0f);
+        exportPathBox.anchor = new Vector2(0.0f, 0f);
         exportPathBox.position = new UDim2(0.4f, 0);
         exportPathBox.size = new UDim2(0.2f, 0, 0, 100);
         exportPathBox.text = "./Export/";

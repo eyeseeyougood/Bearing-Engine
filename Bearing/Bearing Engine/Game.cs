@@ -1,18 +1,13 @@
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using OpenTK.Mathematics;
-using System.ComponentModel;
+using Silk.NET.Input;
+using Silk.NET.OpenGL;
 using Bearing.Multiplayer;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
-public class Game : GameWindow
+public class Game
 {
-    public static Game instance;
-
-    public Game (int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title }) { }
+    public static Game instance = null;
 
     public Scene root;
     private List<IRenderable> renderables = new List<IRenderable>();
@@ -24,6 +19,8 @@ public class Game : GameWindow
 
     public event Action gameTick = () => {};
     public event Action rootLoaded = () => {};
+
+    public Vector2 ClientSize;
 
     public Camera camera;
 
@@ -52,7 +49,7 @@ public class Game : GameWindow
         return currentGameObjectID;
     }
 
-    protected override void OnLoad()
+    public Game()
     {
         instance = this;
 
@@ -72,52 +69,41 @@ public class Game : GameWindow
         PhysicsManager.tps = 60;
         PhysicsManager.Init();
         
+        UIManager.currentTheme.buttonHoverAudio = "Blip1.wav";
+        UIManager.currentTheme.buttonDownAudio = "Blip2.wav";
+        UIManager.currentTheme.buttonUpAudio = "Blip3.wav";
+                
         root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json"));
 
         rootLoaded.Invoke();
     }
 
-    protected override void OnTextInput(TextInputEventArgs e)
+    public void OnTextInput(IKeyboard keyboard, char c)
     {
-        Input.UpdateKeyPress(e.Unicode);
-
-        base.OnTextInput(e);
+        Input.UpdateKeyPress(char.ConvertToUtf32(c.ToString(),0));
     }
 
-    public void CursorLockStateChanged(bool state)
-    {
-        if (state)
-        {
-            CursorState = CursorState.Grabbed;
-        }
-        else
-        {
-            CursorState = CursorState.Normal;
-        }
-    }
-
-    protected override void OnClosing(CancelEventArgs e)
+    public void Cleanup()
     {
         root.Cleanup();
         AudioManager.Cleanup();
-        base.OnClosing(e);
     }
 
-    protected override void OnUpdateFrame(FrameEventArgs e)
+    public void OnTick(double dt)
     {
-        MultiplayerManager.Tick((float)e.Time);
+        MultiplayerManager.Tick((float)dt);
 
         SceneLoader.Tick();
-        AudioManager.Tick();
-        Input.UpdateState(KeyboardState, MouseState);
+        //AudioManager.Tick();
         gameTick.Invoke();
-        root.Tick((float)e.Time);
-        //PhysicsManager.Tick((float)e.Time);
+        root.Tick((float)dt);
+
+        Input.Tick((float)dt);
     }
 
-    protected override void OnRenderFrame(FrameEventArgs e)
+    public void OnRender(double dt)
     {
-        base.OnRenderFrame(e);
+        GL GL = GLContext.gl;
 
         GL.Enable(EnableCap.CullFace);
         GL.Enable(EnableCap.DepthTest);
@@ -136,17 +122,15 @@ public class Game : GameWindow
         Gizmos.Render();
         
         UIManager.RenderUI();
-
-        SwapBuffers();
     }
 
 
-    protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
+    public void OnResize(Vector2 newSize)
     {
-        base.OnFramebufferResize(e);
-        
-        camera.AspectRatio = e.Width / (float)e.Height;
-        
-        GL.Viewport(0, 0, e.Width, e.Height);
+        camera.AspectRatio = newSize.X / newSize.Y;
+
+        ClientSize = newSize;
+
+        GLContext.gl.Viewport(new System.Drawing.Size((int)newSize.X, (int)newSize.Y));
     }
 }

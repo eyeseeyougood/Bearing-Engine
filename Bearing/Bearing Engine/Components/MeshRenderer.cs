@@ -1,5 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
+﻿using Silk.NET.OpenGL;
 
 namespace Bearing;
 
@@ -15,9 +14,9 @@ public class MeshRenderer : Component, IRenderable
     public Texture texture1;
     public Texture texture2;
 
-    private int ebo;
-    private int vao;
-    private int vbo;
+    private uint ebo;
+    private uint vao;
+    private uint vbo;
 
     public MeshRenderer(string mesh, bool meshIsEngineResource = false, bool skipMesh = false)
     {
@@ -31,18 +30,20 @@ public class MeshRenderer : Component, IRenderable
 
     public override void OnLoad()
     {
+        GL GL = GLContext.gl;
+
         float[] vertexData = mesh.GetVertexData();
 
         vao = GL.GenVertexArray();
         GL.BindVertexArray(vao);
 
         vbo = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, vertexData.Length * sizeof(float), vertexData, BufferUsageHint.StaticDraw);
+        GL.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+        GL.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexData.Length * sizeof(float)), new ReadOnlySpan<float>(vertexData), BufferUsageARB.StaticDraw);
 
         ebo = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, mesh.indices.Length * sizeof(uint), mesh.indices, BufferUsageHint.StaticDraw);
+        GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
+        GL.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(mesh.indices.Length * sizeof(uint)), new ReadOnlySpan<uint>(mesh.indices), BufferUsageARB.StaticDraw);
 
         material.LoadAttribs();
 
@@ -53,13 +54,15 @@ public class MeshRenderer : Component, IRenderable
     {
     }
 
-    public virtual void Render()
+    public virtual unsafe void Render()
     {
+        GL GL = GLContext.gl;
+
         material.Use();
 
         GL.BindVertexArray(vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
+        GL.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+        GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
         if (setup3DMatrices)
         {
@@ -85,7 +88,7 @@ public class MeshRenderer : Component, IRenderable
 
         material.Use();
 
-        GL.DrawElements(PrimitiveType.Triangles, mesh.indices.Length, DrawElementsType.UnsignedInt, 0);
+        GL.DrawElements(PrimitiveType.Triangles, (uint)mesh.indices.Length, DrawElementsType.UnsignedInt, (void*)0);
     }
 
     protected virtual void BeforeRender() { }
@@ -97,6 +100,8 @@ public class MeshRenderer : Component, IRenderable
 
     public override void Cleanup()
     {
+        GL GL = GLContext.gl;
+
         GL.DeleteBuffer(ebo);
         GL.DeleteBuffer(vbo);
         GL.DeleteVertexArray(vao);

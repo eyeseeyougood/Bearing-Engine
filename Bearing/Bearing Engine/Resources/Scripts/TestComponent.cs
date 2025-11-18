@@ -23,10 +23,7 @@ public class TestComponent : Component
 
         objectName = gameObject.name;
         prevVal = objectName;
-        UIManager.currentTheme.buttonHoverAudio = "ButtonEnter.wav";
-        UIManager.currentTheme.buttonDownAudio = "ButtonPress.wav";
-        UIManager.currentTheme.buttonUpAudio = "ButtonRelease.wav";
-
+        
         Logger.Log("Added TestComponent!!!", ConsoleColor.Yellow);
     }
 

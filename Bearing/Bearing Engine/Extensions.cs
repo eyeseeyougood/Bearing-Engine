@@ -1,12 +1,11 @@
-﻿using OpenTK.Mathematics;
-using SkiaSharp;
+﻿using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
@@ -78,6 +77,29 @@ public static class Extensions
         return a + delta * t;
     }
 
+    public static Vector3 ToEulerAngles(this Silk.NET.Maths.Quaternion<float> q)
+    {
+        float sinp = 2f * (q.W * q.X - q.Z * q.Y);
+
+        float pitch;
+        if (MathF.Abs(sinp) >= 1f)
+            pitch = MathF.CopySign(MathF.PI / 2f, sinp);
+        else
+            pitch = MathF.Asin(sinp);
+
+        float yaw = MathF.Atan2(
+            2f * (q.W * q.Y + q.X * q.Z),
+            1f - 2f * (q.Y * q.Y + q.X * q.X)
+        );
+
+        float roll = MathF.Atan2(
+            2f * (q.W * q.Z + q.Y * q.X),
+            1f - 2f * (q.Z * q.Z + q.X * q.X)
+        );
+
+        return new Vector3(pitch, yaw, roll);
+    }
+
     private static float Repeat(float t, float length)
     {
         return t - MathF.Floor(t / length) * length;
@@ -86,7 +108,7 @@ public static class Extensions
 
     public static SKColor ToSKColour(this BearingColour c)
     {
-        Vector4i i = (Vector4i)c.GetZeroTo255A();
+        Vector4 i = (Vector4)c.GetZeroTo255A();
         return new SKColor((byte)i.X, (byte)i.Y, (byte)i.Z, (byte)i.W);
     }
 
@@ -152,11 +174,11 @@ public static class Extensions
     {
         Vector3 delta = position2 - position1;
 
-        float a = Vector3.Dot(direction1, direction1);
-        float b = Vector3.Dot(direction1, direction2);
-        float c = Vector3.Dot(direction2, direction2);
-        float d = Vector3.Dot(direction1, delta);
-        float e = Vector3.Dot(direction2, delta);
+        float a = direction1.Dot(direction1);
+        float b = direction1.Dot(direction2);
+        float c = direction2.Dot(direction2);
+        float d = direction1.Dot(delta);
+        float e = direction2.Dot(delta);
 
         float denominator = a * c - b * b;
 
@@ -178,10 +200,10 @@ public static class Extensions
 
     public static Vector3 LinePlaneIntersection(Vector3 point1, Vector3 point2, Vector3 point3, Vector3 lineStart, Vector3 lineDirection)
     {
-        Vector3 planeNormal = Vector3.Cross(point2 - point1, point3 - point1).Normalized();
+        Vector3 planeNormal = ((point2 - point1).Cross(point3 - point1)).Normalized();
 
-        float d = -Vector3.Dot(planeNormal, point1);
-        float t = -(Vector3.Dot(planeNormal, lineStart) + d) / Vector3.Dot(planeNormal, lineDirection);
+        float d = -planeNormal.Dot(point1);
+        float t = -(planeNormal.Dot(lineStart) + d) / planeNormal.Dot(lineDirection);
 
         Vector3 intersectionPoint = lineStart + t * lineDirection;
 
@@ -235,9 +257,9 @@ public static class Extensions
         Vector3 l2 = p3 - p2;
         Vector3 l3 = p1 - p3;
 
-        float d1 = Vector3.Dot(intersectionPoint - p1, l1.Normalized());
-        float d2 = Vector3.Dot(intersectionPoint - p2, l2.Normalized());
-        float d3 = Vector3.Dot(intersectionPoint - p3, l3.Normalized());
+        float d1 = (intersectionPoint - p1).Dot(l1.Normalized());
+        float d2 = (intersectionPoint - p2).Dot(l2.Normalized());
+        float d3 = (intersectionPoint - p3).Dot(l3.Normalized());
 
         // check dot product sign
         if (d1 >= 0)
@@ -266,8 +288,8 @@ public static class Extensions
         Vector3 bottomLeftRight = p1 - p3;
         Vector3 intersectionPointDifference = intersectionPoint - p3;
 
-        float verticalProduct = Vector3.Dot(intersectionPointDifference, bottomLeftUp.Normalized());
-        float horizontalProduct = Vector3.Dot(intersectionPointDifference, bottomLeftRight.Normalized());
+        float verticalProduct = intersectionPointDifference.Dot(bottomLeftUp.Normalized());
+        float horizontalProduct = intersectionPointDifference.Dot(bottomLeftRight.Normalized());
 
         // check dot product size and sign
         if (verticalProduct >= 0)
@@ -285,5 +307,21 @@ public static class Extensions
         }
 
         return result;
+    }
+
+    public static float Dot(this Vector3 a, Vector3 b)
+    {
+        return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+    }
+
+    public static Vector3 Cross(this Vector3 a, Vector3 b)
+    {
+        return new Vector3(a.Y * b.Z - a.Z * b.Y, a.Z * b.X - a.X * b.Z, a.X * b.Y - a.Y * b.X);
+    }
+
+    public static Vector3 Normalized(this Vector3 a)
+    {
+        if (a.Length < 0.001f){return Vector3.Zero;}
+        return a / a.Length;
     }
 }

@@ -3,6 +3,8 @@ using Newtonsoft.Json;
 using System.ComponentModel;
 using BulletSharp;
 using BulletSharp.Math;
+using OpenTK.Mathematics;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Bearing;
 
@@ -59,7 +61,7 @@ public class ColliderConverter : JsonConverter<CollisionShape>
         writer.WritePropertyName("type");
         writer.WriteValue(value.GetType().Name);
 
-        value.LocalScaling = Vector3.One; // dont save with modified scaling
+        value.LocalScaling = Vector3.One.ToBulletVector(); // dont save with modified scaling
         switch (value.GetType().Name)
         {
             case "BoxShape":

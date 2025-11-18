@@ -92,6 +92,24 @@ public static class Resources
         return result;
     }
 
+    public static byte[] ReadAllBytes(Resource resource)
+    {
+        var stream = Open(resource);
+
+        byte[] buffer = new byte[4096];
+        int read;
+        List<byte> result = new List<byte>();
+
+        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            result.AddRange(buffer);
+        }
+
+        stream.DisposeAsync();
+
+        return result.ToArray();
+    }
+
     public static string[] GetFiles(string path)
     {
         var assembly = Assembly.GetExecutingAssembly();

@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Bearing</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks> 
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -18,9 +19,15 @@
     <PackageReference Include="BulletSharp" Version="0.11.1" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="OpenTK" Version="4.9.4" />
+    <PackageReference Include="OpenTK.Mathematics" Version="4.9.4" />
     <PackageReference Include="RiptideNetworking.Riptide" Version="2.2.0" />
-    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="Silk.Net.Input" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.OpenAL" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.22.0" />
+    <PackageReference Include="Silk.Net.OpenGL" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Windowing" Version="2.22.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.1" />
     <PackageReference Include="StbImageSharp" Version="2.30.15" />
   </ItemGroup>
 	
@@ -35,10 +42,4 @@
 	  <None Remove="Resources\Shaders\defaultUI.frag" />
 	  <None Remove="Resources\Shaders\defaultUI.vert" />
 	</ItemGroup>
-	<ItemGroup>
-	  <EmbeddedResource Include="HideFromInspectorAttribute.cs" />
-	  <EmbeddedResource Include="InspectorShowAttribute.cs" />
-	  <EmbeddedResource Include="Multiplayer\IClientCode.cs" />
-	</ItemGroup>
-
 </Project>

@@ -21,7 +21,7 @@ public class UITheme : ICloneable
         sliderBackground = null,
         sliderFill = null,
 
-        buttonHoverAudio = null,
+        buttonHoverAudio = null, // these have to be null for theme overrides to work
         buttonDownAudio = null,
         buttonUpAudio = null
     };

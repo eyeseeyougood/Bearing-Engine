@@ -1,6 +1,5 @@
 ﻿using Bearing;
 using BulletSharp;
-using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +7,7 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Mathematics;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public class APIMethod : Attribute { }

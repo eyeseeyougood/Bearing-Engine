@@ -27,7 +27,7 @@ public class AudioSource : Component
 
     public void ForcePlay()
     {
-        channels.Add(AudioManager.Play(resource, volume));
+        //channels.Add(AudioManager.Play(resource, volume));
     }
 
     public override void OnLoad()

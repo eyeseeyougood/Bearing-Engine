@@ -1,10 +1,10 @@
 ﻿using Bearing;
-using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Mathematics;
 
 public partial class ExamplePlugin : Plugin
 {
@@ -43,6 +43,10 @@ public partial class ExamplePlugin : Plugin
         gameObject.AddComponent(slider);
 
         ui.Add(button);
+        ui.Add(slider);
+        Delay(()=>{
+            OnDisable();
+        }, 2f);
     }
 
     private void ButtonPressed(object? sender, EventArgs e)

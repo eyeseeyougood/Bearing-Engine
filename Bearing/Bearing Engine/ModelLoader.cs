@@ -1,9 +1,9 @@
-using OpenTK.Mathematics;
 using System.Linq;
 using System.Collections.Generic;
 using System;
 using Assimp;
 using Mesh = Bearing.Mesh3D;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
@@ -99,7 +99,7 @@ public static class ModelLoader
         foreach (Vector3D tex in impMesh.TextureCoordinateChannels[0])
         {
             MeshVertex2D newV = new MeshVertex2D();
-            newV.position = vertices[g].Xy;
+            newV.position = new Vector2(vertices[g].X, vertices[g].Y);
             newV.texCoord = new Vector2(tex.X, tex.Y);
             verts.Add(newV);
             g++;
