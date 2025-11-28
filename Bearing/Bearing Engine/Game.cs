@@ -76,6 +76,8 @@ public class Game
         root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json"));
 
         rootLoaded.Invoke();
+
+        UIManager.Init();
     }
 
     public void OnTextInput(IKeyboard keyboard, char c)

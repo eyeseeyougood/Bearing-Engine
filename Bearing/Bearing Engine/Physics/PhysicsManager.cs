@@ -15,6 +15,7 @@ public static class PhysicsManager
     public static int tps = 40;
 
     public static float gravity { get; private set; } = -9.81f;
+    public static bool simulating = true;
 
     public static void Init()
     {
@@ -39,7 +40,8 @@ public static class PhysicsManager
 
     public static void Tick(float delta)
     {
-        world.StepSimulation(delta, 10, delta / 10f);
+        if (simulating)
+            world.StepSimulation(delta, 10, delta / 10f);
         
         // Get updated cube position
         foreach (GameObject sh in physicsObjects.ToList())

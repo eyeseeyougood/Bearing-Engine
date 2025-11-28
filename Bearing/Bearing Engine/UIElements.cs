@@ -779,12 +779,10 @@ public class UIButton : UIElement
             mouseEnter.Invoke(this, new EventArgs());
 
             var tg = GetThemeValue<string>("buttonHoverAudio");
-            Logger.Log("hover audio: " + tg);
 
             if (GetThemeValue<string>("buttonHoverAudio") != "None")
             {
-                Logger.Log("playing hover");
-                AudioManager.Play(Resource.GetSFX(GetThemeValue<string>("buttonHoverAudio"), true), 1f);
+                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonHoverAudio"), true));
             }
         }
 
@@ -804,7 +802,7 @@ public class UIButton : UIElement
             UIManager.SendEvent(this, "UIClicked");
 
             if (GetThemeValue<string>("buttonDownAudio") != "None")
-                AudioManager.Play(Resource.GetSFX(GetThemeValue<string>("buttonDownAudio"), true), 1f);
+                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonDownAudio"), true));
         }
 
         if (pressed)
@@ -821,7 +819,7 @@ public class UIButton : UIElement
             UIManager.mouseUsingObject = null;
 
             if (GetThemeValue<string>("buttonUpAudio") != "None")
-                AudioManager.Play(Resource.GetSFX(GetThemeValue<string>("buttonUpAudio"), true), 1f);
+                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonUpAudio"), true));
         }
 
         prevPressed = pressed;

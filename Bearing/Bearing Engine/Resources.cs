@@ -21,6 +21,21 @@ public class Resource : IMetadata
         return r;
     }
 
+    public string GetFileType()
+    {
+        return fullpath.Split('.').Last().ToLower();
+    }
+
+    public string GetName(bool includeExt = true)
+    {
+        string result = fullpath.Split('/').Last();
+
+        if (!includeExt)
+            result = result.Split('.').First();
+
+        return result;
+    }
+
     public static Resource GetModel(string name, bool isEngineData = false)
     {
         string pref = isEngineData ? "EngineData" : "Resources";

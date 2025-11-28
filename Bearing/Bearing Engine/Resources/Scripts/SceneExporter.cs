@@ -92,6 +92,8 @@ public class SceneExporter : Component
 
     public void LoadScene()
     {
+        PhysicsManager.simulating = false;
+
         string path = exportPathBox.text;
 
         if (!Directory.Exists(path) || !File.Exists($"{path}/main.json"))
@@ -127,6 +129,10 @@ public class SceneExporter : Component
 
         Hierarchy.instance.UpdateView();
         Inspector.instance.UpdateView();
+
+        Delay(()=>{
+            PhysicsManager.simulating = true;
+        },0.5f);
     }
 
     public override void OnTick(float dt)

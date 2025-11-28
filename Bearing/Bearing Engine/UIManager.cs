@@ -25,6 +25,8 @@ public static class UIManager
 
     public static Mesh2D quadMeshCache = new Mesh2D("Quad.obj", true);
 
+    private static AudioSource sfxSource;
+
     private static int currentID = -1;
     private static List<int> usedIDs = new List<int>();
     public static int GetUniqueUIID()
@@ -105,6 +107,19 @@ public static class UIManager
         cursorOverUI = hoveredObjects.Count > 0;
 
         uiEvent.Invoke(sender, eventType);
+    }
+
+    public static void PlaySFX(Resource resource)
+    {
+        sfxSource.resource = resource;
+        sfxSource.Play();
+    }
+
+    public static void Init()
+    {
+        // audio init
+        sfxSource = new AudioSource();
+        Game.instance.root.AddComponent(sfxSource);
     }
 
     public static class UITextHelper
