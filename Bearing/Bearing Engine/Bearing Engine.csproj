@@ -5,7 +5,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Bearing</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks> 
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CopyLocalLockFileAssemblies>True</CopyLocalLockFileAssemblies>
+    <IncludeNativeLibrariesForSelfExtract>True</IncludeNativeLibrariesForSelfExtract>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -14,9 +16,14 @@
     <Folder Include="Resources\Audio\SFX\" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <PackageReference Include="OpenAL-Soft.Win" Version="1.2.0" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="AssimpNet" Version="4.1.0" />
     <PackageReference Include="BulletSharp" Version="0.11.1" />
+    <PackageReference Include="Box2D.NET" Version="3.1.645" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTK.Mathematics" Version="4.9.4" />
@@ -30,7 +37,7 @@
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.1" />
     <PackageReference Include="StbImageSharp" Version="2.30.15" />
   </ItemGroup>
-	
+
 	<ItemGroup>
 		<EmbeddedResource Include="Resources\**\*" />
 		<EmbeddedResource Include="EngineData\**\*" />

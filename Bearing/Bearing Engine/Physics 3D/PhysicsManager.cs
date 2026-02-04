@@ -53,11 +53,11 @@ public static class PhysicsManager
             RigidBody rb = brb.rb;
             rb.MotionState.GetWorldTransform(out Matrix worldTransform);
 
-            Vector3 sBefore = sh.transform.scale;
+            Vector3 sBefore = ((Transform3D)sh.transform).scale;
             Matrix4 m = worldTransform.ToTKMatrix();
             m = m.ClearScale();
             m = Matrix4.CreateScale(sBefore) * m;
-            sh.transform.FromModel(m, false);
+            ((Transform3D)sh.transform).FromModel(m, false);
         }
     }
 

@@ -61,14 +61,47 @@ public static class Extensions
             );
     }
 
+    public static T? GetMeta<T>(this IMetadata m, int index = 0)
+    {
+        if (index >= m.metadata.Length || index < 0)
+            return default(T);
+
+        return (T)m.metadata[index];
+    }
+
     public static BulletSharp.Math.Vector3 ToBulletVector(this Vector3 vector)
     {
         return new BulletSharp.Math.Vector3(vector.X, vector.Y, vector.Z);
     }
 
+    public static Vector2 ToTKVector(this System.Numerics.Vector2 vector)
+    {
+        return new Vector2(vector.X, vector.Y);
+    }
+
+    public static Vector2 ToTKVector(this Box2D.NET.B2Vec2 vector)
+    {
+        return new Vector2(vector.X, vector.Y);
+    }
+
     public static Vector3 ToTKVector(this BulletSharp.Math.Vector3 vector)
     {
         return new Vector3(vector.X, vector.Y, vector.Z);
+    }
+
+    public static Box2D.NET.B2Vec2 ToB2Vector(this Vector2 vector)
+    {
+        return new Box2D.NET.B2Vec2(vector.X, vector.Y);
+    }
+
+    public static System.Numerics.Vector2 ToSystemVector(this Vector2 vector)
+    {
+        return new System.Numerics.Vector2(vector.X, vector.Y);
+    }
+
+    public static System.Numerics.Vector3 ToSystemVector(this Vector3 vector)
+    {
+        return new System.Numerics.Vector3(vector.X, vector.Y, vector.Z);
     }
 
     public static float LerpAngle(this float a, float b, float t)
@@ -233,9 +266,9 @@ public static class Extensions
             Vector3 p2 = new Vector3(vData[i1], vData[i1 + 1], vData[i1 + 2]);
             Vector3 p3 = new Vector3(vData[i2], vData[i2 + 1], vData[i2 + 2]);
             
-            p1 = (model * new Vector4(p1, 1.0f)).Xyz;
-            p2 = (model * new Vector4(p2, 1.0f)).Xyz;
-            p3 = (model * new Vector4(p3, 1.0f)).Xyz;
+            p1 = (new Vector4(p1, 1.0f) * model).Xyz;
+            p2 = (new Vector4(p2, 1.0f) * model).Xyz;
+            p3 = (new Vector4(p3, 1.0f) * model).Xyz;
 
             if (RayTriangleIntersection(p1, p2, p3, ray))
             {

@@ -4,7 +4,8 @@
         "material": {
             "shader": {
                 "vert": "default.vert",
-                "frag": "lighting.frag"
+                "frag": "lighting.frag",
+                "isEngineData": true
             },
 
 

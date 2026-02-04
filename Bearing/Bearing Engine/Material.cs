@@ -151,8 +151,14 @@ public class Material
     };
 
     public List<ShaderParam> parameters { get; set; } = new List<ShaderParam>();
+
+    [HideFromInspector]
     public List<ShaderAttrib> attribs { get; set; } = new List<ShaderAttrib>();
+
+    [HideFromInspector]
     public Shader shader { get; set; }
+
+    [HideFromInspector]
     public bool is3D { get; set; } = true;
 
     private int attribAllocCache;

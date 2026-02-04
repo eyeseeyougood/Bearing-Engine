@@ -30,7 +30,7 @@ public static class LightManager
             if (l is PointLight pl)
             {
                 GL.UseProgram((uint)mat.shader.Handle);
-                Vector3 pos = pl.gameObject.transform.position;
+                Vector3 pos = ((Transform3D)pl.gameObject.transform).position;
                 GL.Uniform3(mat.shader.GetUniformLoc($"pointLights[{pointId}].pos"), pos.X, pos.Y, pos.Z);
                 Vector4 col = pl.colour.GetZeroToOneA();
                 GL.Uniform4(mat.shader.GetUniformLoc($"pointLights[{pointId}].col"), col.X, col.Y, col.Z, col.W);

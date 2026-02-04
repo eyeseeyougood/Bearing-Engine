@@ -1,25 +1,22 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.ComponentModel;
 
 namespace Bearing;
 
-public class ComponentConverter : JsonConverter<Component>
+public class TransformConverter : JsonConverter<Transform>
 {
-    public override Component? ReadJson(JsonReader reader, Type objectType, Component? existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override Transform? ReadJson(JsonReader reader, Type objectType, Transform? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         var jo = JObject.Load(reader);
-        var typeString = jo["type"]?.ToString();
+        var typeString = jo["transformType"]?.ToString();
 
         if (typeString == null)
             throw new JsonSerializationException($"Unknown component type: {typeString}");
 
         if (Type.GetType(typeString) == null)
             if (Type.GetType("Bearing." + typeString) == null)
-                if (Type.GetType("Bearing.Physics2D." + typeString) == null)
-                    throw new JsonSerializationException($"Unknown component type: {typeString}");
-                else
-                    typeString = "Bearing.Physics2D." + typeString;
+                throw new JsonSerializationException($"Unknown component type: {typeString}");
             else
                 typeString = "Bearing." + typeString;
 
@@ -35,14 +32,14 @@ public class ComponentConverter : JsonConverter<Component>
             }
         };
 
-        return (Component?)jo.ToObject(Type.GetType(typeString), tempSerializer);
+        return (Transform?)jo.ToObject(Type.GetType(typeString), tempSerializer);
     }
 
-    public override void WriteJson(JsonWriter writer, Component value, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, Transform value, JsonSerializer serializer)
     {
         writer.WriteStartObject();
 
-        writer.WritePropertyName("type");
+        writer.WritePropertyName("transformType");
         writer.WriteValue(value.GetType().Name);
 
         var props = value.GetType().GetProperties();

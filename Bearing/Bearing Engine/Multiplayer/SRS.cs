@@ -25,9 +25,17 @@ public class SRS : NetModel
         hasLoaded = true;
     }
 
-    public override void InitHost()
+    public ushort GetClientID()
     {
-        roomServer = MultiplayerManager.CreateRoom("");
+        if (client == null)
+            return 0;
+
+        return client.Id;
+    }
+
+    public override void InitHost(ushort port = 2025)
+    {
+        roomServer = MultiplayerManager.CreateRoom("", port);
         client = MultiplayerManager.CreateClient("127.0.0.1:"+roomServer.port);
 
         isHost = true;
@@ -82,12 +90,35 @@ public class SRS : NetModel
         syncVars.Add(@var);
     }
 
-    public override void InstantiateObject(string prefabName, string newName)
+    public override void RemoveSyncVariable(string objectName, int compID, string property)
+    {
+        SyncVariable @var = new SyncVariable()
+        {
+            objName = objectName,
+            compID = compID,
+            property = property
+        };
+
+        if (syncVars.Contains(@var))
+            syncVars.Remove(@var);
+    }
+
+    public override void InstantiateObject(string prefabName, string newName, params string[] instantiationData) // currently slightly limiting since string only serialisable
     {
         Message m = Message.Create(MessageSendMode.Reliable, 3); // MsgID:3 means instantiate object
 
         m.AddString(prefabName);
         m.AddString(newName);
+        m.AddStrings(instantiationData);
+
+        client.Send(m);
+    }
+
+    public override void RemoveObject(string name)
+    {
+        Message m = Message.Create(MessageSendMode.Reliable, 5); // MsgID:5 means remove object
+
+        m.AddString(name);
 
         client.Send(m);
     }
@@ -95,6 +126,11 @@ public class SRS : NetModel
     public override void Broadcast(Message m, ushort ignore)
     {
         roomServer.server.SendToAll(m, ignore);
+    }
+
+    public override void SendToServer(Message m)
+    {
+        client.Send(m);
     }
 
     [MessageHandler(4)]
@@ -114,7 +150,11 @@ public class SRS : NetModel
 
         object value = Extensions.GetExtensionMethod("Deserialise" + propType).Invoke(null, new object[] { message.GetBytes() });
 
-        Component c = GameObject.Find(objName).GetComponent(compID);
+        GameObject go = GameObject.Find(objName);
+        if (go == null)
+            return;
+
+        Component c = go.GetComponent(compID);
         c.GetType().GetProperty(prop).SetValue(c, value);
     }
 
@@ -124,16 +164,46 @@ public class SRS : NetModel
         MultiplayerManager.Broadcast(message, client);
     }
 
+    [MessageHandler(5)] // MsgID:5 means remove networked object from all clients
+    public static void DestroyFromClient(ushort client, Message message)
+    {
+        MultiplayerManager.Broadcast(message, client);
+    }
+
+    [MessageHandler(6)] // MsgID:6 means a user-made message, aka whatever the user wants it to be, but it is generally just a msg broadcasted to every client
+    public static void UserMadeMessageFromClient(ushort client, Message message)
+    {
+        MultiplayerManager.Broadcast(message, client);
+    }
+
     [MessageHandler(3)]
     public static void InstanceFromServer(Message message)
     {
         string prefab = message.GetString();
         string newName = message.GetString(); // when instantiated over the network a new name must be sent to avoid issues with syncing later
+        string[] instantiationData = message.GetStrings();
 
-        GameObject newPlayer = SceneLoader.LoadFromFile($"./Resources/Scene/{prefab}.json", false);
-        newPlayer.name = newName;
-        newPlayer.tag = "OtherPlayer";
-        newPlayer.parent = Game.instance.root;
-        newPlayer.Load();
+        GameObject newObject = SceneLoader.LoadFromFile($"./Resources/Scene/{prefab}.json", false);
+        newObject.name = newName;
+        newObject.tag = "OtherPlayer";
+        newObject.parent = Game.instance.root;
+        newObject.metadata = instantiationData;
+        newObject.Load();
+    }
+
+    [MessageHandler(5)]
+    public static void DestroyFromServer(Message message)
+    {
+        string name = message.GetString(); // the name given here is the same name that every client has
+
+        GameObject? go = GameObject.Find(name);
+        if (go != null)
+            go?.Cleanup();
+    }
+
+    [MessageHandler(6)] // MsgID:6 means a user-made message, aka whatever the user wants it to be, but it is generally just a msg broadcasted to every client
+    public static void UserMadeMessage(Message message)
+    {
+        MultiplayerManager.MessageReceived(message);
     }
 }

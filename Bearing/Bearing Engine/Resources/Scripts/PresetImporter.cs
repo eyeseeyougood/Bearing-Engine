@@ -40,6 +40,7 @@ public class PresetImporter : Component
         // init menu
 
         menu = new UIPanel();
+        menu.renderLayer = -1;
         menu.anchor = new Vector2(0.5f, 0.5f);
         menu.position = new UDim2(0.5f, 0.5f);
         menu.size = new UDim2(0.5f, 0.5f,0,3);
@@ -48,6 +49,7 @@ public class PresetImporter : Component
         // init scroll
 
         scroll = new UIVerticalScrollView();
+        scroll.renderLayer = 0;
         scroll.metadata = new object[] { "PresetScroll", "PresetScroll" };
         scroll.anchor = new Vector2(0.0f, 0.0f);
         scroll.position = new UDim2(0.0f, 0.0f);

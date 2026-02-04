@@ -11,10 +11,14 @@ public abstract class Component : IMetadata
     public abstract void OnLoad();
     public abstract void OnTick(float dt);
     public abstract void Cleanup();
-    protected async Task Delay(Action func, float seconds)
+    protected async void Delay(Action func, float seconds)
     {
         await Time.WaitTillTime(Time.now + seconds);
 
         func.Invoke();
+    }
+    protected T Transform<T>()
+    {
+        return (T)Convert.ChangeType(gameObject.transform, typeof(T));
     }
 }

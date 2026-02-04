@@ -28,6 +28,7 @@ namespace Bearing
         public Vector3 Position { get; set; }
 
         public float AspectRatio { private get; set; }
+        public bool fitAspectToScreen = true;
 
         public Vector3 Front => _front;
 
@@ -73,7 +74,7 @@ namespace Bearing
 
         public Matrix4 GetProjectionMatrix()
         {
-            Matrix4 result = Matrix4.CreateOrthographic(Fov, Fov * (Game.instance.ClientSize.Y / (float)Game.instance.ClientSize.X), 0.01f, 100f);
+            Matrix4 result = Matrix4.CreateOrthographic(Fov, Fov / AspectRatio, 0.01f, 100f);
             if (!orthographic)
                 result = Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 0.01f, 100f);
             return result;

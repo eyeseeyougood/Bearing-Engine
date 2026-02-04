@@ -8,17 +8,23 @@ public class SpriteSheet
     public int sHeight=1;
 
     public SpriteSheet() { }
-    public SpriteSheet(Resource spriteSheet, int sliceWidth, int sliceHeight) { Slice(spriteSheet, sliceWidth, sliceHeight); }
-    public SpriteSheet(Texture spriteSheet, int sliceWidth, int sliceHeight) { Slice(spriteSheet, sliceWidth, sliceHeight); }
+    public SpriteSheet(Resource spriteSheet, int sliceWidth, int sliceHeight, int take = -1) { Slice(spriteSheet, sliceWidth, sliceHeight, take); }
+    public SpriteSheet(Texture spriteSheet, int sliceWidth, int sliceHeight, int take = -1) { Slice(spriteSheet, sliceWidth, sliceHeight, take); }
 
-    public void Slice(Resource spriteSheet, int sliceWidth, int sliceHeight)
+    ///<Summary>
+    ///Take describes how many slices to keep (used to remove blank slices)
+    ///</Summary>
+    public void Slice(Resource spriteSheet, int sliceWidth, int sliceHeight, int take = -1)
     {
-        Texture t = Texture.LoadFromFile(spriteSheet.fullpath);
-        Slice(t, sliceWidth, sliceHeight);
+        Texture t = Texture.LoadFromFile(spriteSheet.fullpath, Silk.NET.OpenGL.TextureMinFilter.Nearest, Silk.NET.OpenGL.TextureMagFilter.Nearest, Silk.NET.OpenGL.TextureWrapMode.ClampToEdge);
+        Slice(t, sliceWidth, sliceHeight, take);
         t.Dispose();
     }
 
-    public void Slice(Texture spriteSheet, int sliceWidth, int sliceHeight)
+    ///<Summary>
+    ///Take describes how many slices to keep (used to remove blank slices)
+    ///</Summary>
+    public void Slice(Texture spriteSheet, int sliceWidth, int sliceHeight, int take = -1)
     {
         byte[] data = spriteSheet.GetData();
 
@@ -35,10 +41,8 @@ public class SpriteSheet
         {
             for (int x = 0; x < width; x += sliceWidth)
             {
-                // allocate one slice
                 byte[] slice = new byte[sliceWidth * sliceHeight * bytesPerPixel];
 
-                // copy row by row
                 for (int sy = 0; sy < sliceHeight; sy++)
                 {
                     int srcY = y + sy;
@@ -60,7 +64,9 @@ public class SpriteSheet
         List<Texture> slices = new List<Texture>();
         foreach (byte[] d in splitData)
         {
-            Texture t = Texture.FromData(sliceWidth, sliceHeight, d);
+            if (take != -1 && slices.Count == take)
+                break;
+            Texture t = Texture.FromData(sliceWidth, sliceHeight, d, Silk.NET.OpenGL.TextureWrapMode.ClampToEdge, Silk.NET.OpenGL.TextureMinFilter.Nearest, Silk.NET.OpenGL.TextureMagFilter.Nearest);
             slices.Add(t);
         }
 
@@ -69,6 +75,14 @@ public class SpriteSheet
         textures = slices;
         sWidth = sliceWidth;
         sHeight = sliceHeight;
+    }
+
+    public List<Texture> GetSlices(int start = 0, int count = -1)
+    {
+        if (count == -1)
+            return textures;
+
+        return textures.GetRange(start, count);
     }
 
     private void ClearTextures()

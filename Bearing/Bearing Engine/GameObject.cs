@@ -17,7 +17,7 @@ public class GameObject : IMetadata
 
     public object[] metadata { get; set; } = new object[0];
 
-    public Transform3D transform { get; set; }
+    public Transform transform { get; set; }
 
     public List<GameObject> immediateChildren { get; set; }
 
@@ -31,17 +31,6 @@ public class GameObject : IMetadata
     {
         Cleanup();
     }
-    /*
-    public static GameObject Instantiate(GameObject original)
-    {
-        GameObject result = new GameObject();
-
-        result.name = original.name;
-        result.tag = original.tag;
-        result.
-
-        return result;
-    }*/
 
     public static GameObject? Find(int id)
     {

@@ -4,7 +4,6 @@
 	"id": 0,
 	"metadata": [],
 	"transform": {
-		"parent": null,
 		"position": {
 			"x": 0.0,
 			"y": 0.0,
@@ -32,7 +31,8 @@
 			"x": 1.0,
 			"y": 1.0,
 			"z": 1.0
-		}
+		},
+		"parent": null
 	},
 	"immediateChildren": [
 		{
@@ -41,8 +41,35 @@
 			"id": 1,
 			"metadata": [],
 			"transform": {
+				"position": {
+					"x": 0.26558578,
+					"y": -0.3755024,
+					"z": 0.0
+				},
+				"eRotation": {
+					"x": 0.0,
+					"y": 0.0,
+					"z": 0.0
+				},
+				"qRotation": {
+					"Xyz": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+					},
+					"W": 1.0,
+					"X": 0.0,
+					"Y": 0.0,
+					"Z": 0.0,
+					"Length": 1.0,
+					"LengthSquared": 1.0
+				},
+				"scale": {
+					"x": 1.0,
+					"y": 1.0,
+					"z": 1.0
+				},
 				"parent": {
-					"parent": null,
 					"position": {
 						"x": 0.0,
 						"y": 0.0,
@@ -70,35 +97,8 @@
 						"x": 1.0,
 						"y": 1.0,
 						"z": 1.0
-					}
-				},
-				"position": {
-					"x": 0.0,
-					"y": -0.20015338,
-					"z": 0.0
-				},
-				"eRotation": {
-					"x": 0.0,
-					"y": 0.0,
-					"z": 0.0
-				},
-				"qRotation": {
-					"Xyz": {
-						"x": 0.0,
-						"y": 0.0,
-						"z": 0.0
 					},
-					"W": 1.0,
-					"X": 0.0,
-					"Y": 0.0,
-					"Z": 0.0,
-					"Length": 1.0,
-					"LengthSquared": 1.0
-				},
-				"scale": {
-					"x": 1.0,
-					"y": 1.0,
-					"z": 1.0
+					"parent": null
 				}
 			},
 			"immediateChildren": [],
@@ -156,8 +156,35 @@
 			"id": 2,
 			"metadata": [],
 			"transform": {
+				"position": {
+					"x": 0.0,
+					"y": -2.2653346,
+					"z": 0.0
+				},
+				"eRotation": {
+					"x": 0.0,
+					"y": 0.0,
+					"z": 0.0
+				},
+				"qRotation": {
+					"Xyz": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+					},
+					"W": 1.0,
+					"X": 0.0,
+					"Y": 0.0,
+					"Z": 0.0,
+					"Length": 1.0,
+					"LengthSquared": 1.0
+				},
+				"scale": {
+					"x": 1.0,
+					"y": 1.0,
+					"z": 1.0
+				},
 				"parent": {
-					"parent": null,
 					"position": {
 						"x": 0.0,
 						"y": 0.0,
@@ -185,35 +212,8 @@
 						"x": 1.0,
 						"y": 1.0,
 						"z": 1.0
-					}
-				},
-				"position": {
-					"x": 0.0,
-					"y": -2.2001534,
-					"z": 0.0
-				},
-				"eRotation": {
-					"x": 0.0,
-					"y": 0.0,
-					"z": 0.0
-				},
-				"qRotation": {
-					"Xyz": {
-						"x": 0.0,
-						"y": 0.0,
-						"z": 0.0
 					},
-					"W": 1.0,
-					"X": 0.0,
-					"Y": 0.0,
-					"Z": 0.0,
-					"Length": 1.0,
-					"LengthSquared": 1.0
-				},
-				"scale": {
-					"x": 1.0,
-					"y": 1.0,
-					"z": 1.0
+					"parent": null
 				}
 			},
 			"immediateChildren": [],
@@ -278,37 +278,6 @@
 			"id": 3,
 			"metadata": [],
 			"transform": {
-				"parent": {
-					"parent": null,
-					"position": {
-						"x": 0.0,
-						"y": 0.0,
-						"z": 0.0
-					},
-					"eRotation": {
-						"x": 0.0,
-						"y": 0.0,
-						"z": 0.0
-					},
-					"qRotation": {
-						"Xyz": {
-							"x": 0.0,
-							"y": 0.0,
-							"z": 0.0
-						},
-						"W": 1.0,
-						"X": 0.0,
-						"Y": 0.0,
-						"Z": 0.0,
-						"Length": 1.0,
-						"LengthSquared": 1.0
-					},
-					"scale": {
-						"x": 1.0,
-						"y": 1.0,
-						"z": 1.0
-					}
-				},
 				"position": {
 					"x": 2.0,
 					"y": 2.0,
@@ -336,20 +305,41 @@
 					"x": 1.0,
 					"y": 1.0,
 					"z": 1.0
-				}
-			},
-			"immediateChildren": [],
-			"components": [
-				{
-					"type": "TestComponent",
-					"objectName": "Light",
-					"SomeVector": {
+				},
+				"parent": {
+					"position": {
 						"x": 0.0,
 						"y": 0.0,
 						"z": 0.0
 					},
-					"metadata": []
-				},
+					"eRotation": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+					},
+					"qRotation": {
+						"Xyz": {
+							"x": 0.0,
+							"y": 0.0,
+							"z": 0.0
+						},
+						"W": 1.0,
+						"X": 0.0,
+						"Y": 0.0,
+						"Z": 0.0,
+						"Length": 1.0,
+						"LengthSquared": 1.0
+					},
+					"scale": {
+						"x": 1.0,
+						"y": 1.0,
+						"z": 1.0
+					},
+					"parent": null
+				}
+			},
+			"immediateChildren": [],
+			"components": [
 				{
 					"type": "PointLight",
 					"intensity": 1.0,
@@ -367,5 +357,20 @@
 			]
 		}
 	],
-	"components": []
+	"components": [
+		{
+			"type": "AudioSource",
+			"resource": {
+				"metadata": [
+					null
+				],
+				"fullpath": null
+			},
+			"playOnLoad": false,
+			"loop": false,
+			"volume": 1.0,
+			"pitch": 1.0,
+			"metadata": []
+		}
+	]
 }

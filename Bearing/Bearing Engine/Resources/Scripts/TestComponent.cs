@@ -19,8 +19,6 @@ public class TestComponent : Component
 
     public override void OnLoad()
     {
-        Gizmos.CreateSphere(gameObject.transform.position, 0.1f, 10000f);
-
         objectName = gameObject.name;
         prevVal = objectName;
         

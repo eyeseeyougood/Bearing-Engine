@@ -35,20 +35,44 @@ public struct BearingColour
         return new BearingColour() { zeroToOne = new Vector4(zeroToOne, 1f) };
     }
 
+    public static BearingColour FromZeroToOne(float r, float g, float b)
+    {
+        return new BearingColour() { zeroToOne = new Vector4(r,g,b, 1f) };
+    }
+
+
     public static BearingColour FromZeroToOne(Vector4 zeroToOne)
     {
         return new BearingColour() { zeroToOne = zeroToOne };
     }
+
+    public static BearingColour FromZeroToOne(float r, float g, float b, float a)
+    {
+        return new BearingColour() { zeroToOne = new Vector4(r,g,b,a) };
+    }
+
 
     public static BearingColour FromZeroTo255(Vector3 zeroTo255)
     {
         return new BearingColour() { zeroToOne = new Vector4(zeroTo255/255f, 1f) };
     }
 
+    public static BearingColour FromZeroTo255(int r, int g, int b)
+    {
+        return new BearingColour() { zeroToOne = new Vector4(r/255f, g/255f, b/255f, 1f) };
+    }
+
+
     public static BearingColour FromZeroTo255(Vector4 zeroTo255)
     {
         return new BearingColour() { zeroToOne = zeroTo255 / 255f };
     }
+    
+    public static BearingColour FromZeroTo255(int r, int g, int b, int a)
+    {
+        return new BearingColour() { zeroToOne = new Vector4(r/255f, g/255f, b/255f, a/255f) };
+    }
+    
 
     public Vector3 GetZeroTo255()
     {
@@ -70,6 +94,16 @@ public struct BearingColour
         return zeroToOne;
     }
 
+    public void Clamp()
+    {
+        zeroToOne = new Vector4(
+                Math.Clamp(zeroToOne.X,0,1),
+                Math.Clamp(zeroToOne.Y,0,1),
+                Math.Clamp(zeroToOne.Z,0,1),
+                Math.Clamp(zeroToOne.W,0,1)
+            );
+    }
+
     public static bool operator ==(BearingColour own, BearingColour other)
     {
         return own.zeroToOne == other.zeroToOne;
@@ -78,5 +112,21 @@ public struct BearingColour
     public static bool operator !=(BearingColour own, BearingColour other)
     {
         return own.zeroToOne != other.zeroToOne;
+    }
+
+    public static BearingColour operator +(BearingColour own, BearingColour other)
+    {
+        BearingColour result = new BearingColour() { zeroToOne = own.zeroToOne + other.zeroToOne };
+        result.Clamp();
+
+        return result;
+    }
+
+    public static BearingColour operator -(BearingColour own, BearingColour other)
+    {
+        BearingColour result = new BearingColour() { zeroToOne = own.zeroToOne - other.zeroToOne };
+        result.Clamp();
+
+        return result;
     }
 }

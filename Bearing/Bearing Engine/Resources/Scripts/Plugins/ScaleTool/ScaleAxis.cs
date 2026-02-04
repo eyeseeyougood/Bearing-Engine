@@ -6,14 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Mathematics;
 
-public enum MovingAxisType
+public enum ScaleAxisType
 {
     X, Y, Z
 }
 
-public class MovingAxis : Component
+public class ScaleAxis : Component
 {
-    public MovingAxisType axisToMove;
+    public ScaleAxisType axisToMove;
     private BearingColour axisColour = BearingColour.White;
     private Material mat;
 
@@ -24,9 +24,9 @@ public class MovingAxis : Component
     public override void OnLoad()
     {
         axisColour = axisToMove switch {
-            MovingAxisType.X => BearingColour.FromZeroToOne(new Vector3(1,0,0)),
-            MovingAxisType.Y => BearingColour.FromZeroToOne(new Vector3(0,1,0)),
-            MovingAxisType.Z => BearingColour.FromZeroToOne(new Vector3(0,0,1)),
+            ScaleAxisType.X => BearingColour.FromZeroToOne(new Vector3(1,0,0)),
+            ScaleAxisType.Y => BearingColour.FromZeroToOne(new Vector3(0,1,0)),
+            ScaleAxisType.Z => BearingColour.FromZeroToOne(new Vector3(0,0,1)),
         };
 
         MeshRenderer mr = gameObject.GetComponent<MeshRenderer>();
@@ -42,6 +42,7 @@ public class MovingAxis : Component
     }
 
     private Vector3 startPoint = Vector3.Zero;
+    private Vector3 startScale = Vector3.Zero;
     private Vector3 selectedStart = Vector3.Zero;
     private bool clicked = false;
     public override void OnTick(float dt)
@@ -64,6 +65,7 @@ public class MovingAxis : Component
             {
                 selectedStart = selTrans.position;
                 startPoint = trans.position;
+                startScale = selTrans.scale;
             }
         }
 
@@ -90,33 +92,30 @@ public class MovingAxis : Component
 
         if (clicked)
         {
-            Vector3 axis = axisToMove switch { MovingAxisType.X => Vector3.UnitX, MovingAxisType.Y => Vector3.UnitY, MovingAxisType.Z => Vector3.UnitZ };
-            ((Transform3D)gameObject.transform).position = startPoint + (startPoint - Extensions.FindClosestPointLineAxis(startPoint, axis, Game.instance.camera.Position, Game.instance.camera.Front));
-
-            ((Transform3D)selected.transform).position = new Vector3(
-            axisToMove == MovingAxisType.X ? (trans.position.X - trans.scale.X / 2 - selTrans.scale.X / 2) : selTrans.position.X,
-            axisToMove == MovingAxisType.Y ? (trans.position.Y - trans.scale.Y / 2 - selTrans.scale.Y / 2) : selTrans.position.Y,
-            axisToMove == MovingAxisType.Z ? (trans.position.Z - trans.scale.Z / 2 - selTrans.scale.Z / 2) : selTrans.position.Z
-            );
+            Vector3 axis = axisToMove switch { ScaleAxisType.X => Vector3.UnitX, ScaleAxisType.Y => Vector3.UnitY, ScaleAxisType.Z => Vector3.UnitZ };
+            Vector3 newPos = startPoint + (startPoint - Extensions.FindClosestPointLineAxis(startPoint, axis, Game.instance.camera.Position, Game.instance.camera.Front));
+            Vector3 newScale = newPos - startPoint;
+            ((Transform3D)gameObject.transform).position = newPos;
+            ((Transform3D)selected.transform).scale = startScale + newScale*2f;
         }
         else
             trans.position = new Vector3(
-            axisToMove == MovingAxisType.X ? (selTrans.position.X + trans.scale.X / 2 + selTrans.scale.X / 2) : selTrans.position.X,
-            axisToMove == MovingAxisType.Y ? (selTrans.position.Y + trans.scale.Y / 2 + selTrans.scale.Y / 2) : selTrans.position.Y,
-            axisToMove == MovingAxisType.Z ? (selTrans.position.Z + trans.scale.Z / 2 + selTrans.scale.Z / 2) : selTrans.position.Z
-        );
+                axisToMove == ScaleAxisType.X ? (selTrans.position.X + trans.scale.X / 2 + selTrans.scale.X / 2) : selTrans.position.X,
+                axisToMove == ScaleAxisType.Y ? (selTrans.position.Y + trans.scale.Y / 2 + selTrans.scale.Y / 2) : selTrans.position.Y,
+                axisToMove == ScaleAxisType.Z ? (selTrans.position.Z + trans.scale.Z / 2 + selTrans.scale.Z / 2) : selTrans.position.Z
+            );
     }
 
     private float CheckDistTo(Vector3 pos)
     {
-        Vector3 axis = axisToMove switch { MovingAxisType.X => Vector3.UnitX, MovingAxisType.Y => Vector3.UnitY, MovingAxisType.Z => Vector3.UnitZ };
+        Vector3 axis = axisToMove switch { ScaleAxisType.X => Vector3.UnitX, ScaleAxisType.Y => Vector3.UnitY, ScaleAxisType.Z => Vector3.UnitZ };
 
         Transform3D trans = ((Transform3D)gameObject.transform);
 
         Vector3 @base = new Vector3(
-            axisToMove == MovingAxisType.X ? 0 : trans.position.X,
-            axisToMove == MovingAxisType.Y ? 0 : trans.position.Y,
-            axisToMove == MovingAxisType.Z ? 0 : trans.position.Z
+            axisToMove == ScaleAxisType.X ? 0 : trans.position.X,
+            axisToMove == ScaleAxisType.Y ? 0 : trans.position.Y,
+            axisToMove == ScaleAxisType.Z ? 0 : trans.position.Z
         );
 
         float dist = (Game.instance.camera.Position+Extensions.FindClosestPointLineAxis(-@base, axis, Game.instance.camera.Position, Game.instance.camera.Front)).Length;

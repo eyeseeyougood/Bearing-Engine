@@ -40,7 +40,7 @@ public static class SceneLoader
 
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {
-            Converters = new List<JsonConverter>() { new ComponentConverter(), new ColliderConverter(), new RBConverter() }
+            Converters = new List<JsonConverter>() { new TransformConverter(), new ComponentConverter(), new ColliderConverter(), new RBConverter() }
         };
 
         GameObject root = JsonConvert.DeserializeObject<GameObject>(data, settings);
@@ -55,11 +55,12 @@ public static class SceneLoader
     {
         string data = File.ReadAllText(filepath);
 
-        data = Preprocess(data); // stuff like presets
+        while (data.Contains("#PRESET("))
+            data = Preprocess(data); // stuff like presets
 
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {
-            Converters = new List<JsonConverter>() { new ComponentConverter(), new ColliderConverter(), new RBConverter() }
+            Converters = new List<JsonConverter>() { new TransformConverter(), new ComponentConverter(), new ColliderConverter(), new RBConverter() }
         };
 
         GameObject root = JsonConvert.DeserializeObject<GameObject>(data, settings);
@@ -81,9 +82,9 @@ public static class SceneLoader
         /*
                 #PRESET(button)
                 [
-                    "hello!!!", = "This button was made with a preset!"|
-                ],*/
-
+                    hello!!!, = This button was made with a preset!|
+                ],*/ // --- important note about the syntax here, it doesnt require quotes around the thing ur changing
+                     // --- but it always needs the comma as that marks the end of the thing ur changing and marks start of replacement
         bool onPreset = false;
         bool onName = false;
         bool onReplacement = false;

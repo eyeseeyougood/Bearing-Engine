@@ -34,8 +34,7 @@ public class Game
         opaqueRenderables.Remove(renderable);
     }
 
-
-    private int currentRenderableID=-1;
+    private int currentRenderableID = -1;
     public int GetUniqueRenderableID()
     {
         currentRenderableID++;
@@ -68,12 +67,10 @@ public class Game
 
         PhysicsManager.tps = 60;
         PhysicsManager.Init();
-        
-        UIManager.currentTheme.buttonHoverAudio = "Blip1.wav";
-        UIManager.currentTheme.buttonDownAudio = "Blip2.wav";
-        UIManager.currentTheme.buttonUpAudio = "Blip3.wav";
-                
-        root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json"));
+
+        Physics2D.Physics2DManager.Init();
+
+        root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json2"));
 
         rootLoaded.Invoke();
 
@@ -83,6 +80,13 @@ public class Game
     public void OnTextInput(IKeyboard keyboard, char c)
     {
         Input.UpdateKeyPress(char.ConvertToUtf32(c.ToString(),0));
+    }
+
+    public void SetClearColour(BearingColour colour)
+    {
+        float r,g,b,a;
+        colour.GetZeroTo255A().Deconstruct(out r, out g, out b, out a);
+        GLContext.gl.ClearColor(System.Drawing.Color.FromArgb((int)a,(int)r,(int)g,(int)b));
     }
 
     public void Cleanup()
@@ -96,7 +100,6 @@ public class Game
         MultiplayerManager.Tick((float)dt);
 
         SceneLoader.Tick();
-        //AudioManager.Tick();
         gameTick.Invoke();
         root.Tick((float)dt);
 
@@ -123,13 +126,14 @@ public class Game
 
         Gizmos.Render();
         
+        GL.Disable(EnableCap.DepthTest);
         UIManager.RenderUI();
     }
 
-
     public void OnResize(Vector2 newSize)
     {
-        camera.AspectRatio = newSize.X / newSize.Y;
+        if (camera.fitAspectToScreen)
+            camera.AspectRatio = newSize.X / newSize.Y;
 
         ClientSize = newSize;
 

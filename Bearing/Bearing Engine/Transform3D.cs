@@ -7,29 +7,12 @@ using OpenTK.Mathematics;
 
 namespace Bearing;
 
-public class Transform3D
+public class Transform3D : Transform
 {
     private Vector3 _position = Vector3.Zero;
     private Vector3 _eRotation = Vector3.Zero;
     private Quaternion _qRotation = Quaternion.Identity;
     private Vector3 _scale = Vector3.One;
-    private Transform3D _parent;
-
-    public delegate void OnTransformChanged();
-    public event OnTransformChanged onTransformChanged = ()=>{};
-    public event OnTransformChanged onPositionChanged = ()=>{};
-    public event OnTransformChanged onRotationChanged = ()=>{};
-    public event OnTransformChanged onScaleChanged = ()=>{};
-
-    [HideFromInspector]
-    public Transform3D parent
-    {
-        get { return _parent; }
-        set
-        {
-            _parent = value;
-        }
-    }
 
     public Vector3 position
     {
@@ -38,8 +21,8 @@ public class Transform3D
         {
             _position = value;
             UpdateModel();
-            onPositionChanged.Invoke();
-            onTransformChanged.Invoke();
+            InvokePositionChanged();
+            InvokeTransformChanged();
         }
     }
 
@@ -48,12 +31,11 @@ public class Transform3D
         get { return _eRotation; }
         set
         {
-
             _eRotation = value;
             _qRotation = Quaternion.FromEulerAngles(_eRotation * MathHelper.DegToRad);
             UpdateModel();
-            onRotationChanged.Invoke();
-            onTransformChanged.Invoke();
+            InvokeRotationChanged();
+            InvokeTransformChanged();
         }
     }
 
@@ -66,8 +48,8 @@ public class Transform3D
             _qRotation = value;
             _eRotation = _qRotation.ToEulerAngles();
             UpdateModel();
-            onRotationChanged.Invoke();
-            onTransformChanged.Invoke();
+            InvokeRotationChanged();
+            InvokeTransformChanged();
         }
     }
 
@@ -78,8 +60,8 @@ public class Transform3D
         {
             _scale = value;
             UpdateModel();
-            onScaleChanged.Invoke();
-            onTransformChanged.Invoke();
+            InvokeScaleChanged();
+            InvokeTransformChanged();
         }
     }
 
@@ -92,9 +74,9 @@ public class Transform3D
         model *= Matrix4.CreateTranslation(position);
         if (parent != null)
         {
-            model *= Matrix4.CreateScale(parent.scale);
-            model *= Matrix4.CreateFromQuaternion(parent.qRotation);
-            model *= Matrix4.CreateTranslation(parent.position);
+            model *= Matrix4.CreateScale(((Transform3D)parent).scale);
+            model *= Matrix4.CreateFromQuaternion(((Transform3D)parent).qRotation);
+            model *= Matrix4.CreateTranslation(((Transform3D)parent).position);
         }
     }
 
@@ -143,16 +125,6 @@ public class Transform3D
         _scale = model.ExtractScale();
         UpdateModel();
         if (triggerTransformChanged)
-            onTransformChanged.Invoke();
-    }
-
-    public void Cleanup()
-    {
-        if (onTransformChanged != null)
-        {
-            Delegate[] subscribers = onTransformChanged.GetInvocationList();
-            foreach (var d in subscribers)
-                onTransformChanged -= d as OnTransformChanged;
-        }
+            InvokeTransformChanged();
     }
 }

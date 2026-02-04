@@ -66,7 +66,7 @@ public class MeshRenderer : Component, IRenderable
 
         if (setup3DMatrices)
         {
-            material.SetShaderParameter(new ShaderParam("model", gameObject.transform.GetModelMatrix()));
+            material.SetShaderParameter(new ShaderParam("model", ((Transform3D)gameObject.transform).GetModelMatrix()));
             material.SetShaderParameter(new ShaderParam("view", Game.instance.camera.GetViewMatrix()));
             material.SetShaderParameter(new ShaderParam("projection", Game.instance.camera.GetProjectionMatrix()));
         }

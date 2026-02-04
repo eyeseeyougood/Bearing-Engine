@@ -18,6 +18,7 @@ public partial class MoveToolPlugin : Plugin
         version = "1.0.0";
         releaseDate = "2025-09-15";
         link = "https://github.com/eyeseeyougood";
+        onByDefault = false;
     }
 
     public override void OnLoad()
@@ -32,6 +33,22 @@ public partial class MoveToolPlugin : Plugin
         GenerateAxis(MovingAxisType.X);
         GenerateAxis(MovingAxisType.Y);
         GenerateAxis(MovingAxisType.Z);
+    }
+
+    protected override void OnUpdate(float dt)
+    {
+        base.OnUpdate(dt);
+
+        if (Input.GetKeyDown(Silk.NET.Input.Key.Number1))
+        {
+            PluginManager.EnablePlugin("SceneSelectPlugin");
+            PluginManager.DisablePlugin("MoveToolPlugin");
+        }
+        if (Input.GetKeyDown(Silk.NET.Input.Key.Number3))
+        {
+            PluginManager.EnablePlugin("ScaleToolPlugin");
+            PluginManager.DisablePlugin("MoveToolPlugin");
+        }
     }
 
     private void GenerateAxis(MovingAxisType type)
@@ -50,7 +67,7 @@ public partial class MoveToolPlugin : Plugin
 
         float large = 0.5f;
         float small = 0.05f;
-        axis.transform.scale = new Vector3(type == MovingAxisType.X ? large : small, type == MovingAxisType.Y ? large : small, type == MovingAxisType.Z ? large : small);
+        ((Transform3D)axis.transform).scale = new Vector3(type == MovingAxisType.X ? large : small, type == MovingAxisType.Y ? large : small, type == MovingAxisType.Z ? large : small);
         axis.parent = Game.instance.root;
 
         axes.Add(axis);

@@ -14,11 +14,16 @@ public static class Input
     public static int currentKeyboard = 0;
     public static int currentMouse = 0;
     public static event Action<string> onCharacterPressed = (i) => { };
+    public static List<string> mouseOccupiedBy = new List<string>(); // used to add tags when a system is using the mouse for something
+    // TODO: Really should get around to unifying this whole mouse occupied stuff here and with UIManager. It is a mess.
 
     public static void Init(IInputContext context)
     {
         input = context;
+    }
 
+    public static void LinkToGame()
+    {
         input.Keyboards[0].KeyChar += Game.instance.OnTextInput;
     }
 
@@ -30,6 +35,9 @@ public static class Input
         foreach (string button in Enum.GetNames(typeof(MouseButton)))
         {
             Enum.TryParse<MouseButton>(button, out MouseButton v);
+            if (v == MouseButton.Unknown)
+                continue;
+
             if (!mbStates.ContainsKey(v))
                 mbStates.Add(v, false);
 
@@ -39,6 +47,9 @@ public static class Input
         foreach (string key in Enum.GetNames(typeof(Key)))
         {
             Enum.TryParse<Key>(key, out Key v);
+            if (v == Key.Unknown)
+                continue;
+
             if (!kbStates.ContainsKey(v))
                 kbStates.Add(v, false);
 
@@ -55,6 +66,7 @@ public static class Input
 
     public static bool GetKeyDown(Key key)
     {
+        if (key == Key.Unknown) return false;
         if (!kbStates.ContainsKey(key))
             return false;
         return !kbStates[key] && input.Keyboards[currentKeyboard].IsKeyPressed(key);
@@ -62,11 +74,13 @@ public static class Input
 
     public static bool GetKey(Key key)
     {
+        if (key == Key.Unknown) return false;
         return input.Keyboards[currentKeyboard].IsKeyPressed(key);
     }
 
     public static bool GetKeyUp(Key key)
     {
+        if (key == Key.Unknown) return false;
         if (!kbStates.ContainsKey(key))
             return false;
         return kbStates[key] && !input.Keyboards[currentKeyboard].IsKeyPressed(key);
@@ -74,6 +88,7 @@ public static class Input
 
     public static bool GetMouseButtonDown(MouseButton button)
     {
+        if (button == MouseButton.Unknown) return false;
         if (!mbStates.ContainsKey(button))
             return false;
         return !mbStates[button] && input.Mice[currentMouse].IsButtonPressed(button);
@@ -86,16 +101,18 @@ public static class Input
 
     public static bool GetMouseButton(MouseButton button)
     {
+        if (button == MouseButton.Unknown) return false;
         return input.Mice[currentMouse].IsButtonPressed(button);
     }
 
     public static bool GetMouseButton(int button)
     {
-        return GetMouseButtonDown((MouseButton)button);
+        return GetMouseButton((MouseButton)button);
     }
 
     public static bool GetMouseButtonUp(MouseButton button)
     {
+        if (button == MouseButton.Unknown) return false;
         if (!mbStates.ContainsKey(button))
             return false;
         return mbStates[button] && !input.Mice[currentMouse].IsButtonPressed(button);

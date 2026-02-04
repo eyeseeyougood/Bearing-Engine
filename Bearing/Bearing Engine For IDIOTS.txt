@@ -1,0 +1,42 @@
+The do's and don'ts of Bearing Engine development!
+By eyeseeyougood
+
+---- Common ideas ----
+
+-- Threads --
+The engine is single threaded (mostly)
+This can often cause problems when you forget about how the threads work in Bearing Engine
+
+The Tick Function on each component is infact single threaded, and so is rendering.
+But the Delay() function of each component creates a new thread to invoke the Action provided
+Due to parts of the engine like rendering being single threaded, the delay function and other
+multi-threaded aspects of the engine can throw errors that make no sense and are practically
+undebugable. Be very careful what you do inside the delay function and multiple threads in
+general.
+Other multi-threaded features include:
+- events (rootLoaded, any events created by the user, etc)
+
+-- Order of Events --
+I don't mean actual events like C# events, I just mean the order that things happen in.
+
+The order of initialisation goes as such:
+- The camera is created at (0,2,4) pointing in the negative Z direction.
+- The Time class is initialised:
+-- Starts the stopwatch that is used for the 'now' variable and used to create the Delay function
+- The scene settings are loaded from the settings.txt file stored in ./Resources/Scene/
+- The Gizmos are initialised:
+-- Creates the gizmos shader and material
+- The AudioManager is initialised:
+-- Connects to the default device
+-- Creates the AL context
+- The MultiplayerManager is initialised:
+-- Use scene settings to create the network model
+- The PhysicsManager is initialised with a tps of 60:
+-- Creates the physics world
+-- Begins the physics tick (separate thread to GameObject ticks)
+- The root is created and loaded from the main.json file stored in ./Resources/Scene/
+- The rootLoaded event is invoked
+- The UIManager is initialised:
+-- Creates the AudioSource used by UI for sfx
+
+This order can be crucial to understand to know which services are available at which points in the game's state.

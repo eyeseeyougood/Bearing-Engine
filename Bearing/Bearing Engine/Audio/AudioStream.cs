@@ -4,11 +4,72 @@ namespace Bearing;
 
 public unsafe class AudioStream
 {
-	private uint buffer;
+	private uint[] buffers = new uint[0];
+	private BufferFormat bufferFormat;
+	private uint sampleRate;
+	private long dataPos = -1;
+
+	private Stream? s;
+	private bool endOfStream = false;
 
 	public uint[] GetBuffers()
 	{
-		return new uint[] { buffer };
+		return buffers;
+	}
+
+	public void CreateBuffers()
+	{
+		buffers = new uint[] {
+			AudioManager.CreateBuffer(),
+			AudioManager.CreateBuffer(),
+			AudioManager.CreateBuffer(),
+			AudioManager.CreateBuffer(),
+			AudioManager.CreateBuffer(),
+			AudioManager.CreateBuffer(),
+			AudioManager.CreateBuffer()
+		};
+
+		// buffer new data
+
+		foreach (uint buffer in buffers)
+		{
+			FillBuffer(buffer);
+		}
+	}
+
+	public void ResetBuffers()
+	{
+		foreach (uint buffer in buffers)
+		{
+			FillBuffer(buffer);
+		}
+	}
+
+	public void ResetPosition()
+	{
+		s.Position = dataPos;
+		endOfStream = false;
+	}
+
+	public bool IsEndOfStream()
+	{
+		return endOfStream;
+	}
+
+	public void FillBuffer(uint buffer)
+	{
+		byte[] temp = new byte[4096];
+		int? bytesRead = s?.Read(temp, 0, 4096);
+		fixed (byte* ptr = temp)
+		{
+			if (bytesRead.HasValue)
+			{
+				int writeCount = bytesRead.Value;
+				AudioManager.BufferData(buffer, bufferFormat, ptr, writeCount, (int)sampleRate);
+			}
+		}
+		if (bytesRead == 0)
+			endOfStream = true;
 	}
 
 	public void ReadWAV(Resource resource)
@@ -20,7 +81,7 @@ public unsafe class AudioStream
 			return;
 		}
 
-		Stream? s = Resources.Open(resource);
+		s = Resources.Open(resource);
 		if (s == null)
 		{
 			Logger.LogError($"Failed to open file stream on resource: '{fType}', check that it is present in the resources folder.");
@@ -43,9 +104,8 @@ public unsafe class AudioStream
 
 		ushort audioFormat = 0;
 		ushort channels = 0;
-		uint sampleRate = 0;
+		sampleRate = 0;
 		ushort bps = 0;
-		byte[]? pcmData = null;
 		
 		while (s.Position < s.Length)
 		{
@@ -69,8 +129,7 @@ public unsafe class AudioStream
 		    }
 		    else if (chunkId == "data")
 		    {
-		        pcmData = new byte[chunkSize];
-		        s.Read(pcmData, 0, (int)chunkSize);
+		    	dataPos = s.Position;
 		        break;
 		    }
 		    else
@@ -79,7 +138,7 @@ public unsafe class AudioStream
 		    }
 		}
 
-		BufferFormat bufferFormat = BufferFormat.Stereo16;
+		bufferFormat = BufferFormat.Stereo16;
 		bool invalidBufferFormat = false;
 		if (channels == 2)
 		{
@@ -118,20 +177,16 @@ public unsafe class AudioStream
 			return;
 		}
 
-
 		// buffer data
-		buffer = AudioManager.CreateBuffer();
-
-		fixed (byte* ptr = pcmData)
-		{
-		    AudioManager.BufferData(buffer, bufferFormat, ptr, pcmData.Length, (int)sampleRate);
-		}
-
-		s.Dispose();
+		CreateBuffers();
 	}
 
 	public void Dispose()
 	{
-		AudioManager.GetAL().DeleteBuffer(buffer);
+		foreach (uint buffer in buffers)
+		{
+			AudioManager.GetAL().DeleteBuffer(buffer);
+		}
+		s.Dispose();
 	}
 }

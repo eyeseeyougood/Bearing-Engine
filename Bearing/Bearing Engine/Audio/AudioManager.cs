@@ -10,8 +10,6 @@ using Silk.NET.OpenAL.Extensions.Enumeration;
 
 namespace Bearing;
 
-// TODO: FIX - AudioManager currently caches audio and files are read in entirety ... So this doesnt work for large audio files and is really inefficient
-// Should use streaming instead
 public static class AudioManager
 {
     private static ALContext? alc;
@@ -73,6 +71,11 @@ public static class AudioManager
     public static void PlaySource(uint source)
     {
         al.SourcePlay(source);
+    }
+
+    public static void StopSource(uint source)
+    {
+        al.SourceStop(source);
     }
 
     public static unsafe void Cleanup()

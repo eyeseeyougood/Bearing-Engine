@@ -8,6 +8,7 @@
             "name": "Cube 1",
     
             "transform": {
+                "transformType": "Transform3D",
                 "position": {
                     "x": 0,
                     "y": -2,
@@ -41,6 +42,7 @@
             "name": "Light",
     
             "transform": {
+                "transformType": "Transform3D",
                 "position": {
                     "x": 2,
                     "y": 2,
@@ -59,9 +61,6 @@
             },
 
             "components": [
-                {
-                    "type": "TestComponent"
-                },
                 {
                     "range": 10,
                     "intensity": 1,

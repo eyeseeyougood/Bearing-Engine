@@ -15,6 +15,7 @@ public class BearingRigidbody : Component
 {
     public RigidBody rb { get; private set; }
     public float mass { get; set; } = 1.0f;
+    public float bounciness { get; set; } = 0.0f;
     private CollisionShape collider;
 
     [HideFromInspector]
@@ -86,21 +87,26 @@ public class BearingRigidbody : Component
         }
 
         // link to transform
-        gameObject.transform.onPositionChanged += PosChanged;
-        gameObject.transform.onRotationChanged += RotChanged;
-        gameObject.transform.onScaleChanged += ScaleChanged;
+        Transform().onPositionChanged += PosChanged;
+        Transform().onRotationChanged += RotChanged;
+        Transform().onScaleChanged += ScaleChanged;
 
         // setting up rigidbody
         float mass = 1.0f;
         BulletSharp.Math.Vector3 localInertia;
         collider.CalculateLocalInertia(mass, out localInertia);
-        var motionState = new DefaultMotionState(gameObject.transform.GetModelMatrix().ToBulletMatrix());
+        var motionState = new DefaultMotionState(Transform().GetModelMatrix().ToBulletMatrix());
         var rbInfo = new RigidBodyConstructionInfo(mass, motionState, collider, localInertia);
         rb = new RigidBody(rbInfo);
 
         // Add the rigidbody to the world 
         PhysicsManager.physicsObjects.Add(gameObject);
         PhysicsManager.Register(rb);
+    }
+
+    private Transform3D Transform()
+    {
+        return (Transform3D)gameObject.transform;
     }
 
     private void ScaleChanged()
@@ -112,9 +118,9 @@ public class BearingRigidbody : Component
     private Vector3 prevRot = Vector3.Zero;
     private void RotChanged()
     {
-        if (prevRot != gameObject.transform.eRotation)
+        if (prevRot != Transform().eRotation)
         {
-            prevRot = gameObject.transform.eRotation;
+            prevRot = Transform().eRotation;
             UpdateFromModelMatrix();
         }
     }
@@ -122,21 +128,21 @@ public class BearingRigidbody : Component
     private Vector3 prevPos = Vector3.One;
     private void PosChanged()
     {
-        if (prevPos != gameObject.transform.position)
+        if (prevPos != Transform().position)
         {
-            prevPos = gameObject.transform.position;
-            SetPosition(gameObject.transform.position, false);
+            prevPos = Transform().position;
+            SetPosition(Transform().position, false);
         }
     }
 
     private Vector3 prevScale = Vector3.One;
     public void UpdatePhysicsScaling()
     {
-        if (gameObject.transform.scale == prevScale) return;
-        prevScale = gameObject.transform.scale;
+        if (Transform().scale == prevScale) return;
+        prevScale = Transform().scale;
 
         Unfreeze();
-        collider.LocalScaling = gameObject.transform.scale.ToBulletVector();
+        collider.LocalScaling = Transform().scale.ToBulletVector();
         rb.CollisionShape = collider;
         UpdateFreezeState();
     }
@@ -144,13 +150,13 @@ public class BearingRigidbody : Component
     public void SetPosition(Vector3 newPosition, bool setTransform = true)
     {
         if (setTransform)
-            gameObject.transform.position = newPosition;
+            Transform().position = newPosition;
         UpdateFromModelMatrix();
     }
 
     private void UpdateFromModelMatrix()
     {
-        BulletSharp.Math.Matrix m = gameObject.transform.GetModelMatrix().ToBulletMatrix();
+        BulletSharp.Math.Matrix m = Transform().GetModelMatrix().ToBulletMatrix();
         rb.WorldTransform = m;
     }
 
@@ -163,7 +169,7 @@ public class BearingRigidbody : Component
         else
         {
             Unfreeze();
-        }
+        } 
     }
 
     private void Unfreeze(bool force = false)
@@ -198,10 +204,12 @@ public class BearingRigidbody : Component
         rb.Activate(true);
         UpdateFreezeState();
 
-        if (rb.CollisionShape.LocalScaling != gameObject.transform.scale.ToBulletVector())
+        if (rb.CollisionShape.LocalScaling != Transform().scale.ToBulletVector())
         {
             ScaleChanged();
         }
+
+        rb.Restitution = bounciness;
     }
 
     public override void Cleanup()

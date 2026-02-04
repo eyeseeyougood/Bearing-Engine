@@ -2,10 +2,12 @@
 
 namespace Bearing;
 
-public class Sprite
+public class Sprite : IMetadata
 {
+    public object[] metadata { get; set; } = new object[0];
+
     private List<Texture> textures = new List<Texture>();
-    private int currentTexture;
+    private int currentTexture = 0;
 
     private void ClearTextures()
     {
@@ -83,7 +85,14 @@ public class Sprite
     {
         Texture t = Peak();
         currentTexture++;
+        if (currentTexture >= textures.Count)
+            currentTexture = 0;
         return t;
+    }
+
+    public int GetAnimIndex()
+    {
+        return currentTexture;
     }
 
     public void Cleanup()

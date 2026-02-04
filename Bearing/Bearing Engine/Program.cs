@@ -32,10 +32,12 @@ public static class Program
     {
         GLContext.gl = window.CreateOpenGL();
 
+        Input.Init(window.CreateInput());
+
         new Game();
         Game.instance.OnResize(new Vector2(window.Size.X, window.Size.Y));
 
-        Input.Init(window.CreateInput());
+        Input.LinkToGame();
     }
 
     public static void OnUpdate(double delta)

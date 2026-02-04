@@ -16,6 +16,8 @@ public static class MultiplayerManager
     public static bool isMultiplayer { get; private set; }
     public static bool isHost { get; private set; }
 
+    public static event Action<Message> onMessageRecieved = (i)=>{}; // this does not fire every single time a message is received, this is for user-made msgs
+
     private static Dictionary<string, string> settings = new Dictionary<string, string>();
 
     private static NetModel netModel;
@@ -44,11 +46,28 @@ public static class MultiplayerManager
         NetworkModel model = (NetworkModel)Enum.Parse(typeof(NetworkModel), settings["netModel"]);
 
         SetupNetworkModel(model);
+
+        Logger.Log("Multiplayer initialised");
     }
 
-    public static void InstantiateObject(string prefabName, string newName)
+    public static NetModel GetNetModel()
     {
-        netModel.InstantiateObject(prefabName, newName);
+        return netModel;
+    }
+
+    public static void MessageReceived(Message m)
+    {
+        onMessageRecieved.Invoke(m);
+    }
+
+    public static void InstantiateObject(string prefabName, string newName, params string[] instantiationData)
+    {
+        netModel.InstantiateObject(prefabName, newName, instantiationData);
+    }
+
+    public static void RemoveObject(string name)
+    {
+        netModel.RemoveObject(name);
     }
 
     public static void AddSyncVariable(string objName, int compID, string property)
@@ -56,9 +75,19 @@ public static class MultiplayerManager
         netModel.AddSyncVariable(objName, compID, property);
     }
 
+    public static void RemoveSyncVariable(string objName, int compID, string property)
+    {
+        netModel.RemoveSyncVariable(objName, compID, property);
+    }
+
     public static void Broadcast(Message m, ushort ignoreClient = 0)
     {
         netModel.Broadcast(m, ignoreClient);
+    }
+
+    public static void SendToServer(Message m)
+    {
+        netModel.SendToServer(m);
     }
 
     public static void Tick(float delta)
@@ -67,9 +96,9 @@ public static class MultiplayerManager
             netModel.Tick(delta);
     }
 
-    public static void InitHost()
+    public static void InitHost(ushort port)
     {
-        netModel.InitHost();
+        netModel.InitHost(port);
     }
 
     public static void InitClient(string targetIP)
@@ -90,11 +119,12 @@ public static class MultiplayerManager
         netModel = (NetModel)Activator.CreateInstance(Type.GetType("Bearing.Multiplayer." + Enum.GetName(model)));
     }
 
-    public static RoomServer CreateRoom(string roomName)
+    public static RoomServer CreateRoom(string roomName, ushort port = 2025)
     {
         RoomServer roomServer = new RoomServer();
         roomServer.maxCapacity = ushort.Parse(settings["maxPlayers"]);
         roomServer.name = roomName;
+        roomServer.port = port;
         roomServer.Init();
 
         return roomServer;

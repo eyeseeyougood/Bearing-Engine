@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Mathematics;
 using Bearing;
 
 public class Hierarchy : Component
@@ -95,26 +96,25 @@ public class Hierarchy : Component
 
     private void AddHierarchyObject(GameObject go)
     {
-        GameObject prefab = SceneLoader.LoadFromFile("./Resources/Scene/buttonObject.json", true);
-        Component newUI1 = prefab.GetComponent(0);
-        Component newUI2 = prefab.GetComponent(1);
-        prefab.RemoveComponent(newUI1, false);
-        prefab.RemoveComponent(newUI2, false);
+        UIButton button = new UIButton();
+        button.renderLayer = -1;
+        button.anchor = new Vector2(0.5f, 0.5f);
+        button.position = new UDim2(0.5f, 0.5f);
+        button.size = new UDim2(0.0f, 0.0f, 0, 100);
+        button.buttonPressed += ItemSelected;
+        button.metadata = new object[] { go.id };
+        gameObject.AddComponent(button);
+        
+        UILabel label = new UILabel();
+        label.renderLayer = 0;
+        label.anchor = new Vector2(0.5f, 0.5f);
+        label.position = new UDim2(0.5f, 0.5f);
+        label.size = new UDim2(1.0f, 1.0f);
+        label.text = go.name;
+        label.parent = button.rid;
+        gameObject.AddComponent(label);
 
-        gameObject.AddComponent(newUI1);
-        gameObject.AddComponent(newUI2);
-        newUI1.OnLoad();
-        newUI2.OnLoad();
-
-        ((UIElement)newUI1).rid = UIManager.GetUniqueUIID();
-
-        ((UILabel)newUI2).text = go.name;
-        ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
-
-        ((UIButton)newUI1).buttonPressed += ItemSelected;
-        ((UIButton)newUI1).metadata = new object[] { go.id };
-
-        scrollView.contents.Add(((UIElement)newUI1).rid);
+        scrollView.contents.Add(button.rid);
     }
 
     public int selectedID = -1;
@@ -124,23 +124,43 @@ public class Hierarchy : Component
 
     private void ItemSelected(object? sender, EventArgs e)
     {
+        SelectItem((UIButton)sender);
+    }
+
+    public void SelectItem(UIButton button, bool invokeSelectedEvent = true)
+    {
         if (selectedID != -1)
             ((UIButton)UIManager.FindFromRID(selectedID)).theme = UIManager.currentTheme;
 
-        if (selectedID == ((UIButton)sender).rid)
+        if (selectedID == button.rid)
         {
             selectedID = -1;
             selectedObjID = -1; // TODO: maybe this could cause bugs
         }
         else
         {
-            selectedID = ((UIButton)sender).rid;
-            selectedObjID = (int)((UIButton)sender).metadata[0];
+            selectedID = button.rid;
+            selectedObjID = button.GetMeta<int>();
         }
 
         if (selectedID != -1)
-            ((UIButton)sender).theme = selectionTheme;
+            button.theme = selectionTheme;
 
-        itemSelected.Invoke();
+        if (invokeSelectedEvent)
+            itemSelected.Invoke();
+    }
+
+    public UIButton? GetHierarchyButtonForObject(GameObject go)
+    {
+        foreach (int elem in scrollView.contents)
+        {
+            UIButton element = (UIButton)UIManager.FindFromRID(elem);
+            if (element.GetMeta<int>() == go.id)
+            {
+                return element;
+            }
+        }
+
+        return null;
     }
 }

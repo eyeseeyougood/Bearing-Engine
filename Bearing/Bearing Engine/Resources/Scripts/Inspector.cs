@@ -192,8 +192,9 @@ public class Inspector : Component
 
     public void AddInspectorObject(GameObject linkedObj, object objectComp)
     {
+
         UIButton button = new UIButton();
-        button.renderLayer = -2;
+        button.renderLayer = -1;
         button.anchor = new Vector2(0.0f, 1.0f);
         button.position = new UDim2(0.4f, 1.0f);
         button.size = new UDim2(0.2f, 0, 0, 100);

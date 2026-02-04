@@ -324,8 +324,10 @@ public class UIImage : UIElement
         base.OnTick(dt);
 
         material.SetShaderParameter(new ShaderParam("mainColour", Vector4.One));
-        material.SetShaderParameter(new ShaderParam("texSize", new Vector2(texture0._width, texture0._height)));
         material.SetShaderParameter(new ShaderParam("fitToTexRatio", 0));
+
+        if (texture0 != null)
+            material.SetShaderParameter(new ShaderParam("texSize", new Vector2(texture0._width, texture0._height)));
     }
 }
 
@@ -431,6 +433,7 @@ public class UITextBox : UILabel
     public bool multiline { get; set; } = true;
 
     public event EventHandler<string> onTextSubmit = (i, j) => { };
+    public event EventHandler onPressed = (i, j) => { };
 
     private bool emptyText = false;
 
@@ -452,6 +455,15 @@ public class UITextBox : UILabel
             "upArrow",
             "downArrow",
         };
+    }
+
+    public void ClearText()
+    {
+        emptyText = true;
+        text = " ";
+        caretLine = 0;
+        caretPos = 0;
+        ResetTexture();
     }
 
     public void ClearSubmitEventSubscribers()
@@ -561,6 +573,7 @@ public class UITextBox : UILabel
     private void Pressed(object? sender, EventArgs e)
     {
         Select();
+        onPressed.Invoke(this, e);
     }
 
     private int LenOfCurLine()
@@ -842,6 +855,22 @@ public class UIVerticalSlider : UIPanel
     private UIButton button;
     private bool dragging = false;
     public bool showFillLine = true;
+    public event Action onMoved = ()=>{};
+    private int _handleHeight = 10;
+    public int handleHeight
+    {
+        get
+        {
+            return _handleHeight;
+        }
+        set
+        {
+            _handleHeight = value;
+
+            if (button != null)
+                button.size = new UDim2(1f,0,10,handleHeight);
+        }
+    }
     public float value = 0.5f;
 
     public override void OnLoad()
@@ -854,7 +883,7 @@ public class UIVerticalSlider : UIPanel
         button.parent = rid;
         button.anchor = new Vector2(0.5f,0.5f);
         button.position = new UDim2(0.5f,0.5f);
-        button.size = new UDim2(1f,0,10,10);
+        button.size = new UDim2(1f,0,10,handleHeight);
         button.renderLayer = renderLayer + 2;
         button.buttonPressed += ButtonClicked;
         gameObject.AddComponent(button);
@@ -869,25 +898,44 @@ public class UIVerticalSlider : UIPanel
         gameObject.AddComponent(fill);
     }
 
+    public bool IsMoving()
+    {
+        return dragging;
+    }
+
     public void ButtonClicked(object? sender, EventArgs e)
     {
         dragging = true;
     }
 
+    private bool prevDragging;
     public override void OnTick(float dt)
     {
         base.OnTick(dt);
 
         fill.visible = showFillLine;
         fill.size = new UDim2(1f, value);
+        fill.themeOverride.uiPanelBG = theme.sliderFill;
+        
+        themeOverride.uiPanelBG = theme.sliderBackground;
 
         if (dragging && Input.GetMouseButtonUp(0))
         {
             dragging = false;
         }
 
+        button.position = new UDim2(0.5f, 1f-value);
+
+        if (!dragging && prevDragging)
+        {
+            onMoved.Invoke();
+        }
+
         if (!dragging)
+        {
+            prevDragging = false;
             return;
+        }
 
         // TODO:
         // this maths doesnt work when the size offset is changed, so dont use size offset on this object until i figure out how to neatly normalise UDims with propagation
@@ -898,6 +946,8 @@ public class UIVerticalSlider : UIPanel
         percent = Math.Clamp(percent, 0, 1);
         value = 1f-percent;
         button.position = new UDim2(0.5f, percent);
+        
+        prevDragging = true;
     }
 
     public override void Cleanup()

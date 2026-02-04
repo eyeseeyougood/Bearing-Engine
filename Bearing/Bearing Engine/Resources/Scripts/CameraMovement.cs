@@ -29,12 +29,6 @@ public class CameraMovement : Component
 
     public override void OnTick(float dt)
     {
-        PhysicsManager.GetWorld().DebugDrawWorld();
-        if (Input.GetKeyDown(Key.G))
-        {
-            PhysicsManager.GetWorld().DebugDrawer = new BulletDebugDrawer() { DebugMode = DebugDrawModes.DrawWireframe };
-        }
-
         if (Input.GetMouseButtonDown(1) && !UIManager.cursorOverUI)
         {
             moving = true;

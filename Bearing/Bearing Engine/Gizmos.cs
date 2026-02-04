@@ -32,8 +32,8 @@ public static class Gizmos
         GameObject go = new GameObject();
         go.components.Add(mr);
         go.Load();
-        go.transform.position = center;
-        go.transform.scale = Vector3.One * radius;
+        ((Transform3D)go.transform).position = center;
+        ((Transform3D)go.transform).scale = Vector3.One * radius;
 
         Game.instance.RemoveOpaqueRenderable(mr); // prevent this from rendering like normal objects
 
@@ -59,14 +59,14 @@ public static class Gizmos
         };
 
         GameObject go = new GameObject();
-        go.transform.scale = new Vector3(0.02f, vector.Length, 0.02f);
+        ((Transform3D)go.transform).scale = new Vector3(0.02f, vector.Length, 0.02f);
         Vector3 axis = vector.Normalized().Cross(Vector3.UnitY).Normalized();
         float angle = MathF.Acos(vector.Normalized().Dot(Vector3.UnitY));
         if (vector != Vector3.UnitY && vector != -Vector3.UnitY)
-            go.transform.qRotation = Quaternion.FromAxisAngle(axis, -angle);
+            ((Transform3D)go.transform).qRotation = Quaternion.FromAxisAngle(axis, -angle);
         go.components.Add(mr);
         go.Load();
-        go.transform.position = center + go.transform.GetUp()*vector.Length/2f;
+        ((Transform3D)go.transform).position = center + ((Transform3D)go.transform).GetUp()*vector.Length/2f;
 
         Game.instance.RemoveOpaqueRenderable(mr); // prevent this from rendering like normal objects
 

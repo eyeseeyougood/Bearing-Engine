@@ -17,14 +17,14 @@ namespace Bearing
         public string frag { get; set; }
 
         private Shader(uint handle, Dictionary<string, int> uniformLocations) { Handle = handle; _uniformLocations = uniformLocations; }
-        public Shader(string vert, string frag)
+        public Shader(string vert, string frag, bool isEngineData = true)
         {
             GL GL = GLContext.gl;
 
             this.vert = vert;
             this.frag = frag;
 
-            var shaderSource = Resources.ReadAllText(Resource.GetShader(vert, true));
+            var shaderSource = Resources.ReadAllText(Resource.GetShader(vert, isEngineData));
 
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
             
@@ -32,7 +32,7 @@ namespace Bearing
 
             CompileShader(vertexShader);
 
-            shaderSource = Resources.ReadAllText(Resource.GetShader(frag, true));
+            shaderSource = Resources.ReadAllText(Resource.GetShader(frag, isEngineData));
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, shaderSource);
             CompileShader(fragmentShader);

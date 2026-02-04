@@ -30,6 +30,7 @@ public partial class Plugin : Component
     public string version = "1.0.0";
     public string releaseDate = "N/A";
     public string link = "https://www.example.com";
+    public bool onByDefault = true;
 
     public override void OnLoad()
     {
@@ -137,7 +138,14 @@ public static partial class PluginManager
                 Logger.LogError($"Failed to instantiate plugin: '{plugin.Name}'");
         }
 
-        EnableAll();
+        // turn on plugins which are on by default
+        foreach (var kvp in plugins)
+        {
+            if (kvp.Value.onByDefault)
+            {
+                kvp.Value.OnEnable();
+            }
+        }
     }
 
     public static Plugin GetPlugin(string name)
@@ -183,12 +191,14 @@ public static partial class PluginManager
 
     public static void EnablePlugin(string name)
     {
-        plugins[name].OnEnable();
+        if (plugins.ContainsKey(name))
+            plugins[name].OnEnable();
     }
 
     public static void DisablePlugin(string name)
     {
-        plugins[name].OnDisable();
+        if (plugins.ContainsKey(name))
+            plugins[name].OnDisable();
     }
 
     private static void CleanupAll()
