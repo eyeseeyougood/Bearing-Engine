@@ -35,7 +35,7 @@ public static class Gizmos
         ((Transform3D)go.transform).position = center;
         ((Transform3D)go.transform).scale = Vector3.One * radius;
 
-        Game.instance.RemoveOpaqueRenderable(mr); // prevent this from rendering like normal objects
+        Game.instance.RemoveRenderable(mr); // prevent this from rendering like normal objects
 
         objects.Add(mr, go);
         gizmos.Add((mr, Time.now + time));
@@ -68,7 +68,7 @@ public static class Gizmos
         go.Load();
         ((Transform3D)go.transform).position = center + ((Transform3D)go.transform).GetUp()*vector.Length/2f;
 
-        Game.instance.RemoveOpaqueRenderable(mr); // prevent this from rendering like normal objects
+        Game.instance.RemoveRenderable(mr); // prevent this from rendering like normal objects
 
         objects.Add(mr, go);
         gizmos.Add((mr, Time.now + time));

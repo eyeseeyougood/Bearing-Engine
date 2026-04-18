@@ -7,6 +7,10 @@ public class MeshRenderer : Component, IRenderable
     [HideFromInspector] public Mesh mesh { get; private set; }
     public Material material { get; set; } = Material.fallback;
     [HideFromInspector] public int rid { get; set; } = -1;
+    [HideFromInspector] public bool isTransparent { get; set; } = false; // TODO: this whole rendering system is difficult to keep track of
+    // there really needs to be a large rewrite of some of the boiler plate to handle stuff like this for the user instead of
+    // the user having to keep track of the million different places where they have to state if its 3D transparent and such.
+    [HideFromInspector] public int renderPass { get; set; } = 0;
 
     protected bool setup3DMatrices = true;
 
@@ -28,6 +32,11 @@ public class MeshRenderer : Component, IRenderable
 
     public static MeshRenderer FromMesh(Mesh _mesh) { return new MeshRenderer() { mesh = _mesh }; }
 
+    public void SetSetup3DMatrices(bool setup3DMatrices)
+    {
+        this.setup3DMatrices = setup3DMatrices;
+    }
+
     public override void OnLoad()
     {
         GL GL = GLContext.gl;
@@ -47,7 +56,7 @@ public class MeshRenderer : Component, IRenderable
 
         material.LoadAttribs();
 
-        Game.instance.AddOpaqueRenderable(this); // make this recieve the render call
+        Game.instance.AddRenderable(this); // make this recieve the render call
     }
 
     public override void OnTick(float dt)
@@ -89,9 +98,13 @@ public class MeshRenderer : Component, IRenderable
         material.Use();
 
         GL.DrawElements(PrimitiveType.Triangles, (uint)mesh.indices.Length, DrawElementsType.UnsignedInt, (void*)0);
+
+        AfterRender();
     }
 
     protected virtual void BeforeRender() { }
+
+    protected virtual void AfterRender() { }
 
     protected void SetMesh(Mesh nMesh)
     {
@@ -117,6 +130,6 @@ public class MeshRenderer : Component, IRenderable
 
         material.Cleanup();
 
-        Game.instance.RemoveOpaqueRenderable(this);
+        Game.instance.RemoveRenderable(this);
     }
 }

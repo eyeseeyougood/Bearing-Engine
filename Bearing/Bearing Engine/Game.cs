@@ -10,12 +10,14 @@ public class Game
     public static Game instance = null;
 
     public Scene root;
+    private IRenderableComparer renderSorter = new IRenderableComparer();
     private List<IRenderable> renderables = new List<IRenderable>();
     // this code is currently undergoing a refactor, and so doesnt make loads of sense
     // to sum this up, it is going to be split into opaque and transparent objects
     // with the transparent list being sorted, and the opaque one being unsorted
     // for the time being, the renderables list is un-used and so transparent objects do not render
-    private List<IRenderable> opaqueRenderables = new List<IRenderable>();
+
+    public int renderPasses = 2;
 
     public event Action gameTick = () => {};
     public event Action rootLoaded = () => {};
@@ -24,14 +26,15 @@ public class Game
 
     public Camera camera;
 
-    public void AddOpaqueRenderable(IRenderable renderable)
+    public void AddRenderable(IRenderable renderable)
     {
-        opaqueRenderables.Add(renderable);
+        renderables.Add(renderable);
+        renderables.Sort(renderSorter);
     }
 
-    public void RemoveOpaqueRenderable(IRenderable renderable)
+    public void RemoveRenderable(IRenderable renderable)
     {
-        opaqueRenderables.Remove(renderable);
+        renderables.Remove(renderable);
     }
 
     private int currentRenderableID = -1;
@@ -119,9 +122,16 @@ public class Game
 
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        foreach (IRenderable renderable in opaqueRenderables)
+        for (int rp = 0; rp < renderPasses; rp++)
         {
-            renderable.Render();
+            // TODO: OPTIMISATION
+            // this could somehow be optimised to only go over the renderables which haven't already been gone over
+            // unless I decide that I want renderables to be able to be drawn in multiple passes ¯\_(ツ)_/¯
+            foreach (IRenderable renderable in renderables)
+            {
+                if (renderable.renderPass == rp)
+                    renderable.Render();
+            }
         }
 
         Gizmos.Render();

@@ -96,10 +96,10 @@ public class SceneExporter : Component
 
         string path = exportPathBox.text;
 
-        if (!Directory.Exists(path) || !File.Exists($"{path}/main.json"))
+        if (!Directory.Exists(path) || !File.Exists($"{path}/main.json2"))
         {
             Logger.LogError("Cannot load due to invalid path!");
-            Logger.LogError("Usage: The path of the folder containing your main.json!");
+            Logger.LogError("Usage: The path of the folder containing your main.json2!");
             return;
         }
 
@@ -118,7 +118,7 @@ public class SceneExporter : Component
 
         // load all of the objects from the exported scene
 
-        GameObject nRoot = SceneLoader.LoadFromRealFile($"{path}/main.json");
+        GameObject nRoot = SceneLoader.LoadFromRealFile($"{path}/main.json2");
 
         foreach (GameObject go in nRoot.immediateChildren.ToList())
         {
@@ -163,6 +163,7 @@ public class SceneExporter : Component
             {
                 JsonSerializer.Create(new JsonSerializerSettings() {
                     Converters = {
+                        new TransformConverter(),
                         new ShaderParamConverter(),
                         new Vector4Converter(),
                         new Vector3Converter(),
@@ -179,7 +180,7 @@ public class SceneExporter : Component
             }
         }
 
-        File.WriteAllText($"{path}/main.json", f);
+        File.WriteAllText($"{path}/main.json2", f);
 
         // re-enable the plugins that where enabled
         PluginManager.EnableAll(true);

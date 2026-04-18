@@ -33,6 +33,8 @@ public partial class ExamplePlugin : Plugin
         label.parent = button.rid;
         gameObject.AddComponent(label);
 
+        ui.Add(button);
+
         // slider
 
         UIVerticalSlider slider = new UIVerticalSlider();
@@ -42,11 +44,19 @@ public partial class ExamplePlugin : Plugin
         slider.size = new UDim2(0, 0.4f, 10, 0);
         gameObject.AddComponent(slider);
 
-        ui.Add(button);
+        FancyUIButton fancyButton = new FancyUIButton();
+        fancyButton.anchor = new Vector2(0.5f, 0.5f);
+        fancyButton.position = new UDim2(0.5f, 0.5f);
+        fancyButton.size = new UDim2(0,0,200,75);
+        gameObject.AddComponent(fancyButton);
+
         ui.Add(slider);
+        ui.Add(fancyButton);
+
+        
         Delay(()=>{
             OnDisable();
-        }, 2f);
+        }, 0.1f);
     }
 
     private void ButtonPressed(object? sender, EventArgs e)

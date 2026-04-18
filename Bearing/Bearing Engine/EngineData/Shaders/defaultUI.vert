@@ -15,6 +15,7 @@ uniform vec2 screenSize;
 uniform int fitToTexRatio;
 
 out vec2 texCoord;
+out float texAspect;
 
 void main()
 {
@@ -40,7 +41,7 @@ void main()
     vec2 quadPixels = sizing * screenSize;
 
     float quadAspect = quadPixels.x / quadPixels.y;
-    float texAspect = texSize.x / texSize.y;
+    texAspect = texSize.x / texSize.y;
 
     float scaleX = 1.0;
     float scaleY = texAspect / quadAspect;

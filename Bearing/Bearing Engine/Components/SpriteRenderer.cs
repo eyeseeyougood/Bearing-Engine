@@ -7,6 +7,8 @@ public class SpriteRenderer : Component, IRenderable
     [HideFromInspector] public Mesh2D mesh { get; private set; }
     public Material material { get; set; } = Material.fallback;
     [HideFromInspector] public int rid { get; set; } = -1;
+    [HideFromInspector] public bool isTransparent { get; set; } = false;
+    [HideFromInspector] public int renderPass { get; set; } = 0;
 
     public Sprite sprite;
     public bool renderBackface = false;
@@ -39,7 +41,7 @@ public class SpriteRenderer : Component, IRenderable
 
         material.LoadAttribs();
 
-        Game.instance.AddOpaqueRenderable(this); // make this recieve the render call
+        Game.instance.AddRenderable(this); // make this recieve the render call
     }
 
     public override void OnTick(float dt) {}
@@ -97,6 +99,6 @@ public class SpriteRenderer : Component, IRenderable
 
         material.Cleanup();
 
-        Game.instance.RemoveOpaqueRenderable(this);
+        Game.instance.RemoveRenderable(this);
     }
 }

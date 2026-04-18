@@ -45,7 +45,8 @@ public class TransformConverter : JsonConverter<Transform>
         var props = value.GetType().GetProperties();
         foreach (var prop in props)
         {
-            if (prop.Name == "gameObject")
+            string[] ignores = ["gameObject", "parent"];
+            if (ignores.Contains(prop.Name))
                 continue;
 
             if (prop.CanRead && prop.GetIndexParameters().Length == 0)

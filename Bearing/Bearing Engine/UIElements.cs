@@ -188,7 +188,7 @@ public class UIElement : MeshRenderer
     {
         base.OnLoad();
 
-        Game.instance.RemoveOpaqueRenderable(this); // ui should not be handled like all other renderables XDD
+        Game.instance.RemoveRenderable(this); // ui should not be handled like all other renderables XDD
     }
 
     protected virtual void UpdateShaderParams()

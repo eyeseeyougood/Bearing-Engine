@@ -82,35 +82,29 @@ public class Transform3D : Transform
 
     public Vector3 GetForward()
     {
-        Vector3 result = new Vector3(
-                model.M13,
-                model.M23,
-                model.M33
-            );
-
-        return result.Normalized();
+        return -new Vector3(
+            model.M31,
+            model.M32,
+            model.M33
+        ).Normalized();
     }
 
     public Vector3 GetRight()
     {
-        Vector3 result = new Vector3(
-                model.M11,
-                model.M21,
-                model.M31
-            );
-
-        return result.Normalized();
+        return new Vector3(
+            model.M11,
+            model.M12,
+            model.M13
+        ).Normalized();
     }
 
     public Vector3 GetUp()
     {
-        Vector3 result = new Vector3(
-                model.M12,
-                model.M22,
-                model.M32
-            );
-
-        return result.Normalized();
+        return new Vector3(
+            model.M21,
+            model.M22,
+            model.M23
+        ).Normalized();
     }
 
     public Matrix4 GetModelMatrix()
