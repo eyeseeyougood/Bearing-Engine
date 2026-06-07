@@ -1,38 +1,16 @@
 [
     {
-        "mesh": "Cube.obj",
+        "mesh": "eng/Cube.obj",
         "material": {
             "shader": {
-                "vert": "default.vert",
-                "frag": "lighting.frag",
-                "isEngineData": true
+                "vert": "eng/default.vert",
+                "frag": "eng/lighting.frag",
             },
-
-
 
             "parameters": [
                 {
                     "name": "mainColour",
-                    "vector4": {
-                        "x": 0.7,
-                        "y": 0.1,
-                        "z": 0.1,
-                        "w": 1.0
-                    }
-                }
-            ],
-            "attribs": [
-                {
-                    "name": "aPosition",
-                    "size": 3
-                },
-                {
-                    "name": "aTexCoord",
-                    "size": 2
-                },
-                {
-                    "name": "aNormal",
-                    "size": 3
+                    "value": [0.7, 0.1, 0.1, 1.0],
                 }
             ]
         },

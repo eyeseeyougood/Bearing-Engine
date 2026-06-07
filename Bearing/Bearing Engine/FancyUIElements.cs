@@ -1,7 +1,7 @@
 using OpenTK.Mathematics;
 
 namespace Bearing;
-
+/*
 public class FancyUIButton : UIElement
 {
 	public UIImage image;
@@ -80,4 +80,4 @@ public class FancyUIButton : UIElement
 
         image.renderLayer = renderLayer + 1;
     }
-}
+}*/

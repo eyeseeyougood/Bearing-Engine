@@ -15,11 +15,11 @@ public static class ModelLoader
     /// <param name="filename"></param>
     /// <returns></returns>
 
-    public static Mesh3D FileToMesh3D(string filepath, int meshID)
+    public static Mesh3D FileToMesh3D(Resource mesh, int meshID)
     {
         AssimpContext importer = new AssimpContext();
-        var fStream = Resources.Open(Resource.FromPath(filepath));
-        Assimp.Scene model = importer.ImportFileFromStream(fStream, PostProcessSteps.Triangulate, Path.GetExtension(filepath));
+        var fStream = Resources.Open(mesh);
+        Assimp.Scene model = importer.ImportFileFromStream(fStream, PostProcessSteps.Triangulate, Path.GetExtension(mesh.fullpath));
 
         Mesh3D result = Mesh3D.CreateEmpty();
         Assimp.Mesh impMesh = model.Meshes[meshID];
@@ -55,18 +55,18 @@ public static class ModelLoader
         return result;
     }
 
-    public static Mesh3D FileToMesh3D(string filepath)
+    public static Mesh3D FileToMesh3D(Resource mesh)
     {
         AssimpContext importer = new AssimpContext();
-        var fStream = Resources.Open(Resource.FromPath(filepath));
-        Assimp.Scene model = importer.ImportFileFromStream(fStream, PostProcessSteps.Triangulate, Path.GetExtension(filepath));
+        var fStream = Resources.Open(mesh);
+        Assimp.Scene model = importer.ImportFileFromStream(fStream, PostProcessSteps.Triangulate, Path.GetExtension(mesh.fullpath));
 
         List<MeshVertex3D> finalVerts = new List<MeshVertex3D>();
         List<uint> finalIndices = new List<uint>();
         uint numInds = 0;
         for (int i = 0; i < model.MeshCount; i++)
         {
-            Mesh3D tempMesh = FileToMesh3D(filepath, i);
+            Mesh3D tempMesh = FileToMesh3D(mesh, i);
             finalVerts.AddRange(tempMesh.vertices);
             foreach (uint index in tempMesh.indices)
             {
@@ -82,11 +82,11 @@ public static class ModelLoader
         return result;
     }
 
-    public static Mesh2D FileToMesh2D(string filepath)
+    public static Mesh2D FileToMesh2D(Resource mesh)
     {
         AssimpContext importer = new AssimpContext();
-        var fStream = Resources.Open(Resource.FromPath(filepath));
-        Assimp.Scene model = importer.ImportFileFromStream(fStream, PostProcessSteps.Triangulate, Path.GetExtension(filepath));
+        var fStream = Resources.Open(mesh);
+        Assimp.Scene model = importer.ImportFileFromStream(fStream, PostProcessSteps.Triangulate, Path.GetExtension(mesh.fullpath));
 
         Mesh2D result = Mesh2D.CreateEmpty();
         Assimp.Mesh impMesh = model.Meshes[0];

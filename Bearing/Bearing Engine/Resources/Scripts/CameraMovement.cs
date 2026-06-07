@@ -1,4 +1,4 @@
-﻿using Bearing;
+using Bearing;
 using BulletSharp;
 using System;
 using System.Collections.Generic;

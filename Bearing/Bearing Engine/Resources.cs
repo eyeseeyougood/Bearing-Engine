@@ -36,40 +36,75 @@ public class Resource : IMetadata
         return result;
     }
 
-    public static Resource GetModel(string name, bool isEngineData = false)
+    private static string GetPrefix(string name)
     {
-        string pref = isEngineData ? "EngineData" : "Resources";
-        return FromPath($"./{pref}/Model/" + name, "model");
+        string result = "Resources";
+
+        if (name.StartsWith("eng/"))
+        {
+            result = "EngineData";
+        }
+
+        return result;
     }
 
-    public static Resource GetMusic(string name, bool isEngineData = false)
+    private static string ProcessResourceName(string name)
     {
-        string pref = isEngineData ? "EngineData" : "Resources";
-        return FromPath($"./{pref}/Audio/Music/" + name, "music");
+        string result = name;
+
+        if (name.StartsWith("res/"))
+        {
+            result = name.Substring(4);
+        }
+
+        if (name.StartsWith("eng/"))
+        {
+            result = name.Substring(4);
+        }
+
+        return result;
     }
 
-    public static Resource GetSFX(string name, bool isEngineData = false)
+    public static Resource GetModel(string name)
     {
-        string pref = isEngineData ? "EngineData" : "Resources";
-        return FromPath($"./{pref}/Audio/SFX/" + name, "sfx");
+        string pref = GetPrefix(name);
+        string processedName = ProcessResourceName(name);
+        return FromPath($"./{pref}/Models/" + processedName, "model");
     }
 
-    public static Resource GetAudio(string name, bool isEngineData = false)
+    public static Resource GetMusic(string name)
     {
-        string pref = isEngineData ? "EngineData" : "Resources";
-        return FromPath($"./{pref}/Audio/" + name, "audio");
+        string pref = GetPrefix(name);
+        string processedName = ProcessResourceName(name);
+        return FromPath($"./{pref}/Audio/Music/" + processedName, "music");
     }
 
-    public static Resource GetShader(string name, bool isEngineData = false)
+    public static Resource GetSFX(string name)
     {
-        string pref = isEngineData ? "EngineData" : "Resources";
-        return FromPath($"./{pref}/Shaders/" + name, "shader");
+        string pref = GetPrefix(name);
+        string processedName = ProcessResourceName(name);
+        return FromPath($"./{pref}/Audio/SFX/" + processedName, "sfx");
     }
 
-    public static Resource GetTexture(string name, bool isEngineData = false)
+    public static Resource GetAudio(string name)
     {
-        string pref = isEngineData ? "EngineData" : "Resources";
-        return FromPath($"./{pref}/Textures/" + name, "texture");
+        string pref = GetPrefix(name);
+        string processedName = ProcessResourceName(name);
+        return FromPath($"./{pref}/Audio/" + processedName, "audio");
+    }
+
+    public static Resource GetShader(string name)
+    {
+        string pref = GetPrefix(name);
+        string processedName = ProcessResourceName(name);
+        return FromPath($"./{pref}/Shaders/" + processedName, "shader");
+    }
+
+    public static Resource GetTexture(string name)
+    {
+        string pref = GetPrefix(name);
+        string processedName = ProcessResourceName(name);
+        return FromPath($"./{pref}/Textures/" + processedName, "texture");
     }
 }
 

@@ -25,7 +25,16 @@ public class GameObject : IMetadata
 
     private GameObject _parent;
 
-    public GameObject() { InitProperties(); }
+    public GameObject(bool use3DTransform = true)
+    {
+        if (use3DTransform)
+            transform ??= new Transform3D();
+        else
+            transform ??= new Transform2D();
+
+        immediateChildren ??= new List<GameObject>();
+        components ??= new List<Component>();
+    }
 
     ~GameObject()
     {
@@ -96,13 +105,6 @@ public class GameObject : IMetadata
         return currentCompID;
     }
 
-    private void InitProperties()
-    {
-        transform ??= new Transform3D();
-        immediateChildren ??= new List<GameObject>();
-        components ??= new List<Component>();
-    }
-
     public GameObject parent
     {
         get { return _parent; }
@@ -131,8 +133,6 @@ public class GameObject : IMetadata
 
     public virtual void Load()
     {
-        InitProperties();
-
         id = Game.instance.GetUniqueGameObjectID();
 
         transform.onTransformChanged += OnTransformChanged;

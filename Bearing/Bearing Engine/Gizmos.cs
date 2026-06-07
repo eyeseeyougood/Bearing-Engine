@@ -9,8 +9,8 @@ namespace Bearing;
 
 public static class Gizmos
 {
-    private static List<(IRenderable,float)> gizmos = new List<(IRenderable, float)>();
-    private static Dictionary<IRenderable,GameObject> objects = new Dictionary<IRenderable,GameObject>();
+    private static List<(Renderable,float)> gizmos = new List<(Renderable, float)>();
+    private static Dictionary<Renderable,GameObject> objects = new Dictionary<Renderable,GameObject>();
 
     private static Material gizmoMaterial = new Material();
 
@@ -18,7 +18,7 @@ public static class Gizmos
 
     public static void CreateSphere(Vector3 center, float radius = 1f, float time = 0, BearingColour colour = default)
     {
-        MeshRenderer mr = new MeshRenderer("ICOSphere.obj", true);
+        MeshRenderer mr = new MeshRenderer("eng/ICOSphere.obj");
         mr.material = gizmoMaterial.Clone();
         BearingColour c = colour;
         if (colour == default)
@@ -26,7 +26,7 @@ public static class Gizmos
 
         mr.material.parameters = new List<ShaderParam>()
         {
-            new ShaderParam() { name = "mainColour", vector4 = c.GetZeroToOneA() },
+            new ShaderParam() { name = "mainColour", value = new object[] { c.GetZeroToOneA() } },
         };
 
         GameObject go = new GameObject();
@@ -45,9 +45,9 @@ public static class Gizmos
     {
         if (sbp == null)
         {
-            sbp = new MeshRenderer("SBP.obj", true);
+            sbp = new MeshRenderer("eng/SBP.obj");
         }
-        MeshRenderer mr = MeshRenderer.FromMesh(sbp.mesh);
+        MeshRenderer mr = new MeshRenderer(sbp.GetMesh().name);
         mr.material = gizmoMaterial.Clone();
         BearingColour c = colour;
         if (colour == default)
@@ -55,7 +55,7 @@ public static class Gizmos
 
         mr.material.parameters = new List<ShaderParam>()
         {
-            new ShaderParam() { name = "mainColour", vector4 = c.GetZeroToOneA() },
+            new ShaderParam() { name = "mainColour", value = new object[] { c.GetZeroToOneA() } },
         };
 
         GameObject go = new GameObject();
@@ -76,20 +76,14 @@ public static class Gizmos
 
     public static void Init()
     {
-        gizmoMaterial.shader = new Shader("default.vert", "default.frag");
-        gizmoMaterial.attribs = new List<ShaderAttrib>()
-        {
-            new ShaderAttrib() { name = "aPosition", size = 3 },
-            new ShaderAttrib() { name = "aTexCoord", size = 2 },
-            new ShaderAttrib() { name = "aNormal", size = 3 }
-        };
+        gizmoMaterial.shader = new Shader("eng/default.vert", "eng/default.frag");
     }
 
     public static void Render()
     {
-        List<(IRenderable, float)> remove = new List<(IRenderable, float)>();
+        List<(Renderable, float)> remove = new List<(Renderable, float)>();
 
-        foreach ((IRenderable, float) gizmo in gizmos)
+        foreach ((Renderable, float) gizmo in gizmos)
         {
             if (gizmo.Item2 <= Time.now)
             {
@@ -100,7 +94,7 @@ public static class Gizmos
             gizmo.Item1.Render();
         }
 
-        foreach ((IRenderable, float) item in remove)
+        foreach ((Renderable, float) item in remove)
         {
             gizmos.Remove(item);
             objects[item.Item1].Cleanup();

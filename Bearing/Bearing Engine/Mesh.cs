@@ -8,6 +8,7 @@ public abstract class Mesh
 {
     public abstract float[] GetVertexData();
     public abstract float[] GetVertexPositions();
+    public abstract ShaderAttrib[] GetAttributes();
     public uint[] indices = new uint[0];
     public string name { get; set; }
 }
@@ -17,13 +18,20 @@ public abstract class Mesh
 
 public class Mesh3D : Mesh
 {
+    public override ShaderAttrib[] GetAttributes() {
+        return new ShaderAttrib[]
+        {
+            new ShaderAttrib() { name = "aPosition", size = 3 },
+            new ShaderAttrib() { name = "aTexCoord", size = 2 },
+            new ShaderAttrib() { name = "aNormal", size = 3 },
+        }; 
+    }
+
     public MeshVertex3D[] vertices;
 
-    public Mesh3D(string filename, bool engineResource = false)
+    public Mesh3D(Resource mesh)
     {
-        string res = engineResource ? $"./EngineData/Models/{filename}" : $"./Resources/Models/{filename}";
-        name = filename;
-        Mesh3D m = ModelLoader.FileToMesh3D(res);
+        Mesh3D m = ModelLoader.FileToMesh3D(mesh);
         vertices = m.vertices;
         indices = m.indices;
     }
@@ -97,13 +105,20 @@ public class Mesh3D : Mesh
 
 public class Mesh2D : Mesh
 {
+    public override ShaderAttrib[] GetAttributes() {
+        return new ShaderAttrib[]
+        {
+            new ShaderAttrib() { name = "aPosition", size = 2 },
+            new ShaderAttrib() { name = "aTexCoord", size = 2 },
+        }; 
+    }
+
     public MeshVertex2D[] vertices;
 
-    public Mesh2D(string filename, bool engineResource = false)
+    public Mesh2D(Resource mesh)
     {
-        string res = engineResource ? $"./EngineData/Models/{filename}" : $"./Resources/Models/{filename}";
-        name = filename;
-        Mesh2D m = ModelLoader.FileToMesh2D(res);
+        name = mesh.GetName(false);
+        Mesh2D m = ModelLoader.FileToMesh2D(mesh);
         vertices = m.vertices;
         indices = m.indices;
     }

@@ -22,55 +22,40 @@ public class SceneExporter : Component
     {
         instance = this;
 
-        GameObject prefab = SceneLoader.LoadFromFile("./Resources/Scene/buttonObject.json", true);
-        Component newUI1 = prefab.GetComponent(0);
-        Component newUI2 = prefab.GetComponent(1);
-        prefab.RemoveComponent(newUI1, false);
-        prefab.RemoveComponent(newUI2, false);
+        UIButton exportButton = new UIButton();
+        exportButton.renderLayer = -1;
+        exportButton.anchor = new Vector2(0.0f, 0.0f);
+        exportButton.position = new UDim2(0.2f, 0.0f);
+        exportButton.size = new UDim2(0.2f, 0.0f, 0, 50);
+        exportButton.buttonPressed += SceneExporterButtonPressed;
+        gameObject.AddComponent(exportButton);
 
-        gameObject.AddComponent(newUI1);
-        gameObject.AddComponent(newUI2);
-        newUI1.OnLoad();
-        newUI2.OnLoad();
+        UILabel exportLabel = new UILabel();
+        exportLabel.renderLayer = 0;
+        exportLabel.anchor = new Vector2(0.5f, 0.5f);
+        exportLabel.position = new UDim2(0.5f, 0.5f);
+        exportLabel.size = new UDim2(1f, 1f, -20, -20);
+        exportLabel.text = "Export Scene";
+        exportLabel.parent = exportButton.rid;
+        gameObject.AddComponent(exportLabel);
 
-        ((UIElement)newUI1).rid = UIManager.GetUniqueUIID();
-        ((UIElement)newUI2).rid = UIManager.GetUniqueUIID();
 
-        ((UILabel)newUI2).text = "Export Scene";
-        ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
+        UIButton loadButton = new UIButton();
+        loadButton.renderLayer = -1;
+        loadButton.anchor = new Vector2(0.0f, 0.0f);
+        loadButton.position = new UDim2(0.2f, 0.0f, 0, 50);
+        loadButton.size = new UDim2(0.2f, 0.0f, 0, 50);
+        loadButton.buttonPressed += SceneExporterLoadPressed;
+        gameObject.AddComponent(loadButton);
 
-        ((UIElement)newUI1).anchor = new Vector2(0.0f, 0f);
-        ((UIElement)newUI1).position = new UDim2(0.2f,0f);
-        ((UIElement)newUI1).size = new UDim2(0.2f,0f,0f, 50f);
-        ((UIElement)newUI1).parent = -1;
-        ((UIButton)newUI1).buttonPressed += SceneExporterButtonPressed;
-
-        prefab.Cleanup();
-
-        prefab = SceneLoader.LoadFromFile("./Resources/Scene/buttonObject.json", true);
-        newUI1 = prefab.GetComponent(0);
-        newUI2 = prefab.GetComponent(1);
-        prefab.RemoveComponent(newUI1, false);
-        prefab.RemoveComponent(newUI2, false);
-
-        gameObject.AddComponent(newUI1);
-        gameObject.AddComponent(newUI2);
-        newUI1.OnLoad();
-        newUI2.OnLoad();
-
-        ((UIElement)newUI1).rid = UIManager.GetUniqueUIID();
-        ((UIElement)newUI2).rid = UIManager.GetUniqueUIID();
-
-        ((UILabel)newUI2).text = "Load Scene";
-        ((UILabel)newUI2).parent = ((UIElement)newUI1).rid;
-
-        ((UIElement)newUI1).anchor = new Vector2(0.0f, 0f);
-        ((UIElement)newUI1).position = new UDim2(0.2f, 0f, 0, 50f);
-        ((UIElement)newUI1).size = new UDim2(0.2f, 0f, 0f, 50f);
-        ((UIElement)newUI1).parent = -1;
-        ((UIButton)newUI1).buttonPressed += SceneExporterLoadPressed;
-
-        prefab.Cleanup();
+        UILabel loadLabel = new UILabel();
+        loadLabel.renderLayer = 0;
+        loadLabel.anchor = new Vector2(0.5f, 0.5f);
+        loadLabel.position = new UDim2(0.5f, 0.5f);
+        loadLabel.size = new UDim2(1f, 1f, -20, -20);
+        loadLabel.text = "Load Scene";
+        loadLabel.parent = loadButton.rid;
+        gameObject.AddComponent(loadLabel);
 
         exportPathBox = new UITextBox();
         exportPathBox.anchor = new Vector2(0.0f, 0f);

@@ -42,7 +42,7 @@ public partial class ScaleToolPlugin : Plugin
         axis.name = "new axis";
         axis.tag = "HierarchyHidden";
 
-        MeshRenderer mr = new MeshRenderer("ICOSphere.obj", true);
+        MeshRenderer mr = new MeshRenderer("eng/ICOSphere.obj");
         axis.AddComponent(mr);
 
         ScaleAxis ma = new ScaleAxis();

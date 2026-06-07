@@ -10,8 +10,8 @@ public class Game
     public static Game instance = null;
 
     public Scene root;
-    private IRenderableComparer renderSorter = new IRenderableComparer();
-    private List<IRenderable> renderables = new List<IRenderable>();
+
+    private List<Renderable> renderables = new List<Renderable>();
     // this code is currently undergoing a refactor, and so doesnt make loads of sense
     // to sum this up, it is going to be split into opaque and transparent objects
     // with the transparent list being sorted, and the opaque one being unsorted
@@ -26,15 +26,17 @@ public class Game
 
     public Camera camera;
 
-    public void AddRenderable(IRenderable renderable)
+    public void AddRenderable(Renderable renderable)
     {
-        renderables.Add(renderable);
-        renderables.Sort(renderSorter);
+        if (!renderables.Contains(renderable))
+            renderables.Add(renderable);
+        // TODO: Handle transparent renderables
     }
 
-    public void RemoveRenderable(IRenderable renderable)
+    public void RemoveRenderable(Renderable renderable)
     {
-        renderables.Remove(renderable);
+        if (renderables.Contains(renderable))
+            renderables.Remove(renderable);
     }
 
     private int currentRenderableID = -1;
@@ -127,7 +129,7 @@ public class Game
             // TODO: OPTIMISATION
             // this could somehow be optimised to only go over the renderables which haven't already been gone over
             // unless I decide that I want renderables to be able to be drawn in multiple passes ¯\_(ツ)_/¯
-            foreach (IRenderable renderable in renderables)
+            foreach (Renderable renderable in renderables)
             {
                 if (renderable.renderPass == rp)
                     renderable.Render();
