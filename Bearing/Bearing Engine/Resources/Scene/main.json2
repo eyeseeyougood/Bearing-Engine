@@ -72,7 +72,7 @@
         {
             "name": "Hierarchy",
             "tag": "EditorObject",
-            #PRESET(defaultTransform) [],
+            #PRESET(defaultTransform2D) [],
             "components": [
                 {
                     "renderLayer": -3,
@@ -207,7 +207,7 @@
         {
             "name": "Inspector",
             "tag": "EditorObject",
-            #PRESET(defaultTransform) [],
+            #PRESET(defaultTransform2D) [],
             "components": [
 
                 {

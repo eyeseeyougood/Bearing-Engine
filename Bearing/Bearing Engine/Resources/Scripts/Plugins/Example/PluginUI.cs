@@ -1,4 +1,4 @@
-﻿using Bearing;
+using Bearing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,15 +43,15 @@ public partial class ExamplePlugin : Plugin
         slider.position = new UDim2(0.4f, 0.5f,0, 0);
         slider.size = new UDim2(0, 0.4f, 10, 0);
         gameObject.AddComponent(slider);
-
+/*
         FancyUIButton fancyButton = new FancyUIButton();
         fancyButton.anchor = new Vector2(0.5f, 0.5f);
         fancyButton.position = new UDim2(0.5f, 0.5f);
         fancyButton.size = new UDim2(0,0,200,75);
         gameObject.AddComponent(fancyButton);
-
+*/
         ui.Add(slider);
-        ui.Add(fancyButton);
+        //ui.Add(fancyButton);
 
         
         Delay(()=>{

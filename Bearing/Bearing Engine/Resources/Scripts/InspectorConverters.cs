@@ -45,7 +45,7 @@ public class MeshConverter : JsonConverter<Mesh>
     {
         JObject jo = (JObject)JObject.ReadFrom(reader);
 
-        return new Mesh3D(jo["mesh"]?.Value<string>());
+        return new Mesh3D(Resource.GetModel(jo["mesh"]?.Value<string>()));
     }
 }
 
@@ -107,16 +107,8 @@ public class ShaderParamConverter : JsonConverter<ShaderParam>
     public override ShaderParam ReadJson(JsonReader reader, Type objectType, ShaderParam existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         JObject jo = JObject.Load(reader);
-        string v = jo["use"]?.Value<int>() switch
-        {
-            0 => "float",
-            1 => "int",
-            2 => "vector2",
-            3 => "vector3",
-            4 => "vector4",
-            5 => "matrix4"
-        };
-        ShaderParam result = new ShaderParam(jo["name"]?.Value<string>(), jo[v]?.Value<object>());
+        object[] v = jo["value"]?.Value<object[]>();
+        ShaderParam result = new ShaderParam() { name = jo["name"]?.Value<string>(), value = v };
 
         return result;
     }

@@ -23,30 +23,14 @@ public static class UIManager
     /// </summary>
     public static object mouseUsingObject;
 
-    public static Mesh2D quadMeshCache = new Mesh2D("Quad.obj", true);
+    public static Mesh2D quadMeshCache = new Mesh2D(Resource.GetModel("eng/Quad.obj"));
 
     private static AudioSource sfxSource;
-
-    private static int currentID = -1;
-    private static List<int> usedIDs = new List<int>();
-    public static int GetUniqueUIID()
-    {
-        currentID++;
-        while (usedIDs.Contains(currentID))
-        {
-            currentID++;
-        }
-        return currentID;
-    }
 
     public static void AddUI(UIElement element)
     {
         uiElements.Add(element);
-        if (element.rid == -1)
-        {
-            element.rid = GetUniqueUIID();
-        }
-        // TODO: MAGIC - FIGURE OUT WHY THIS BREAKS STUFF
+
         uiElements.Sort(elementComp);
     }
 

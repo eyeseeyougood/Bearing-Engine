@@ -39,7 +39,7 @@ public static class LightManager
                 pointId++;
             }
         }
-        mat.SetShaderParameter(new ShaderParam("numPointLights", pointId+1));
-        mat.SetShaderParameter(new ShaderParam("cameraPos", Game.instance.camera.Position));
+        mat.SetShaderParameter("numPointLights", pointId+1);
+        mat.SetShaderParameter("cameraPos", Game.instance.camera.Position);
     }
 }

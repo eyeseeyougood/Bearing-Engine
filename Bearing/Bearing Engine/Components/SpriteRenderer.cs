@@ -2,24 +2,23 @@
 
 namespace Bearing;
 
-public class SpriteRenderer : Component, IRenderable
+public class SpriteRenderer : Renderable
 {
-    [HideFromInspector] public Mesh2D mesh { get; private set; }
-    public Material material { get; set; } = Material.fallback;
-    [HideFromInspector] public int rid { get; set; } = -1;
-    [HideFromInspector] public bool isTransparent { get; set; } = false;
-    [HideFromInspector] public int renderPass { get; set; } = 0;
+    protected static Mesh2D quad;
 
-    public Sprite sprite;
+    public Sprite sprite = new Sprite();
     public bool renderBackface = false;
 
-    private uint ebo;
-    private uint vao;
-    private uint vbo;
+    protected uint ebo;
+    protected uint vao;
+    protected uint vbo;
 
-    public SpriteRenderer()
+    public SpriteRenderer() : base()
     {
-        mesh = new Mesh2D("Quad.obj", true);
+        if (quad == null)
+            quad = new Mesh2D(Resource.GetModel("eng/Quad.obj"));
+
+        mesh = quad;
     }
 
     public override void OnLoad()
@@ -39,9 +38,7 @@ public class SpriteRenderer : Component, IRenderable
         GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
         GL.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(mesh.indices.Length * sizeof(uint)), new ReadOnlySpan<uint>(mesh.indices), BufferUsageARB.StaticDraw);
 
-        material.LoadAttribs();
-
-        Game.instance.AddRenderable(this); // make this recieve the render call
+        base.OnLoad();
     }
 
     public override void OnTick(float dt) {}
@@ -57,11 +54,11 @@ public class SpriteRenderer : Component, IRenderable
         GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
         Transform2D transform = ((Transform2D)gameObject.transform);
-        material.SetShaderParameter(new ShaderParam("position", transform.position));
-        material.SetShaderParameter(new ShaderParam("rot", transform.rotation));
-        material.SetShaderParameter(new ShaderParam("scale", transform.scale));
-        material.SetShaderParameter(new ShaderParam("view", Game.instance.camera.GetViewMatrix()));
-        material.SetShaderParameter(new ShaderParam("projection", Game.instance.camera.GetProjectionMatrix()));
+        material.SetShaderParameter("position", transform.position);
+        material.SetShaderParameter("rot", transform.rotation);
+        material.SetShaderParameter("scale", transform.scale);
+        material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
+        material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
 
         material.LoadParameters();
 
@@ -99,6 +96,6 @@ public class SpriteRenderer : Component, IRenderable
 
         material.Cleanup();
 
-        Game.instance.RemoveRenderable(this);
+        base.Cleanup();
     }
 }

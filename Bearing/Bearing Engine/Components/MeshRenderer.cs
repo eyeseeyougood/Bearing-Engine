@@ -2,40 +2,24 @@
 
 namespace Bearing;
 
-public class MeshRenderer : Component, IRenderable
+public class MeshRenderer : Renderable
 {
-    [HideFromInspector] public Mesh mesh { get; private set; }
-    public Material material { get; set; } = Material.fallback;
-    [HideFromInspector] public int rid { get; set; } = -1;
-    [HideFromInspector] public bool isTransparent { get; set; } = false; // TODO: this whole rendering system is difficult to keep track of
-    // there really needs to be a large rewrite of some of the boiler plate to handle stuff like this for the user instead of
-    // the user having to keep track of the million different places where they have to state if its 3D transparent and such.
-    [HideFromInspector] public int renderPass { get; set; } = 0;
-
     protected bool setup3DMatrices = true;
 
     public Texture texture0;
     public Texture texture1;
     public Texture texture2;
 
-    private uint ebo;
-    private uint vao;
-    private uint vbo;
+    protected uint ebo;
+    protected uint vao;
+    protected uint vbo;
 
-    public MeshRenderer(string mesh, bool meshIsEngineResource = false, bool skipMesh = false)
+    public MeshRenderer(string mesh)
     {
-        if (!skipMesh)
-            this.mesh = new Mesh3D(mesh, meshIsEngineResource);
+        this.mesh = new Mesh3D(Resource.GetModel(mesh));
     }
 
     private MeshRenderer() {}
-
-    public static MeshRenderer FromMesh(Mesh _mesh) { return new MeshRenderer() { mesh = _mesh }; }
-
-    public void SetSetup3DMatrices(bool setup3DMatrices)
-    {
-        this.setup3DMatrices = setup3DMatrices;
-    }
 
     public override void OnLoad()
     {
@@ -54,16 +38,16 @@ public class MeshRenderer : Component, IRenderable
         GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
         GL.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(mesh.indices.Length * sizeof(uint)), new ReadOnlySpan<uint>(mesh.indices), BufferUsageARB.StaticDraw);
 
-        material.LoadAttribs();
+        material.Use();
 
-        Game.instance.AddRenderable(this); // make this recieve the render call
+        base.OnLoad();
     }
 
     public override void OnTick(float dt)
     {
     }
 
-    public virtual unsafe void Render()
+    public override unsafe void Render()
     {
         GL GL = GLContext.gl;
 
@@ -75,9 +59,9 @@ public class MeshRenderer : Component, IRenderable
 
         if (setup3DMatrices)
         {
-            material.SetShaderParameter(new ShaderParam("model", ((Transform3D)gameObject.transform).GetModelMatrix()));
-            material.SetShaderParameter(new ShaderParam("view", Game.instance.camera.GetViewMatrix()));
-            material.SetShaderParameter(new ShaderParam("projection", Game.instance.camera.GetProjectionMatrix()));
+            material.SetShaderParameter("model", ((Transform3D)gameObject.transform).GetModelMatrix());
+            material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
+            material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
         }
 
         material.LoadParameters();
@@ -130,6 +114,6 @@ public class MeshRenderer : Component, IRenderable
 
         material.Cleanup();
 
-        Game.instance.RemoveRenderable(this);
+        base.Cleanup();
     }
 }

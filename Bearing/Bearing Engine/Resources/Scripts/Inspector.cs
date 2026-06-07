@@ -1,4 +1,4 @@
-﻿using Bearing;
+using Bearing;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -192,7 +192,6 @@ public class Inspector : Component
 
     public void AddInspectorObject(GameObject linkedObj, object objectComp)
     {
-
         UIButton button = new UIButton();
         button.renderLayer = -1;
         button.anchor = new Vector2(0.0f, 1.0f);

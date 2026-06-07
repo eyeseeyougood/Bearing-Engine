@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 namespace Bearing;
-
+/*
 public class IRenderableComparer : IComparer<IRenderable>
 {
 	private int CalculateScore(IRenderable r)
@@ -28,4 +28,4 @@ public class IRenderableComparer : IComparer<IRenderable>
 
     	return result;
     }
-}
+}*/

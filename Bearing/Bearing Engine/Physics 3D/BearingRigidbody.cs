@@ -75,7 +75,7 @@ public class BearingRigidbody : Component
     {
         if (collider == null)
         {
-            Mesh3D mesh = (Mesh3D)((MeshRenderer)gameObject.GetComponent(typeof(MeshRenderer))).mesh;
+            Mesh3D mesh = (Mesh3D)((MeshRenderer)gameObject.GetComponent(typeof(MeshRenderer))).GetMesh();
 
             Vector3 half = mesh.GetBoundingBox() / 2.0f;
             BulletSharp.Math.Vector3 halfExt = new BulletSharp.Math.Vector3(

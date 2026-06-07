@@ -4,7 +4,7 @@
 
     "components": [
         #PRESET(defaultMeshRenderer) [
-            Cube, = Sphere|
+            eng/Cube, = res/Sphere|
         ],
         {
             "Collider": {

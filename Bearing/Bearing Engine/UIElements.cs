@@ -1,15 +1,16 @@
 ﻿using System.Drawing;
 using Silk.NET.Input;
+using Silk.NET.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Bearing;
 
-public class UIElement : MeshRenderer
+public class UIElement : SpriteRenderer
 {
     public UITheme theme = UIManager.currentTheme;
     public UITheme themeOverride;
 
-    public UIElement() : base("NONE", false, true) { themeOverride = (UITheme)UITheme.Empty.Clone(); UIManager.AddUI(this); setup3DMatrices = false; SetMesh(UIManager.quadMeshCache); }
+    public UIElement() : base() { themeOverride = (UITheme)UITheme.Empty.Clone(); UIManager.AddUI(this); }
 
     public List<string> consumedInputs = new List<string>() { "mouseEnter" }; // this really needs a better way to standardise this
 
@@ -191,16 +192,6 @@ public class UIElement : MeshRenderer
         Game.instance.RemoveRenderable(this); // ui should not be handled like all other renderables XDD
     }
 
-    protected virtual void UpdateShaderParams()
-    {
-        material.SetShaderParameter(new ShaderParam("screenSize", Game.instance.ClientSize));
-        material.SetShaderParameter(new ShaderParam("anchor", anchor));
-        material.SetShaderParameter(new ShaderParam("posOffset", position.offset));
-        material.SetShaderParameter(new ShaderParam("posScale", position.scale));
-        material.SetShaderParameter(new ShaderParam("sizeOffset", size.offset));
-        material.SetShaderParameter(new ShaderParam("sizeScale", size.scale));
-    }
-
     public override void OnTick(float dt)
     {
         UpdatePosition();
@@ -226,6 +217,42 @@ public class UIElement : MeshRenderer
         }
 
         mouseOver = m;
+    }
+
+    public override unsafe void Render()
+    {
+        UpdateVisibility();
+
+        if (!visible)
+            return;
+
+        GL GL = GLContext.gl;
+
+        material.Use();
+
+        GL.BindVertexArray(vao);
+        GL.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+        GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
+
+        material.SetShaderParameter("screenSize", Game.instance.ClientSize);
+        material.SetShaderParameter("anchor", anchor);
+        material.SetShaderParameter("posOffset", position.offset);
+        material.SetShaderParameter("posScale", position.scale);
+        material.SetShaderParameter("sizeOffset", size.offset);
+        material.SetShaderParameter("sizeScale", size.scale);
+
+        material.LoadParameters();
+
+        Texture? t = sprite.Peak();
+
+        if (t != null)
+            t.Use(TextureUnit.Texture0);
+
+        BeforeRender();
+
+        material.Use();
+
+        GL.DrawElements(PrimitiveType.Triangles, (uint)mesh.indices.Length, DrawElementsType.UnsignedInt, (void*)0);
     }
 
     public void ParentCleanedUp()
@@ -254,15 +281,6 @@ public class UIElement : MeshRenderer
 
         UIManager.RemoveUI(this);
     }
-
-    public override void Render()
-    {
-        UpdateVisibility();
-        UpdateShaderParams();
-
-        if (visible)
-            base.Render();
-    }
 }
 
 public class UIPanel : UIElement
@@ -272,12 +290,6 @@ public class UIPanel : UIElement
         material = new Material()
         {
             shader = new Shader("defaultUI.vert", "defaultUI.frag"),
-            attribs = new List<ShaderAttrib>()
-            {
-                new ShaderAttrib() { name = "aPosition", size = 2 },
-                new ShaderAttrib() { name = "aTexCoord", size = 2 },
-            },
-            is3D = false
         };
     }
 
@@ -285,7 +297,7 @@ public class UIPanel : UIElement
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter(new ShaderParam("mainColour", GetThemeValue<BearingColour>("uiPanelBG").zeroToOne));
+        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("uiPanelBG").zeroToOne);
     }
 }
 
@@ -296,38 +308,29 @@ public class UIImage : UIElement
         material = new Material()
         {
             shader = new Shader("defaultUI.vert", "textureUI.frag"),
-            attribs = new List<ShaderAttrib>()
-            {
-                new ShaderAttrib() { name = "aPosition", size = 2 },
-                new ShaderAttrib() { name = "aTexCoord", size = 2 },
-            },
             parameters = new List<ShaderParam>()
             {
-                new ShaderParam() { name = "mainColour", vector4 = new Vector4(0.9f, 0.9f, 0.9f, 1.0f) },
+                new ShaderParam() { name = "mainColour", value = new object[] {0.9f, 0.9f, 0.9f, 1.0f} },
             },
-            is3D = false
         };
     }
 
     public void SetTexture(Texture texture)
     {
-        if (texture0 != null)
-        {
-            texture0.Dispose();
-        }
-
-        texture0 = texture;
+        sprite.SetTexture(texture);
     }
 
     public override void OnTick(float dt)
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter(new ShaderParam("mainColour", Vector4.One));
-        material.SetShaderParameter(new ShaderParam("fitToTexRatio", 0));
+        material.SetShaderParameter("mainColour", Vector4.One);
+        material.SetShaderParameter("fitToTexRatio", 0);
 
-        if (texture0 != null)
-            material.SetShaderParameter(new ShaderParam("texSize", new Vector2(texture0._width, texture0._height)));
+        Texture tex = sprite.Peak();
+
+        if (tex != null)
+            material.SetShaderParameter("texSize", new Vector2(tex._width, tex._height));
     }
 }
 
@@ -363,10 +366,6 @@ public class UILabel : UIElement
             foreach (var d in subscribers)
                 onTextChanged -= d as EventHandler<string>;
         }
-        if (texture0 != null)
-        {
-            texture0.Dispose();
-        }
         base.Cleanup();
     }
 
@@ -374,13 +373,7 @@ public class UILabel : UIElement
     {
         material = new Material()
         {
-            shader = new Shader("defaultUI.vert", "textUI.frag"),
-            attribs = new List<ShaderAttrib>()
-            {
-                new ShaderAttrib() { name = "aPosition", size = 2 },
-                new ShaderAttrib() { name = "aTexCoord", size = 2 },
-            },
-            is3D = false
+            shader = new Shader("eng/defaultUI.vert", "eng/textUI.frag"),
         };
 
         ResetTexture();
@@ -397,12 +390,7 @@ public class UILabel : UIElement
 
     protected virtual void ResetTexture()
     {
-        if (texture0 != null)
-        {
-            texture0.Dispose();
-        }
-
-        texture0 = UIManager.UITextHelper.RenderTextToBmp(text, font);
+        sprite.SetTexture(UIManager.UITextHelper.RenderTextToBmp(text, font));
     }
 
     protected virtual void TextChanged(string val)
@@ -417,10 +405,12 @@ public class UILabel : UIElement
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter(new ShaderParam("mainColour", theme.labelText.Value.zeroToOne));
-        material.SetShaderParameter(new ShaderParam("texSize", new Vector2(texture0._width, texture0._height)));
+        Texture? tex = sprite.Peak();
+
+        material.SetShaderParameter("mainColour", theme.labelText.Value.zeroToOne);
+        material.SetShaderParameter("texSize", new Vector2(tex._width, tex._height));
         fitHeightToWidth = true;
-        material.SetShaderParameter(new ShaderParam("fitToTexRatio", fitHeightToWidth ? 1:0));
+        material.SetShaderParameter("fitToTexRatio", fitHeightToWidth ? 1:0);
     }
 }
 
@@ -669,8 +659,8 @@ public class UITextBox : UILabel
         string[] lines = text.Split("\n");
         string currLine = lines[caretLine];
         string preText = currLine.Substring(0, caretPos);
-        material.SetShaderParameter(new ShaderParam("caretPos", new Vector2(UIManager.UITextHelper.MeasureText(preText, font), caretLine * UIManager.UITextHelper.fontHeights[font])));
-        material.SetShaderParameter(new ShaderParam("caretSize", new Vector2(2, UIManager.UITextHelper.fontHeights[font]) * (selected?1:0)));
+        material.SetShaderParameter("caretPos", new Vector2(UIManager.UITextHelper.MeasureText(preText, font), caretLine * UIManager.UITextHelper.fontHeights[font]));
+        material.SetShaderParameter("caretSize", new Vector2(2, UIManager.UITextHelper.fontHeights[font]) * (selected?1:0));
     }
 
     private int SumOfLineChars(int n)
@@ -727,12 +717,6 @@ public class UIButton : UIElement
         material = new Material()
         {
             shader = new Shader("defaultUI.vert", "defaultUI.frag"),
-            attribs = new List<ShaderAttrib>()
-            {
-                new ShaderAttrib() { name = "aPosition", size = 2 },
-                new ShaderAttrib() { name = "aTexCoord", size = 2 },
-            },
-            is3D = false
         };
     }
 
@@ -795,7 +779,7 @@ public class UIButton : UIElement
 
             if (GetThemeValue<string>("buttonHoverAudio") != "None")
             {
-                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonHoverAudio"), true));
+                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonHoverAudio")));
             }
         }
 
@@ -815,7 +799,7 @@ public class UIButton : UIElement
             UIManager.SendEvent(this, "UIClicked");
 
             if (GetThemeValue<string>("buttonDownAudio") != "None")
-                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonDownAudio"), true));
+                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonDownAudio")));
         }
 
         if (pressed)
@@ -832,7 +816,7 @@ public class UIButton : UIElement
             UIManager.mouseUsingObject = null;
 
             if (GetThemeValue<string>("buttonUpAudio") != "None")
-                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonUpAudio"), true));
+                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonUpAudio")));
         }
 
         prevPressed = pressed;
@@ -840,7 +824,7 @@ public class UIButton : UIElement
         prevMouseDown = mouseDown;
 
         // handle colour
-        material.SetShaderParameter(new ShaderParam("mainColour", bg.zeroToOne));
+        material.SetShaderParameter("mainColour", bg.zeroToOne);
     }
 }
 
@@ -976,12 +960,6 @@ public class UIVerticalScrollView : UIElement
         material = new Material()
         {
             shader = new Shader("defaultUI.vert", "defaultUI.frag"),
-            attribs = new List<ShaderAttrib>()
-            {
-                new ShaderAttrib() { name = "aPosition", size = 2 },
-                new ShaderAttrib() { name = "aTexCoord", size = 2 },
-            },
-            is3D = false
         };
 
         consumedInputs.Add("Scroll");
@@ -1012,7 +990,7 @@ public class UIVerticalScrollView : UIElement
                 }
             }
 
-        material.SetShaderParameter(new ShaderParam("mainColour", GetThemeValue<BearingColour>("verticalScrollBG").zeroToOne));
+        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("verticalScrollBG").zeroToOne);
     }
 
     private bool ChildAbsorbedScroll()

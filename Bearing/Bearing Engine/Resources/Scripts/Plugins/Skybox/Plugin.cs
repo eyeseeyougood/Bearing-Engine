@@ -22,7 +22,7 @@ public partial class SkyboxPlugin : Plugin
         skybox = new GameObject();
         skybox.name = "skybox";
         ((Transform3D)skybox.transform).position = Vector3.UnitY * 2f;
-        Skybox s = new Skybox(Resource.GetTexture("SunsetCubemap.png"));
+        Skybox s = new Skybox(Resource.GetTexture("res/SunsetCubemap.png"));
         skybox.AddComponent(s);
         skybox.parent = Game.instance.root;
     }

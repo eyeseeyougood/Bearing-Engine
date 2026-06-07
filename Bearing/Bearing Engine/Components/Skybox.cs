@@ -7,7 +7,7 @@ public class Skybox : MeshRenderer
 {
 	public Texture? cubeMap;
 
-	public Skybox(Resource cubeMap) : base("Cube.obj", true)
+	public Skybox(Resource cubeMap) : base("Cube.obj")
 	{
 		this.cubeMap = Texture.LoadFromFile(cubeMap.fullpath);
 	}
@@ -29,18 +29,11 @@ public class Skybox : MeshRenderer
 
     	Material skyboxMaterial = new Material()
         {
-            shader = new Shader("skybox.vert", "skybox.frag"),
-            attribs = new List<ShaderAttrib>()
-            {
-                new ShaderAttrib() { name = "aPosition", size = 3 },
-                new ShaderAttrib() { name = "aTexCoord", size = 2 },
-                new ShaderAttrib() { name = "aNormal", size = 3 },
-            },
+            shader = new Shader("eng/skybox.vert", "eng/skybox.frag"),
             parameters = new List<ShaderParam>()
             {
-                new ShaderParam() { name = "mainColour", vector4 = new Vector4(0.9f, 0.9f, 0.9f, 1.0f) },
+                new ShaderParam() { name = "mainColour", value = new object[] {0.9f, 0.9f, 0.9f, 1.0f} },
             },
-            is3D = true,
         };
 
     	material = skyboxMaterial;
@@ -56,8 +49,8 @@ public class Skybox : MeshRenderer
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter(new ShaderParam("view", Game.instance.camera.GetViewMatrix()));
-        material.SetShaderParameter(new ShaderParam("projection", Game.instance.camera.GetProjectionMatrix()));
+        material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
+        material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
     }
 
     protected override void BeforeRender()

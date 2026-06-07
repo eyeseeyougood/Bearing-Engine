@@ -58,7 +58,7 @@ public partial class MoveToolPlugin : Plugin
         axis.name = "new axis";
         axis.tag = "HierarchyHidden";
 
-        MeshRenderer mr = new MeshRenderer("Cube.obj", true);
+        MeshRenderer mr = new MeshRenderer("eng/Cube.obj");
         axis.AddComponent(mr);
 
         MovingAxis ma = new MovingAxis();

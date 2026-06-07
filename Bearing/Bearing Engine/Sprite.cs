@@ -55,11 +55,10 @@ public class Sprite : IMetadata
         SetAnimation(frames);
     }
 
-    public Texture Peak()
+    public Texture? Peak()
     {
         if (currentTexture < 0 || currentTexture >= textures.Count)
         {
-            Logger.LogError("Index outside bounds of the array: Attempt to get sprite texture which doesn't exist.");
             return null;
         }
 

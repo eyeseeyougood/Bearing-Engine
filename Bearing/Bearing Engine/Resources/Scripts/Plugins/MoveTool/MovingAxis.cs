@@ -1,4 +1,4 @@
-﻿using Bearing;
+using Bearing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,12 +33,6 @@ public class MovingAxis : Component
         mat = new Material();
         mr.material = mat;
         mr.material.shader = new Shader("default.vert", "default.frag");
-        mr.material.attribs = new List<ShaderAttrib>()
-        {
-            new ShaderAttrib() { name = "aPosition", size = 3 },
-            new ShaderAttrib() { name = "aTexCoord", size = 2 },
-            new ShaderAttrib() { name = "aNormal", size = 3 },
-        };
     }
 
     private Vector3 startPoint = Vector3.Zero;
@@ -50,7 +44,7 @@ public class MovingAxis : Component
 
         axisColour.zeroToOne = new Vector4(axisColour.zeroToOne.X, axisColour.zeroToOne.Y, axisColour.zeroToOne.Z, Hierarchy.instance.selectedObjID == -1 ? 0: 1);
 
-        mat.SetShaderParameter(new ShaderParam() { name = "mainColour", vector4 = axisColour.zeroToOne });
+        mat.SetShaderParameter("mainColour", axisColour.zeroToOne);
 
         if (Hierarchy.instance.selectedObjID == -1) return;
         GameObject selected = GameObject.Find(Hierarchy.instance.selectedObjID);
