@@ -76,7 +76,7 @@ public class PresetImporter : Component
         object[] meta = ((UIButton)sender).metadata;
         string file = (string)meta[0];
 
-        GameObject nRoot = SceneLoader.LoadFromRealFile(file, false);
+        GameObject nRoot = SceneLoader.LegacyLoadFromRealFile(file, false);
 
         nRoot.parent = Game.instance.root;
         nRoot.Load();

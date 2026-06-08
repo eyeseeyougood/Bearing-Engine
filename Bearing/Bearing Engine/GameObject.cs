@@ -12,7 +12,7 @@ namespace Bearing;
 public class GameObject : IMetadata
 {
     public string name { get; set; } = "";
-    public string tag { get; set; }
+    public string tag { get; set; } = "";
     public int id { get; private set; }
 
     public object[] metadata { get; set; } = new object[0];
@@ -24,6 +24,14 @@ public class GameObject : IMetadata
     public List<Component> components { get; set; }
 
     private GameObject _parent;
+
+    public GameObject()
+    {
+        transform ??= new Transform3D();
+
+        immediateChildren ??= new List<GameObject>();
+        components ??= new List<Component>();
+    }
 
     public GameObject(bool use3DTransform = true)
     {

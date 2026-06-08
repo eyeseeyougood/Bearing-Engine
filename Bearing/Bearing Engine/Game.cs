@@ -75,7 +75,7 @@ public class Game
 
         Physics2D.Physics2DManager.Init();
 
-        root = new Scene(SceneLoader.LoadFromFile(@"./Resources/Scene/main.json2"));
+        root = new Scene(SceneLoader.LegacyLoadFromFile(@"./Resources/Scene/main.json2"));
 
         rootLoaded.Invoke();
 

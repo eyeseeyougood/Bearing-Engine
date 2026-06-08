@@ -11,6 +11,8 @@ namespace Bearing;
 
 public static class SceneLoader
 {
+    #region Old File Type Parsing
+
     private struct PresetRef
     {
         public List<PresetLineRef> lineRefs = new List<PresetLineRef>();
@@ -31,12 +33,13 @@ public static class SceneLoader
 
     public static void Tick() { }
 
-    public static GameObject LoadFromFile(string filepath, bool initialise = true)
+    [Obsolete]
+    public static GameObject LegacyLoadFromFile(string filepath, bool initialise = true)
     {
         string data = Resources.ReadAllText(Resource.FromPath(filepath));
 
         while (data.Contains("#PRESET("))
-            data = Preprocess(data); // stuff like presets
+            data = LegacyPreprocess(data); // stuff like presets
 
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {
@@ -51,12 +54,13 @@ public static class SceneLoader
         return root;
     }
 
-    public static GameObject LoadFromRealFile(string filepath, bool initialise = true)
+    [Obsolete]
+    public static GameObject LegacyLoadFromRealFile(string filepath, bool initialise = true)
     {
         string data = File.ReadAllText(filepath);
 
         while (data.Contains("#PRESET("))
-            data = Preprocess(data); // stuff like presets
+            data = LegacyPreprocess(data); // stuff like presets
 
         JsonSerializerSettings settings = new JsonSerializerSettings()
         {
@@ -71,13 +75,13 @@ public static class SceneLoader
         return root;
     }
 
-
+    [Obsolete]
     /// <summary>
     /// If you find urself looking through the implementation of this function, gl.
     /// </summary>
     /// <param name="data">The json data to preprocess to parse the preset syntax</param>
     /// <returns></returns>
-    private static string Preprocess(string data)
+    private static string LegacyPreprocess(string data)
     {
         /*
                 #PRESET(button)
@@ -336,5 +340,268 @@ public static class SceneLoader
         }
 
         return replaced.Trim('\uFEFF');
+    }
+
+    #endregion
+
+    private enum TokenType { EOS, Identifier, Object, LBracket, RBracket, LCurly, RCurly };
+    
+    private class Token()
+    {
+        public static readonly Token EOS = new Token() { type = TokenType.EOS };
+
+        public TokenType type;
+
+        public object value = "";
+    }
+
+    private static List<Token> Tokenise(string data)
+    {
+        List<Token> result = new List<Token>();
+
+        StringBuilder sb = new StringBuilder();
+
+        int i = 0;
+
+        Action TokeniseIdentifier = () => {
+            sb.Clear();
+            while (data[i] != ')' && data[i] != ':')
+            {
+                sb.Append(data[i]);
+                i++;
+            }
+        };
+
+        Action TokeniseObject = () => {
+            result.Add(new Token() { type = TokenType.LBracket });
+            i++;
+
+            TokeniseIdentifier();
+
+            if (sb.Length == 0)
+                throw new Exception($"Failed to tokenise BST! Expected 'Identifier', got '{data[i]}' instead!");
+
+            result.Add(new Token() { type = TokenType.Identifier, value = sb.ToString() });
+            i--;
+        };
+
+        Action TokeniseNumber = () => {
+            sb.Clear();
+
+            bool isFloat = false;
+            while (char.IsDigit(data[i]) || data[i] == '.')
+            {
+                if (data[i] == '.')
+                    isFloat = true;
+
+                sb.Append(data[i]);
+                i++;
+            }
+            result.Add(new Token() { type = TokenType.Object, value = isFloat ? float.Parse(sb.ToString()) : int.Parse(sb.ToString()) });
+            i--;
+        };
+
+        Action TokeniseString = () => {
+            sb.Clear();
+
+            i++;
+            while (data[i] != '"')
+            {
+                sb.Append(data[i]);
+                i++;
+            }
+            result.Add(new Token() { type = TokenType.Object, value = sb.ToString() });
+        };
+
+        Action TokeniseValue = () => {
+            switch (data[i])
+            {
+                case '(':
+                    TokeniseObject();
+                    break;
+                case '"': TokeniseString(); break;
+                default:
+                    if (char.IsDigit(data[i]))
+                    {
+                        TokeniseNumber();
+                        break;
+                    }
+                    break;
+            }
+        };
+
+        Action TokeniseParameters = () => {
+            sb.Clear();
+
+            result.Add(new Token() { type = TokenType.LCurly });
+
+            i++;
+            while (data[i] != '}')
+            {
+                if (data[i] == ',')
+                {
+                    i++;
+                    continue;
+                }
+
+                TokeniseIdentifier();
+                if (sb.Length == 0)
+                    throw new Exception($"Failed to tokenise BST! Expected 'Identifier', got '{data[i]}' instead!");
+                result.Add(new Token() { type = TokenType.Identifier, value = sb.ToString() });
+                i++;
+                TokeniseValue();
+                i++;
+            }
+
+            result.Add(new Token() { type = TokenType.RCurly });
+        };
+
+        for (;i < data.Length; i++)
+        {
+            char c = data[i];
+
+            switch (c)
+            {
+                case '(':
+                    TokeniseObject();
+                    break;
+                case ')':
+                    result.Add(new Token() { type = TokenType.RBracket });
+                    break;
+                case '{':
+                    TokeniseParameters();
+                    break;
+                case '}':
+                    result.Add(new Token() { type = TokenType.RCurly });
+                    break;
+                case ',': continue;
+                case '"': TokeniseString(); break;
+                default:
+                    if (char.IsDigit(c))
+                    {
+                        TokeniseNumber();
+                        break;
+                    }
+
+                    switch (result[^1].type)
+                    {
+                        case TokenType.LCurly:
+                            sb.Clear();
+                            sb.Append(c);
+                            while (data[i+1] != '}')
+                            {
+                                sb.Append(data[i+1]);
+                                i++;
+                            }
+
+                            result.Add(new Token() { type = TokenType.Identifier, value = sb.ToString() });
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        return result;
+    }
+
+    private class TokenStream()
+    {
+        private List<Token> tokens = new List<Token>();
+        private int currentIndex;
+
+        public static TokenStream FromResource(Resource resource)
+        {
+            TokenStream ts = new TokenStream();
+
+            ts.tokens = Tokenise(Resources.ReadAllText(resource).Replace("\n","").Replace("\t",""));
+
+            return ts;
+        }
+
+        public Token Peek()
+        {
+            Token result = tokens[^1];
+
+            if (currentIndex < tokens.Count)
+                result = tokens[currentIndex];
+
+            return result;
+        }
+
+        public Token Consume()
+        {
+            Token result = Peek();
+
+            if (currentIndex >= tokens.Count)
+            {
+                result = Token.EOS;
+            }
+
+            currentIndex++;
+
+            return result;
+        }
+
+        public Token Expect(TokenType type)
+        {
+            Token token = Peek();
+
+            if (token.type != type)
+                throw new Exception($"! Failed to parse scene tree at token {currentIndex} ! Expected '{type}' but got '{token.type}'");
+
+            return Consume();
+        }
+    }
+
+    private static object ParseValue(TokenStream ts)
+    {
+        switch (ts.Peek().type)
+        {
+            case TokenType.LBracket:
+                return ParseObject(ts);
+            default:
+                return ts.Consume().value;
+        }
+    }
+
+    private static object ParseObject(TokenStream ts)
+    {
+        Logger.Log("parsing object!!");
+
+        ts.Expect(TokenType.LBracket);
+
+        string dataType = (string)ts.Expect(TokenType.Identifier).value;
+
+        List<object> constructorParams = new List<object>();
+
+        while (ts.Peek().type != TokenType.RBracket)
+        {
+            constructorParams.Add(ParseValue(ts));
+        }
+
+        ts.Expect(TokenType.RBracket);
+        ts.Expect(TokenType.LCurly);
+
+        Type objType = Type.GetType(dataType);
+        if (objType is null)
+            objType = Type.GetType("Bearing."+dataType);
+
+        object? result = Activator.CreateInstance(objType, constructorParams.ToArray());
+
+        if (result is null)
+            throw new Exception($"Something went wrong creating an object of type: {dataType}, have you checked the namespace???");
+
+        // parameters
+        while (ts.Peek().type != TokenType.RCurly)
+        {
+            string prop = (string)ts.Expect(TokenType.Identifier).value;
+            object value = ts.Expect(TokenType.Object).value;
+
+            objType.GetProperty(prop)?.SetValue(result, value);
+        }
+
+        ts.Consume();
+
+        return result;
     }
 }

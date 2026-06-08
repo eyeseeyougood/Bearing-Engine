@@ -103,7 +103,7 @@ public class SceneExporter : Component
 
         // load all of the objects from the exported scene
 
-        GameObject nRoot = SceneLoader.LoadFromRealFile($"{path}/main.json2");
+        GameObject nRoot = SceneLoader.LegacyLoadFromRealFile($"{path}/main.json2");
 
         foreach (GameObject go in nRoot.immediateChildren.ToList())
         {

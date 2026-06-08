@@ -183,7 +183,7 @@ public class SRS : NetModel
         string newName = message.GetString(); // when instantiated over the network a new name must be sent to avoid issues with syncing later
         string[] instantiationData = message.GetStrings();
 
-        GameObject newObject = SceneLoader.LoadFromFile($"./Resources/Scene/{prefab}.json", false);
+        GameObject newObject = SceneLoader.LegacyLoadFromFile($"./Resources/Scene/{prefab}.json", false);
         newObject.name = newName;
         newObject.tag = "OtherPlayer";
         newObject.parent = Game.instance.root;
