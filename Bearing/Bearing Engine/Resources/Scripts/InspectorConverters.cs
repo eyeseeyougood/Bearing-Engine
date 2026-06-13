@@ -107,7 +107,7 @@ public class ShaderParamConverter : JsonConverter<ShaderParam>
     public override ShaderParam ReadJson(JsonReader reader, Type objectType, ShaderParam existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         JObject jo = JObject.Load(reader);
-        object[] v = jo["value"]?.Value<object[]>();
+        List<object> v = jo["value"]?.Value<List<object>>();
         ShaderParam result = new ShaderParam() { name = jo["name"]?.Value<string>(), value = v };
 
         return result;

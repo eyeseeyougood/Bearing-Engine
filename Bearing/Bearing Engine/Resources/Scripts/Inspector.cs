@@ -183,6 +183,7 @@ public class Inspector : Component
 
         GameObject selected = GameObject.Find(Hierarchy.instance.selectedObjID);
 
+        Logger.Log("selected id: " + Hierarchy.instance.selectedObjID);
         AddInspectorObject(selected, selected.transform);
         foreach (Component c in selected.components.ToList())
         {

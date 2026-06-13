@@ -75,7 +75,9 @@ public class Game
 
         Physics2D.Physics2DManager.Init();
 
-        root = new Scene(SceneLoader.LegacyLoadFromFile(@"./Resources/Scene/main.json2"));
+        GameObject go = SceneLoader.Load(Resource.FromPath(@"./Resources/Scene/sceneFormat.bst"));
+        go.Load();
+        root = new Scene(go);
 
         rootLoaded.Invoke();
 

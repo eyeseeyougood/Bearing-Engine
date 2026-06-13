@@ -310,7 +310,7 @@ public class UIImage : UIElement
             shader = new Shader("defaultUI.vert", "textureUI.frag"),
             parameters = new List<ShaderParam>()
             {
-                new ShaderParam() { name = "mainColour", value = new object[] {0.9f, 0.9f, 0.9f, 1.0f} },
+                new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
             },
         };
     }

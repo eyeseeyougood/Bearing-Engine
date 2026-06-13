@@ -32,7 +32,7 @@ public class Skybox : MeshRenderer
             shader = new Shader("eng/skybox.vert", "eng/skybox.frag"),
             parameters = new List<ShaderParam>()
             {
-                new ShaderParam() { name = "mainColour", value = new object[] {0.9f, 0.9f, 0.9f, 1.0f} },
+                new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
             },
         };
 

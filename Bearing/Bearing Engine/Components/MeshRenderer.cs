@@ -41,6 +41,8 @@ public class MeshRenderer : Renderable
         material.Use();
 
         base.OnLoad();
+
+        Logger.Log("Loaded mesh renderer!");
     }
 
     public override void OnTick(float dt)

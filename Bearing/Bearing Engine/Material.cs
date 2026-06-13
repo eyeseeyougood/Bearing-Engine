@@ -10,14 +10,14 @@ public class ShaderParam // json bullshit
 {
     public string name { get; set; }
 
-    private object[] v;
-    public object[] value { get { return v; } set { v = value; } }
+    private List<object> v;
+    public List<object> value { get { return v; } set { v = value; } }
 
     public object GetData()
     {
         float f(object x){if (x is double) {return Convert.ToSingle((double)x);} else {return (float)x;} }
 
-        switch (value.Length)
+        switch (value.Count)
         {
             case 1:
                 return value[0];
@@ -55,7 +55,7 @@ public class Material
 
         parameters = new List<ShaderParam>()
         {
-            new ShaderParam() { name = "mainColour", value = new object[] {0.9f, 0.9f, 0.9f, 1.0f} },
+            new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
         }
     };
 
@@ -65,7 +65,7 @@ public class Material
 
         parameters = new List<ShaderParam>()
         {
-            new ShaderParam() { name = "mainColour", value = new object[] {0.9f, 0.9f, 0.9f, 1.0f} },
+            new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
         },
     };
 

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -344,7 +345,7 @@ public static class SceneLoader
 
     #endregion
 
-    private enum TokenType { EOS, Identifier, Object, LBracket, RBracket, LCurly, RCurly };
+    private enum TokenType { EOS, Identifier, Object, LBracket, RBracket, LCurly, RCurly, LSquare, RSquare };
     
     private class Token()
     {
@@ -355,151 +356,250 @@ public static class SceneLoader
         public object value = "";
     }
 
+    private static string Preprocess(string data)
+    {
+        StringBuilder result = new StringBuilder();
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int loc = 0; loc < data.Length; loc++)
+        {
+            if (data[loc] == '#')
+            {
+                loc++;
+                do
+                {
+                    sb.Append(data[loc]);
+                    loc++;
+                }
+                while (data[loc] != '#');
+
+                result.Insert(result.Length, Preprocess(Resources.ReadAllText(Resource.FromPath($"./Resources/Scene/{sb.ToString()}")).Replace("\n","").Replace("\t","")));
+                int startLocation = loc;
+                sb.Clear();
+            }
+            if (data[loc] != '#')
+                result.Append(data[loc]);
+        }
+
+        return result.ToString();
+    }
+
+    private static Token TokeniseIdentifier(CharStream cs, string endChars, bool allowEmpty = false)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        while (!endChars.Contains(cs.Peek()))
+        {
+            sb.Append(cs.Consume());
+        }
+
+        if (sb.Length == 0 && !allowEmpty)
+            throw new Exception("Failed to tokenise identifier! Early exit.");
+
+        return new Token() { type = TokenType.Identifier, value = sb.ToString().TrimStart().TrimEnd() };
+    }
+
+    private static Token TokeniseString(CharStream cs)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        cs.Expect('"', doIgnore: true);
+
+        while (cs.Peek() != '"')
+        {
+            Logger.Log("c: " + cs.Peek(true));
+            sb.Append(cs.Consume());
+        }
+
+        Logger.Log("d: " + cs.Peek(true));
+        cs.Consume(); // go past the "
+
+        return new Token() { type = TokenType.Object, value = sb.ToString() };
+    }
+
+    private static Token TokeniseNumber(CharStream cs)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        bool isFloat = false;
+
+        while (char.IsDigit(cs.Peek()) || cs.Peek() == '-' || cs.Peek() == '.')
+        {
+            if (cs.Peek() == '.')
+            {
+                Logger.Log("Found a decimal point!!! " + sb.ToString());
+                isFloat = true;
+            }
+            
+            sb.Append(cs.Consume());
+        }
+
+        Logger.Log("Parsing string: " + sb.ToString());
+
+        object newValue = 0;
+        
+        if (isFloat) { newValue = float.Parse(sb.ToString()); }
+        else { newValue = int.Parse(sb.ToString()); }
+
+        Logger.Log("MADE NUMBER!!! isFloat = " + isFloat + ", actual type: " + newValue.GetType());
+        return new Token() { type = TokenType.Object, value = newValue };
+    }
+
+    private static List<Token> TokeniseList(CharStream cs)
+    {
+        List<Token> result = new List<Token>();
+
+        cs.Expect('[', true);
+        result.Add(new Token() { type = TokenType.LSquare });
+
+        while (cs.Peek(true) != ']')
+        {
+            result.AddRange(TokeniseValue(cs));
+
+            if (cs.Peek(true) == ',')
+                cs.Consume();
+        }
+
+        cs.Expect(']', true);
+        result.Add(new Token() { type = TokenType.RSquare });
+
+        return result;
+    }
+
+    private static List<Token> TokeniseValue(CharStream cs)
+    {
+        List<Token> result = new List<Token>();
+
+        switch (cs.Peek(true))
+        {
+            case '"':
+                result.Add(TokeniseString(cs));
+                break;
+            case '(':
+                result.AddRange(TokeniseObject(cs));
+                break;
+            case '[':
+                result.AddRange(TokeniseList(cs));
+                break;
+            case 't':
+                cs.Expect('t', true);
+                cs.Expect('r');
+                cs.Expect('u');
+                cs.Expect('e');
+                result.Add(new Token(){ type = TokenType.Object, value = true });
+                break;
+            case 'T':
+                cs.Expect('T', true);
+                cs.Expect('R');
+                cs.Expect('U');
+                cs.Expect('E');
+                result.Add(new Token(){ type = TokenType.Object, value = true });
+                break;
+            case 'f':
+                cs.Expect('f', true);
+                cs.Expect('a');
+                cs.Expect('l');
+                cs.Expect('s');
+                cs.Expect('e');
+                result.Add(new Token(){ type = TokenType.Object, value = false });
+                break;
+            case 'F':
+                cs.Expect('F', true);
+                cs.Expect('A');
+                cs.Expect('L');
+                cs.Expect('S');
+                cs.Expect('E');
+                result.Add(new Token(){ type = TokenType.Object, value = false });
+                break;
+            default:
+                if (char.IsDigit(cs.Peek(true)) || cs.Peek(true) == '-')
+                {
+                    result.Add(TokeniseNumber(cs));
+                    Logger.Log("Tokenised Number: " + result[^1].value + " which is of type: " + result[^1].value.GetType());
+                }
+                break;
+        }
+
+        return result;
+    }
+
+    private static List<Token> TokeniseParemeter(CharStream cs)
+    {
+        List<Token> result = new List<Token>();
+
+        result.Add(TokeniseIdentifier(cs, ":", false));
+
+        Logger.Log("Got Token: " + result[^1].type + "val: " + result[^1].value);
+
+        cs.Consume(); // get past the :
+
+        result.AddRange(TokeniseValue(cs));
+        Logger.Log("Got Token: " + result[^1].type + "val: " + result[^1].value);
+
+        return result;
+    }
+
+    private static List<Token> TokeniseObject(CharStream cs)
+    {
+        List<Token> result = new List<Token>();
+
+        cs.Expect('(', doIgnore: true);
+        result.Add(new Token() { type = TokenType.LBracket });
+
+        result.Add(TokeniseIdentifier(cs, ":)"));
+
+        char c = cs.Consume();
+
+        if (c == ':')
+        {
+            while (cs.Peek() != ')')
+            {
+                if (cs.Peek() == ',')
+                {
+                    cs.Consume();
+                    continue;
+                }
+
+                result.AddRange(TokeniseValue(cs));
+            }
+
+            cs.Consume(); // get passed the )
+        }
+        
+        result.Add(new Token() { type = TokenType.RBracket });
+
+        cs.Expect('{', doIgnore: true);
+        result.Add(new Token() { type = TokenType.LCurly });
+
+        while (cs.Peek(true) != '}')
+        {
+            Logger.Log("f1: " + cs.Peek(true));
+            result.AddRange(TokeniseParemeter(cs));
+
+            if (cs.Peek() == ',')
+            {
+                cs.Consume();
+            }
+            Logger.Log("f2: " + cs.Peek(true));
+        }
+        Logger.Log("G: " + cs.Peek(true));
+
+        cs.Expect('}', doIgnore: true);
+        result.Add(new Token() { type = TokenType.RCurly });
+
+        return result;
+    }
+
     private static List<Token> Tokenise(string data)
     {
         List<Token> result = new List<Token>();
 
         StringBuilder sb = new StringBuilder();
 
-        int i = 0;
+        CharStream cs = new CharStream(data);
 
-        Action TokeniseIdentifier = () => {
-            sb.Clear();
-            while (data[i] != ')' && data[i] != ':')
-            {
-                sb.Append(data[i]);
-                i++;
-            }
-        };
-
-        Action TokeniseObject = () => {
-            result.Add(new Token() { type = TokenType.LBracket });
-            i++;
-
-            TokeniseIdentifier();
-
-            if (sb.Length == 0)
-                throw new Exception($"Failed to tokenise BST! Expected 'Identifier', got '{data[i]}' instead!");
-
-            result.Add(new Token() { type = TokenType.Identifier, value = sb.ToString() });
-            i--;
-        };
-
-        Action TokeniseNumber = () => {
-            sb.Clear();
-
-            bool isFloat = false;
-            while (char.IsDigit(data[i]) || data[i] == '.')
-            {
-                if (data[i] == '.')
-                    isFloat = true;
-
-                sb.Append(data[i]);
-                i++;
-            }
-            result.Add(new Token() { type = TokenType.Object, value = isFloat ? float.Parse(sb.ToString()) : int.Parse(sb.ToString()) });
-            i--;
-        };
-
-        Action TokeniseString = () => {
-            sb.Clear();
-
-            i++;
-            while (data[i] != '"')
-            {
-                sb.Append(data[i]);
-                i++;
-            }
-            result.Add(new Token() { type = TokenType.Object, value = sb.ToString() });
-        };
-
-        Action TokeniseValue = () => {
-            switch (data[i])
-            {
-                case '(':
-                    TokeniseObject();
-                    break;
-                case '"': TokeniseString(); break;
-                default:
-                    if (char.IsDigit(data[i]))
-                    {
-                        TokeniseNumber();
-                        break;
-                    }
-                    break;
-            }
-        };
-
-        Action TokeniseParameters = () => {
-            sb.Clear();
-
-            result.Add(new Token() { type = TokenType.LCurly });
-
-            i++;
-            while (data[i] != '}')
-            {
-                if (data[i] == ',')
-                {
-                    i++;
-                    continue;
-                }
-
-                TokeniseIdentifier();
-                if (sb.Length == 0)
-                    throw new Exception($"Failed to tokenise BST! Expected 'Identifier', got '{data[i]}' instead!");
-                result.Add(new Token() { type = TokenType.Identifier, value = sb.ToString() });
-                i++;
-                TokeniseValue();
-                i++;
-            }
-
-            result.Add(new Token() { type = TokenType.RCurly });
-        };
-
-        for (;i < data.Length; i++)
-        {
-            char c = data[i];
-
-            switch (c)
-            {
-                case '(':
-                    TokeniseObject();
-                    break;
-                case ')':
-                    result.Add(new Token() { type = TokenType.RBracket });
-                    break;
-                case '{':
-                    TokeniseParameters();
-                    break;
-                case '}':
-                    result.Add(new Token() { type = TokenType.RCurly });
-                    break;
-                case ',': continue;
-                case '"': TokeniseString(); break;
-                default:
-                    if (char.IsDigit(c))
-                    {
-                        TokeniseNumber();
-                        break;
-                    }
-
-                    switch (result[^1].type)
-                    {
-                        case TokenType.LCurly:
-                            sb.Clear();
-                            sb.Append(c);
-                            while (data[i+1] != '}')
-                            {
-                                sb.Append(data[i+1]);
-                                i++;
-                            }
-
-                            result.Add(new Token() { type = TokenType.Identifier, value = sb.ToString() });
-                            break;
-                    }
-                    break;
-            }
-        }
+        result = TokeniseObject(cs);
 
         return result;
     }
@@ -509,11 +609,23 @@ public static class SceneLoader
         private List<Token> tokens = new List<Token>();
         private int currentIndex;
 
+        private static void LogTokens(List<Token> tokens)
+        {
+            int c = 0;
+            foreach (Token t in tokens)
+            {
+                Logger.Log($"token {{{c}}}: " + t.type + " val: " + t.value);
+                c++;
+            }
+        }
+
         public static TokenStream FromResource(Resource resource)
         {
             TokenStream ts = new TokenStream();
 
-            ts.tokens = Tokenise(Resources.ReadAllText(resource).Replace("\n","").Replace("\t",""));
+            ts.tokens = Tokenise(Preprocess(Resources.ReadAllText(resource).Replace("\n","").Replace("\t","")));
+
+            LogTokens(ts.tokens);
 
             return ts;
         }
@@ -553,21 +665,38 @@ public static class SceneLoader
         }
     }
 
+    private static List<object> ParseList(TokenStream ts)
+    {
+        List<object> result = new List<object>();
+
+        ts.Expect(TokenType.LSquare);
+
+        while (ts.Peek().type != TokenType.RSquare)
+        {
+            result.Add(ParseValue(ts));
+        }
+
+        ts.Consume();
+
+        return result;
+    }
+
     private static object ParseValue(TokenStream ts)
     {
         switch (ts.Peek().type)
         {
             case TokenType.LBracket:
                 return ParseObject(ts);
+            case TokenType.LSquare:
+                return ParseList(ts);
             default:
+                Logger.Log($"Got a value ({ts.Peek().value}) of type: " + ts.Peek().value.GetType());
                 return ts.Consume().value;
         }
     }
 
     private static object ParseObject(TokenStream ts)
     {
-        Logger.Log("parsing object!!");
-
         ts.Expect(TokenType.LBracket);
 
         string dataType = (string)ts.Expect(TokenType.Identifier).value;
@@ -585,6 +714,13 @@ public static class SceneLoader
         Type objType = Type.GetType(dataType);
         if (objType is null)
             objType = Type.GetType("Bearing."+dataType);
+        if (objType is null)
+            objType = Type.GetType("OpenTK.Mathematics."+dataType+", OpenTK.Mathematics");
+        if (objType is null)
+            objType = Type.GetType("BulletSharp."+dataType+", BulletSharp");
+
+        if (objType is null)
+            Logger.LogError("Could not find type: " + dataType);
 
         object? result = Activator.CreateInstance(objType, constructorParams.ToArray());
 
@@ -595,13 +731,44 @@ public static class SceneLoader
         while (ts.Peek().type != TokenType.RCurly)
         {
             string prop = (string)ts.Expect(TokenType.Identifier).value;
-            object value = ts.Expect(TokenType.Object).value;
+            object value = ParseValue(ts);
 
+            Type propType = objType.GetProperty(prop)?.PropertyType;
+
+            if (value.GetType() == typeof(List<object>))
+            {
+                // if it's a list then we have to convert the type from the generic List<object> to the type that the property expects
+                Logger.Log("prop: " + prop);
+                Logger.Log("prop type: " + propType.FullName);
+
+                Type generic = propType.GetGenericArguments()[0];
+
+                Type newListType = typeof(List<>).MakeGenericType(generic);
+                IList? newList = (IList?)Activator.CreateInstance(newListType);
+
+                if (newList is null)
+                    throw new Exception($"Failed to create a list of type: {newListType.FullName}");
+
+                foreach (object val in (List<object>)value)
+                {
+                    Logger.Log("added item to list: " + val);
+                    newList.Add(val);
+                }
+
+                value = newList;
+            }
+
+            Logger.Log("set prop: " + prop + " on " + result + " to value: " + value + " where value is of type: " + value.GetType().FullName);
             objType.GetProperty(prop)?.SetValue(result, value);
         }
 
         ts.Consume();
 
         return result;
+    }
+
+    public static GameObject Load(Resource resource)
+    {
+        return (GameObject)ParseObject(TokenStream.FromResource(resource));
     }
 }

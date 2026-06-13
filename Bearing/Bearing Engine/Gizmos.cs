@@ -26,7 +26,7 @@ public static class Gizmos
 
         mr.material.parameters = new List<ShaderParam>()
         {
-            new ShaderParam() { name = "mainColour", value = new object[] { c.GetZeroToOneA() } },
+            new ShaderParam() { name = "mainColour", value = new List<object> { c.GetZeroToOneA() } },
         };
 
         GameObject go = new GameObject();
@@ -55,7 +55,7 @@ public static class Gizmos
 
         mr.material.parameters = new List<ShaderParam>()
         {
-            new ShaderParam() { name = "mainColour", value = new object[] { c.GetZeroToOneA() } },
+            new ShaderParam() { name = "mainColour", value = new List<object> { c.GetZeroToOneA() } },
         };
 
         GameObject go = new GameObject();
