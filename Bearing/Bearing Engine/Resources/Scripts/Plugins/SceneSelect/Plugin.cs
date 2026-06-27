@@ -78,7 +78,7 @@ public partial class SceneSelectPlugin : Plugin
             if (mr == null)
                 continue;
 
-            if (Extensions.RayMeshIntersection(mr.GetMesh(), ((Transform3D)go.transform), ray))
+            if (Extensions.RayMeshIntersectionFAST((Mesh3D)mr.GetMesh(), ((Transform3D)go.transform), ray))
             {
                 result = go;
                 break;

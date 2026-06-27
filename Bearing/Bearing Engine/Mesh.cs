@@ -73,10 +73,16 @@ public class Mesh3D : Mesh
         return result.ToArray();
     }
 
-    public Vector3 GetBoundingBox()
+    public Vector3 GetBoundingBoxSize()
+    {
+        (Vector3, Vector3) bb = GetBoundingBox();
+        return bb.Item2 - bb.Item1;
+    }
+
+    public (Vector3, Vector3) GetBoundingBox()
     {
         if (vertices == null || vertices.Length == 0)
-            return Vector3.Zero;
+            return (Vector3.Zero, Vector3.Zero);
 
         Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
         Vector3 max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
@@ -93,7 +99,7 @@ public class Mesh3D : Mesh
             max.Z = Math.Max(max.Z, pos.Z);
         }
 
-        return max - min;
+        return (min, max);
     }
 }
 

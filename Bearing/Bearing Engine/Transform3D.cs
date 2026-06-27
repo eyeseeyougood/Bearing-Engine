@@ -65,6 +65,15 @@ public class Transform3D : Transform
         }
     }
 
+    public Vector3 worldPosition
+    {
+        get { return GetModelMatrix().ExtractTranslation(); }
+        set
+        {
+            position = (new Vector4(value, 1.0f) * ((Transform3D)parent).GetModelMatrix().Inverted()).Xyz;
+        }
+    }
+
     private Matrix4 model = Matrix4.Identity;
 
     private void UpdateModel()
@@ -72,12 +81,6 @@ public class Transform3D : Transform
         model = Matrix4.CreateScale(scale);
         model *= Matrix4.CreateFromQuaternion(qRotation);
         model *= Matrix4.CreateTranslation(position);
-        if (parent != null)
-        {
-            model *= Matrix4.CreateScale(((Transform3D)parent).scale);
-            model *= Matrix4.CreateFromQuaternion(((Transform3D)parent).qRotation);
-            model *= Matrix4.CreateTranslation(((Transform3D)parent).position);
-        }
     }
 
     public Vector3 GetForward()
@@ -109,7 +112,16 @@ public class Transform3D : Transform
 
     public Matrix4 GetModelMatrix()
     {
-        return model;
+        Matrix4 world = Matrix4.Identity * model;
+
+        if (parent != null)
+        {
+            world *= Matrix4.CreateScale(((Transform3D)parent).scale);
+            world *= Matrix4.CreateFromQuaternion(((Transform3D)parent).qRotation);
+            world *= Matrix4.CreateTranslation(((Transform3D)parent).position);
+        }
+
+        return world;
     }
 
     public void FromModel(Matrix4 model, bool triggerTransformChanged = true)

@@ -9,7 +9,7 @@ public class Skybox : MeshRenderer
 
 	public Skybox(Resource cubeMap) : base("Cube.obj")
 	{
-		this.cubeMap = Texture.LoadFromFile(cubeMap.fullpath);
+		this.cubeMap = Texture.LoadFromResource(Resource.FromPath(cubeMap.fullpath));
 	}
 
     public override void Cleanup()

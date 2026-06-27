@@ -120,7 +120,7 @@ public class InspectorItem : Component
         editImage.size = new UDim2(1, 1, 0, 0);
         editImage.parent = editButton.rid;
         gameObject.AddComponent(editImage);
-        editImage.SetTexture(Texture.LoadFromFile("./Resources/Textures/Pencil.png"));
+        editImage.SetTexture(Texture.LoadFromResource(Resource.GetTexture("Pencil.png")));
 
         return editButton;
     }

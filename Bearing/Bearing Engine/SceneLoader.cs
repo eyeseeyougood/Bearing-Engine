@@ -408,11 +408,9 @@ public static class SceneLoader
 
         while (cs.Peek() != '"')
         {
-            Logger.Log("c: " + cs.Peek(true));
             sb.Append(cs.Consume());
         }
 
-        Logger.Log("d: " + cs.Peek(true));
         cs.Consume(); // go past the "
 
         return new Token() { type = TokenType.Object, value = sb.ToString() };
@@ -428,28 +426,23 @@ public static class SceneLoader
         {
             if (cs.Peek() == '.')
             {
-                Logger.Log("Found a decimal point!!! " + sb.ToString());
                 isFloat = true;
             }
             
             sb.Append(cs.Consume());
         }
 
-        Logger.Log("Parsing string: " + sb.ToString());
-
         object newValue = 0;
         
         if (isFloat) { newValue = float.Parse(sb.ToString()); }
         else { newValue = int.Parse(sb.ToString()); }
 
-        Logger.Log("MADE NUMBER!!! isFloat = " + isFloat + ", actual type: " + newValue.GetType());
         return new Token() { type = TokenType.Object, value = newValue };
     }
 
     private static List<Token> TokeniseList(CharStream cs)
     {
         List<Token> result = new List<Token>();
-
         cs.Expect('[', true);
         result.Add(new Token() { type = TokenType.LSquare });
 
@@ -516,7 +509,6 @@ public static class SceneLoader
                 if (char.IsDigit(cs.Peek(true)) || cs.Peek(true) == '-')
                 {
                     result.Add(TokeniseNumber(cs));
-                    Logger.Log("Tokenised Number: " + result[^1].value + " which is of type: " + result[^1].value.GetType());
                 }
                 break;
         }
@@ -530,12 +522,10 @@ public static class SceneLoader
 
         result.Add(TokeniseIdentifier(cs, ":", false));
 
-        Logger.Log("Got Token: " + result[^1].type + "val: " + result[^1].value);
 
         cs.Consume(); // get past the :
 
         result.AddRange(TokeniseValue(cs));
-        Logger.Log("Got Token: " + result[^1].type + "val: " + result[^1].value);
 
         return result;
     }
@@ -574,16 +564,13 @@ public static class SceneLoader
 
         while (cs.Peek(true) != '}')
         {
-            Logger.Log("f1: " + cs.Peek(true));
             result.AddRange(TokeniseParemeter(cs));
 
             if (cs.Peek() == ',')
             {
                 cs.Consume();
             }
-            Logger.Log("f2: " + cs.Peek(true));
         }
-        Logger.Log("G: " + cs.Peek(true));
 
         cs.Expect('}', doIgnore: true);
         result.Add(new Token() { type = TokenType.RCurly });
@@ -614,7 +601,6 @@ public static class SceneLoader
             int c = 0;
             foreach (Token t in tokens)
             {
-                Logger.Log($"token {{{c}}}: " + t.type + " val: " + t.value);
                 c++;
             }
         }
@@ -623,7 +609,7 @@ public static class SceneLoader
         {
             TokenStream ts = new TokenStream();
 
-            ts.tokens = Tokenise(Preprocess(Resources.ReadAllText(resource).Replace("\n","").Replace("\t","")));
+            ts.tokens = Tokenise(Preprocess(Resources.ReadAllText(resource).Replace("\n","").Replace(""+(char)13, "").Replace("\t","")));
 
             LogTokens(ts.tokens);
 
@@ -690,7 +676,6 @@ public static class SceneLoader
             case TokenType.LSquare:
                 return ParseList(ts);
             default:
-                Logger.Log($"Got a value ({ts.Peek().value}) of type: " + ts.Peek().value.GetType());
                 return ts.Consume().value;
         }
     }
@@ -738,8 +723,6 @@ public static class SceneLoader
             if (value.GetType() == typeof(List<object>))
             {
                 // if it's a list then we have to convert the type from the generic List<object> to the type that the property expects
-                Logger.Log("prop: " + prop);
-                Logger.Log("prop type: " + propType.FullName);
 
                 Type generic = propType.GetGenericArguments()[0];
 
@@ -751,14 +734,12 @@ public static class SceneLoader
 
                 foreach (object val in (List<object>)value)
                 {
-                    Logger.Log("added item to list: " + val);
                     newList.Add(val);
                 }
 
                 value = newList;
             }
 
-            Logger.Log("set prop: " + prop + " on " + result + " to value: " + value + " where value is of type: " + value.GetType().FullName);
             objType.GetProperty(prop)?.SetValue(result, value);
         }
 

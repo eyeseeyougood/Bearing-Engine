@@ -17,10 +17,13 @@ public class Game
     // with the transparent list being sorted, and the opaque one being unsorted
     // for the time being, the renderables list is un-used and so transparent objects do not render
 
-    public int renderPasses = 2;
+    public int renderPasses = 3;
 
-    public event Action gameTick = () => {};
     public event Action rootLoaded = () => {};
+    public event Action gameTick = () => {};
+    public event Action onTitleChangeableChanged = () => {};
+
+    public bool titleChangeable { get; private set; } = false;
 
     public Vector2 ClientSize;
 
@@ -69,15 +72,15 @@ public class Game
         AudioManager.Init();
 
         MultiplayerManager.Init();
+        PhysicsManager.Init();
 
         PhysicsManager.tps = 60;
-        PhysicsManager.Init();
 
         Physics2D.Physics2DManager.Init();
 
-        GameObject go = SceneLoader.Load(Resource.FromPath(@"./Resources/Scene/sceneFormat.bst"));
-        go.Load();
+        GameObject go = SceneLoader.Load(Resource.FromPath(@"./Resources/Scene/main.bst"));
         root = new Scene(go);
+        go.Load();
 
         rootLoaded.Invoke();
 
@@ -100,6 +103,7 @@ public class Game
     {
         root.Cleanup();
         AudioManager.Cleanup();
+        MultiplayerManager.Cleanup();
     }
 
     public void OnTick(double dt)
@@ -152,5 +156,21 @@ public class Game
         ClientSize = newSize;
 
         GLContext.gl.Viewport(new System.Drawing.Size((int)newSize.X, (int)newSize.Y));
+    }
+
+    public void SetTitleChangeable(bool newState)
+    {
+        titleChangeable = newState;
+        onTitleChangeableChanged.Invoke();
+    }
+
+    public void CloseGame()
+    {
+        Program.Close();
+    }
+
+    public void SetTitle(string title)
+    {
+        Program.Retitle(title);
     }
 }

@@ -18,9 +18,12 @@ public class Sprite : IMetadata
         textures.Clear();
     }
 
-    public void SetTexture(Texture texture)
+    public void SetTexture(Texture texture, bool cleanupTextures = true)
     {
-        ClearTextures();
+        if (cleanupTextures)
+            ClearTextures();
+        else
+            textures.Clear();
 
         textures.Add(texture);
     }
@@ -48,7 +51,7 @@ public class Sprite : IMetadata
 
         foreach (string path in Resources.GetFiles(containingFolder))
         {
-            Texture t = Texture.LoadFromFile(path);
+            Texture t = Texture.LoadFromResource(Resource.FromPath(path));
             frames.Add(t);
         }
 

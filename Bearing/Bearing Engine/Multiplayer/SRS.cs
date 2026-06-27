@@ -206,4 +206,15 @@ public class SRS : NetModel
     {
         MultiplayerManager.MessageReceived(message);
     }
+
+    public override void Cleanup()
+    {
+        if (client is not null)
+        {
+            client.ConnectionFailed -= MultiplayerManager.ConnectionFailed;
+            client.Disconnect();
+        }
+        if (roomServer is not null)
+            roomServer.Cleanup();
+    }
 }

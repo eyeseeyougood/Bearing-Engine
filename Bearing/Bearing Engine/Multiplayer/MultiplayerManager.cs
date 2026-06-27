@@ -17,6 +17,9 @@ public static class MultiplayerManager
     public static bool isHost { get; private set; }
 
     public static event Action<Message> onMessageRecieved = (i)=>{}; // this does not fire every single time a message is received, this is for user-made msgs
+    public static event Action<ConnectionFailedEventArgs> onClientFailedToConnect = (i)=>{};
+    public static event Action<DisconnectedEventArgs> onDisconnected = (i)=>{};
+    public static event Action onConnectionSuccess = ()=>{};
 
     private static Dictionary<string, string> settings = new Dictionary<string, string>();
 
@@ -48,6 +51,21 @@ public static class MultiplayerManager
         SetupNetworkModel(model);
 
         Logger.Log("Multiplayer initialised");
+    }
+
+    public static void ConnectionFailed(object? sender, ConnectionFailedEventArgs e)
+    {
+        onClientFailedToConnect.Invoke(e);
+    }
+
+    public static void ConnectionSuccess(object? sender, EventArgs e)
+    {
+        onConnectionSuccess.Invoke();
+    }
+
+    public static void Disconnected(object? sender, DisconnectedEventArgs e)
+    {
+        onDisconnected.Invoke(e);
     }
 
     public static NetModel GetNetModel()
@@ -109,6 +127,11 @@ public static class MultiplayerManager
     public static Client CreateClient(string address)
     {
         Client c = new Client();
+
+        c.ConnectionFailed += MultiplayerManager.ConnectionFailed;
+        c.Disconnected += MultiplayerManager.Disconnected;
+        c.Connected += MultiplayerManager.ConnectionSuccess;
+        
         c.Connect(address);
 
         return c;
@@ -128,5 +151,10 @@ public static class MultiplayerManager
         roomServer.Init();
 
         return roomServer;
+    }
+
+    public static void Cleanup()
+    {
+        netModel.Cleanup();
     }
 }

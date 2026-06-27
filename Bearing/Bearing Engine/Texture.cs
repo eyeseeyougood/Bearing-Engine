@@ -48,7 +48,7 @@ public class Texture
         return result;
     }
 
-    public static unsafe Texture LoadFromFile(string path, TextureMinFilter minFilter = TextureMinFilter.Linear, TextureMagFilter magFilter = TextureMagFilter.Linear, TextureWrapMode wrapMode = TextureWrapMode.Repeat)
+    public static unsafe Texture LoadFromResource(Resource texture, TextureMinFilter minFilter = TextureMinFilter.Linear, TextureMagFilter magFilter = TextureMagFilter.Linear, TextureWrapMode wrapMode = TextureWrapMode.Repeat)
     {
         GL GL = GLContext.gl;
 
@@ -65,10 +65,10 @@ public class Texture
 
         // OpenGL has it's texture origin in the lower left corner instead of the top left corner,
         // so we tell StbImageSharp to flip the image when loading.
-        StbImage.stbi_set_flip_vertically_on_load(1);
+        StbImage.stbi_set_flip_vertically_on_load(0);
 
         // Here we open a stream to the file and pass it to StbImageSharp to load.
-        using (Stream stream = Resources.Open(Resource.FromPath(path)))
+        using (Stream? stream = Resources.Open(texture))
         {
             ImageResult image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
 

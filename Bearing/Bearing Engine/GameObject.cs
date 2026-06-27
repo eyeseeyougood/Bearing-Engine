@@ -23,7 +23,7 @@ public class GameObject : IMetadata
 
     public List<Component> components { get; set; }
 
-    private GameObject _parent;
+    private GameObject _parent = null;
 
     public GameObject()
     {
@@ -47,6 +47,11 @@ public class GameObject : IMetadata
     ~GameObject()
     {
         Cleanup();
+    }
+
+    public override string ToString()
+    {
+        return base.ToString() + " '" + name + "'";
     }
 
     public static GameObject? Find(int id)

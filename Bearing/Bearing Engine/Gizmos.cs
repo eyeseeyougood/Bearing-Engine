@@ -43,11 +43,12 @@ public static class Gizmos
 
     public static void CreateVector(Vector3 vector, Vector3 center = default, float time = 0, BearingColour colour = default)
     {
+        string meshName = "eng/SBP.obj";
         if (sbp == null)
         {
-            sbp = new MeshRenderer("eng/SBP.obj");
+            sbp = new MeshRenderer(meshName);
         }
-        MeshRenderer mr = new MeshRenderer(sbp.GetMesh().name);
+        MeshRenderer mr = new MeshRenderer(meshName);
         mr.material = gizmoMaterial.Clone();
         BearingColour c = colour;
         if (colour == default)

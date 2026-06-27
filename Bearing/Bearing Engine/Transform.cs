@@ -10,7 +10,15 @@ public class Transform
         get { return _parent; }
         set
         {
+            if (_parent != null)
+            {
+                _parent.onTransformChanged -= ParentTransformChanged;
+            }
             _parent = value;
+            if (_parent != null)
+            {
+                _parent.onTransformChanged += ParentTransformChanged;
+            }
         }
     }
 
@@ -24,6 +32,8 @@ public class Transform
     protected void InvokePositionChanged() { onPositionChanged.Invoke(); }
     protected void InvokeRotationChanged() { onRotationChanged.Invoke(); }
     protected void InvokeScaleChanged() { onScaleChanged.Invoke(); }
+
+    protected virtual void ParentTransformChanged() {}
 
     public virtual void Cleanup()
     {

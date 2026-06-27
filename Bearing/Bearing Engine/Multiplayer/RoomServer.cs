@@ -37,4 +37,9 @@ public class RoomServer
     {
         server.Update();
     }
+
+    public void Cleanup()
+    {
+        server.Stop();
+    }
 }

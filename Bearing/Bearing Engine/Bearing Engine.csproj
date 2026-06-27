@@ -49,4 +49,28 @@
 	  <None Remove="Resources\Shaders\defaultUI.frag" />
 	  <None Remove="Resources\Shaders\defaultUI.vert" />
 	</ItemGroup>
+
+  <Target Name="CopyExtraLinuxLibraries" AfterTargets="Publish">
+
+    <PropertyGroup>
+      <ExtraLibsDir>$(ProjectDir)bin\Release\ExtraLibs</ExtraLibsDir>
+    </PropertyGroup>
+
+    <!-- WARNING WARNING WARNING !!!! this is a potential failure point -->
+    <!-- I haven't tested this outside of linux environment -->
+    <!-- maybe the symlink copying may brake on windows?? -->
+    <Copy SourceFiles="
+        $(ExtraLibsDir)\libopenal.so.1;
+        $(ExtraLibsDir)\libminizip.so.1;
+        $(ExtraLibsDir)\libdl.so"
+      DestinationFolder="$(PublishDir)"
+      Condition="'$(RuntimeIdentifier)' == 'linux-x64' and $([System.OperatingSystem]::IsLinux())"
+      SkipUnchangedFiles="true" />
+
+    <Exec
+      Command="patchelf --set-rpath '$ORIGIN' '$(PublishDir)libassimp.so'"
+      Condition="'$(RuntimeIdentifier)' == 'linux-x64' and $([System.OperatingSystem]::IsLinux())"
+      ContinueOnError="true" />
+  </Target>
+
 </Project>

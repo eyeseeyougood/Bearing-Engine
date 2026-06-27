@@ -19,6 +19,15 @@ public class SpriteRenderer : Renderable
             quad = new Mesh2D(Resource.GetModel("eng/Quad.obj"));
 
         mesh = quad;
+        material = new Material()
+        {
+            shader = new Shader("eng/default2D.vert", "eng/texture.frag"),
+
+            parameters = new List<ShaderParam>()
+            {
+                new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
+            },
+        };
     }
 
     public override void OnLoad()
@@ -43,7 +52,7 @@ public class SpriteRenderer : Renderable
 
     public override void OnTick(float dt) {}
  
-    public virtual unsafe void Render()
+    public override unsafe void Render()
     {
         GL GL = GLContext.gl;
 
@@ -73,7 +82,7 @@ public class SpriteRenderer : Renderable
         {
             GL.Disable(GLEnum.CullFace);
         }
-
+        
         BeforeRender();
 
         material.Use();

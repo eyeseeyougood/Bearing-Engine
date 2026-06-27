@@ -385,7 +385,7 @@ public static partial class PluginManager
             editImage.size = new UDim2(1, 1, 0, 0);
             editImage.parent = editButton.rid;
             uiObject.AddComponent(editImage);
-            editImage.SetTexture(Texture.LoadFromFile("./Resources/Textures/Info.png"));
+            editImage.SetTexture(Texture.LoadFromResource(Resource.GetTexture("Info.png")));
 
             
             scroll.contents.Add(panel.rid);

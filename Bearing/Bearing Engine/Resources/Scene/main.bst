@@ -1,4 +1,3 @@
-
 (GameObject){
     name: "Scene Root",
     #defaultTransform.bst#
@@ -6,9 +5,9 @@
         (GameObject){
             name: "Triangle",
             transform: (Transform3D){
-                position:  (Vector3, 0, -2, 0) {},
-                eRotation: (Vector3, 0,  0, 0) {},
-                scale:     (Vector3, 1,  1, 1) {},
+                position:  (Vector3: 0, -2, 0) {},
+                eRotation: (Vector3: 0,  0, 0) {},
+                scale:     (Vector3: 1,  1, 1) {},
             },
             components: [
                 (MeshRenderer:"eng/Cube.obj"){
@@ -22,373 +21,193 @@
                             }
                         ]
                     },
-                }
+                },
+                (BearingRigidbody){
+                    Collider: (BoxShape: 0.5){}
+                },
             ]
-        }
-    ]
-}
+        },
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-(GameObject){
-    name:"Scene Root",
-    #PRESET(defaultTransform) [],
-    "components": [],
-    "immediateChildren": [
-        #PRESET(Sphere) [],
-        {
-            "name": "Cube 1",
-    
-            "transform": {
-                "transformType": "Transform3D",
-                "position": {
-                    "x": 0,
-                    "y": -2,
-                    "z": 0
-                },
-                "eRotation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "scale": {
-                    "x": 1,
-                    "y": 1,
-                    "z": 1
-                }
+        (GameObject){
+            name: "Light",
+            transform: (Transform3D){
+                position:  (Vector3: 2, 2, 0) {},
+                eRotation: (Vector3: 0, 0, 0) {},
+                scale:     (Vector3: 1, 1, 1) {},
             },
-    
-            "components": [
-                #PRESET(defaultMeshRenderer) [],
-                {
-                    "Collider": {
-                        "boxHalfExtents": 0.5,
-                        "type": "BoxShape"
-                    },
-                    "type": "BearingRigidbody"
-                }
-            ]
-        },
-
-        {
-            "name": "Light",
-    
-            "transform": {
-                "transformType": "Transform3D",
-                "position": {
-                    "x": 2,
-                    "y": 2,
-                    "z": 0
+            components: [
+                (PointLight){
+                    range: 10,
+                    intensity: 1,
                 },
-                "eRotation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "scale": {
-                    "x": 1,
-                    "y": 1,
-                    "z": 1
-                }
-            },
-
-            "components": [
-                {
-                    "range": 10,
-                    "intensity": 1,
-                    "type": "PointLight"
-                }
-            ]
-        },
-
-        {
-            "name": "Hierarchy",
-            "tag": "EditorObject",
-            #PRESET(defaultTransform2D) [],
-            "components": [
-                {
-                    "renderLayer": -3,
-                    "anchor": {
-                        "x": 0.0,
-                        "y": 0.0
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 0.0
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-
-                            "x": 0.2,
-                            "y": 1.0
-                        }
-                    },
-
-                    "rid": 6,
-                    "type": "UIPanel"
-                },
-
-                {
-                    "parent": 6,
-                    "renderLayer": -2,
-                    "anchor": {
-                        "x": 0.0,
-                        "y": 0.0
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 0.0
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-                            "x": 1.0,
-                            "y": 1.0
-                        },
-                        "offset": {
-                            "y": -100
-                        }
-                    },
-                    "contents": [
-                    ],
-
-                    "rid": 1,
-                    "clipContents": false,
-                    "scrollSensitivity": 15,
-                    "scrollByComponents": false,
-                    "type": "UIVerticalScrollView"
-                },
-
-
-                {
-                    "parent": 6,
-                    "renderLayer": 100,
-                    "anchor": {
-                        "x": 0.0,
-                        "y": 1.0
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 1.0
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-
-                            "x": 1.0,
-                            "y": 0.0
-                        },
-                        "offset": {
-                            "y": 100
-                        }
-                    },
-
-                    "rid": 7,
-                    "type": "UIButton"
-                },
-
-                {
-                    "parent": 6,
-                    "renderLayer": 101,
-                    "anchor": {
-                        "x": 0.0,
-                        "y": 1.0
-                    },
-
-                    "position": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 1.0
-                        }
-                    },
-
-                    "size": {
-                        "scale": {
-
-                            "x": 1.0,
-                            "y": 0.0
-                        },
-                        "offset": {
-                            "y": 100
-                        }
-                    },
-
-                    "rid": 8,
-                    "font": "Times New Roman",
-                    "text": "Add GameObject",
-                    "type": "UILabel"
-                },
-
-                {
-                    "type": "Hierarchy"
-                }
             ]
         },
 
 
-        {
-            "name": "Inspector",
-            "tag": "EditorObject",
-            #PRESET(defaultTransform2D) [],
-            "components": [
+        (GameObject){
+            name: "Heirarchy",
+            tag: "EditorObject",
+            #defaultTransform2D.bst#,
+            components: [
+                (UIPanel){
+                    renderLayer: -3,
+                    anchor: (Vector2:0,0){},
 
-                {
-                    "renderLayer": -3,
-                    "anchor": {
-                        "x": 1.0,
-                        "y": 0.0
+                    position: (UDim2){
+                        scale: (Vector2:0,0){}
                     },
 
-                    "position": {
-                        "scale": {
-                            "x": 1.0,
-                            "y": 0.0
-                        }
+                    size: (UDim2){
+                        scale: (Vector2:0.2,1.0){}
                     },
 
-                    "size": {
-                        "scale": {
-
-                            "x": 0.2,
-                            "y": 1.0
-                        }
-                    },
-
-                    "rid": 3,
-                    "type": "UIPanel"
+                    rid: 6,
                 },
 
-                {
-                    "parent": 3,
-                    "renderLayer": -2,
-                    "anchor": {
-                        "x": 0.0,
-                        "y": 0.0
+                (UIVerticalScrollView){
+                    parent: 6,
+                    renderLayer: -2,
+                    anchor: (Vector2:0,0){},
+
+                    position: (UDim2){
+                        scale: (Vector2:0,0){}
                     },
 
-                    "position": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 0.0
-                        }
+                    size: (UDim2){
+                        scale: (Vector2:1,1){},
+                        offset: (Vector2:0,-100){}
                     },
 
-                    "size": {
-                        "scale": {
-
-                            "x": 1.0,
-                            "y": 1.0
-                        },
-                        "offset": {
-                            "y": -100
-                        }
-                    },
-
-                    "rid": 2,
-                    "clipContents": false,
-                    "scrollSensitivity": 7,
-                    "scrollByComponents": false,
-                    "type": "UIVerticalScrollView"
+                    rid: 1,
+                    clipContents: false,
+                    scrollSensitivity: 15,
+                    scrollByComponents: false,
                 },
 
-                {
-                    "parent": 3,
-                    "renderLayer": 100,
-                    "anchor": {
-                        "x": 0.0,
-                        "y": 1.0
+                (UIButton){
+                    parent: 6,
+                    renderLayer: 100,
+                    anchor: (Vector2:0,1){},
+
+                    position: (UDim2){
+                        scale: (Vector2:0,1){}
                     },
 
-                    "position": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 1.0
-                        }
+                    size: (UDim2){
+                        scale: (Vector2:1,0){},
+                        offset: (Vector2:0,100){}
                     },
 
-                    "size": {
-                        "scale": {
-
-                            "x": 1.0,
-                            "y": 0.0
-                        },
-                        "offset": {
-                            "y": 100
-                        }
-                    },
-
-                    "rid": 4,
-                    "type": "UIButton"
+                    rid: 7,
                 },
 
-                {
-                    "parent": 3,
-                    "renderLayer": 101,
-                    "anchor": {
-                        "x": 0.0,
-                        "y": 1.0
+                (UILabel){
+                    parent: 6,
+                    renderLayer: 101,
+                    anchor: (Vector2:0,1){},
+
+                    position: (UDim2){
+                        scale: (Vector2:0,1){}
                     },
 
-                    "position": {
-                        "scale": {
-                            "x": 0.0,
-                            "y": 1.0
-                        }
+                    size: (UDim2){
+                        scale: (Vector2:1,0){},
+                        offset: (Vector2:0,100){}
                     },
 
-                    "size": {
-                        "scale": {
+                    rid: 8,
+                    font: "Times New Roman",
+                    text: "Add GameObject",
+                },
 
-                            "x": 1.0,
-                            "y": 0.0
-                        },
-                        "offset": {
-                            "y": 100
-                        }
+                (Hierarchy){}
+            ]
+        },
+
+
+        (GameObject){
+            name: "Inspector",
+            tag: "EditorObject",
+            #defaultTransform2D.bst#,
+            components: [
+                (UIPanel){
+                    renderLayer: -3,
+                    anchor: (Vector2:1,0){},
+
+                    position: (UDim2){
+                        scale: (Vector2:1,0){}
                     },
 
-                    "rid": 5,
-                    "font": "Times New Roman",
-                    "text": "Add Component",
-                    "type": "UILabel"
+                    size: (UDim2){
+                        scale: (Vector2:0.2,1.0){}
+                    },
+
+                    rid: 3,
                 },
 
-                {
-                    "type": "Inspector"
+                (UIVerticalScrollView){
+                    parent: 3,
+                    renderLayer: -2,
+                    anchor: (Vector2:0,0){},
+
+                    position: (UDim2){
+                        scale: (Vector2:0,0){}
+                    },
+
+                    size: (UDim2){
+                        scale (Vector2:1,1){},
+                        offset: (Vector2:0,-100){}
+                    },
+
+                    rid: 2,
+                    clipContents: false,
+                    scrollSensitivity: 7,
+                    scrollByComponents: false,
                 },
 
-                {
-                    "type": "SceneExporter"
+                (UIButton){
+                    parent: 3,
+                    renderLayer: 100,
+                    anchor: (Vector2:0,1){},
+
+                    position: (UDim2){
+                        scale: (Vector2:0,1){}
+                    },
+
+                    size: (UDim2){
+                        scale: (Vector2:1,0){},
+                        offset: (Vector2:0,100){}
+                    },
+
+                    rid: 4,
                 },
 
-                {
-                    "type": "PresetImporter"
+                (UILabel){
+                    parent: 3,
+                    renderLayer: 101,
+                    anchor: (Vector2:0,1){},
+
+                    position: (UDim2){
+                        scale: (Vector2:0,1){}
+                    },
+
+                    size: (UDim2){
+                        scale: (Vector2:1,0){},
+                        offset: (Vector2:0,100){}
+                    },
+
+                    rid: 5,
+                    font: "Times New Roman",
+                    text: "Add Component",
                 },
 
-                {
-                    "type": "CameraMovement"
-                }
+                (Inspector){},
+
+                (SceneExporter){},
+
+                (PresetImporter){},
+
+                (CameraMovement){}
             ]
         }
     ]

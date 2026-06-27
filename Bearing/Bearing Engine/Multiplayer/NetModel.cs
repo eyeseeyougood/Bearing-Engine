@@ -18,4 +18,5 @@ public abstract class NetModel
     public abstract void RemoveObject(string name);
     public abstract void Broadcast(Message m, ushort ignore);
     public abstract void SendToServer(Message m);
+    public abstract void Cleanup();
 }

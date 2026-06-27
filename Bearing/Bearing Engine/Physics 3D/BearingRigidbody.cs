@@ -77,7 +77,7 @@ public class BearingRigidbody : Component
         {
             Mesh3D mesh = (Mesh3D)((MeshRenderer)gameObject.GetComponent(typeof(MeshRenderer))).GetMesh();
 
-            Vector3 half = mesh.GetBoundingBox() / 2.0f;
+            Vector3 half = mesh.GetBoundingBoxSize() / 2.0f;
             BulletSharp.Math.Vector3 halfExt = new BulletSharp.Math.Vector3(
                 half.X,
                 half.Y,

@@ -15,6 +15,7 @@ undebugable. Be very careful what you do inside the delay function and multiple 
 general.
 Other multi-threaded features include:
 - events (rootLoaded, any events created by the user, etc)
+- Physics simulation
 
 -- Order of Events --
 I don't mean actual events like C# events, I just mean the order that things happen in.
@@ -30,11 +31,11 @@ The order of initialisation goes as such:
 -- Connects to the default device
 -- Creates the AL context
 - The MultiplayerManager is initialised:
--- Use scene settings to create the network model
+-- Uses scene settings to create the network model
 - The PhysicsManager is initialised with a tps of 60:
 -- Creates the physics world
 -- Begins the physics tick (separate thread to GameObject ticks)
-- The root is created and loaded from the main.json file stored in ./Resources/Scene/
+- The root is created and loaded from the main.bst file stored in ./Resources/Scene/
 - The rootLoaded event is invoked
 - The UIManager is initialised:
 -- Creates the AudioSource used by UI for sfx

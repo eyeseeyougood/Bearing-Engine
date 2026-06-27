@@ -1,24 +1,46 @@
-﻿namespace Bearing;
+﻿using OpenTK.Mathematics;
+
+namespace Bearing;
 
 public class SpriteSheet
 {
     public List<Texture> textures = new List<Texture>();
 
-    public int sWidth=1;
-    public int sHeight=1;
+    private int sheetWidth;
+    private int sheetHeight;
+
+    private Texture creationTexture;
+
+    public int sWidth=1; // slice width
+    public int sHeight=1; // slice height
 
     public SpriteSheet() { }
     public SpriteSheet(Resource spriteSheet, int sliceWidth, int sliceHeight, int take = -1) { Slice(spriteSheet, sliceWidth, sliceHeight, take); }
     public SpriteSheet(Texture spriteSheet, int sliceWidth, int sliceHeight, int take = -1) { Slice(spriteSheet, sliceWidth, sliceHeight, take); }
+
+    public Texture GetFullTexture() { return creationTexture; }
+    public int GetWidth() { return sheetWidth; }
+    public int GetHeight() { return sheetHeight; }
+
+    ///<summary>
+    ///This function requires you to specify the slice width and height in the constructor of this spritesheet
+    ///</summary>
+    public Texture Sample(Vector2i spriteCoord)
+    {
+        int spriteCountX = sheetWidth / sWidth;
+
+        int index = spriteCoord.X + spriteCoord.Y * spriteCountX;
+
+        return textures[index];
+    }
 
     ///<Summary>
     ///Take describes how many slices to keep (used to remove blank slices)
     ///</Summary>
     public void Slice(Resource spriteSheet, int sliceWidth, int sliceHeight, int take = -1)
     {
-        Texture t = Texture.LoadFromFile(spriteSheet.fullpath, Silk.NET.OpenGL.TextureMinFilter.Nearest, Silk.NET.OpenGL.TextureMagFilter.Nearest, Silk.NET.OpenGL.TextureWrapMode.ClampToEdge);
+        Texture t = Texture.LoadFromResource(Resource.FromPath(spriteSheet.fullpath), Silk.NET.OpenGL.TextureMinFilter.Nearest, Silk.NET.OpenGL.TextureMagFilter.Nearest, Silk.NET.OpenGL.TextureWrapMode.ClampToEdge);
         Slice(t, sliceWidth, sliceHeight, take);
-        t.Dispose();
     }
 
     ///<Summary>
@@ -26,6 +48,8 @@ public class SpriteSheet
     ///</Summary>
     public void Slice(Texture spriteSheet, int sliceWidth, int sliceHeight, int take = -1)
     {
+        creationTexture = spriteSheet;
+
         byte[] data = spriteSheet.GetData();
 
         int width = spriteSheet._width;
@@ -75,6 +99,9 @@ public class SpriteSheet
         textures = slices;
         sWidth = sliceWidth;
         sHeight = sliceHeight;
+
+        sheetWidth = spriteSheet._width;
+        sheetHeight = spriteSheet._height;
     }
 
     public List<Texture> GetSlices(int start = 0, int count = -1)
@@ -92,5 +119,10 @@ public class SpriteSheet
             texture.Dispose();
         }
         textures.Clear();
+    }
+
+    public void Dispose()
+    {
+        creationTexture.Dispose();
     }
 }

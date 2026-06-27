@@ -310,14 +310,14 @@ public class UIImage : UIElement
             shader = new Shader("defaultUI.vert", "textureUI.frag"),
             parameters = new List<ShaderParam>()
             {
-                new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
+                new ShaderParam() { name = "mainColour", value = new List<object> {1.0f, 1.0f, 1.0f, 1.0f} },
             },
         };
     }
 
-    public void SetTexture(Texture texture)
+    public void SetTexture(Texture texture, bool cleanupTextures = true)
     {
-        sprite.SetTexture(texture);
+        sprite.SetTexture(texture, cleanupTextures);
     }
 
     public override void OnTick(float dt)
@@ -407,7 +407,7 @@ public class UILabel : UIElement
 
         Texture? tex = sprite.Peak();
 
-        material.SetShaderParameter("mainColour", theme.labelText.Value.zeroToOne);
+        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("labelText").zeroToOne);
         material.SetShaderParameter("texSize", new Vector2(tex._width, tex._height));
         fitHeightToWidth = true;
         material.SetShaderParameter("fitToTexRatio", fitHeightToWidth ? 1:0);
