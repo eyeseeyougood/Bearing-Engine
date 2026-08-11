@@ -13,12 +13,14 @@ namespace Bearing;
 [RequireComponent(typeof(MeshRenderer))]
 public class BearingRigidbody : Component
 {
+    [DontSerialise]
     public RigidBody rb { get; private set; }
     public float mass { get; set; } = 1.0f;
     public float bounciness { get; set; } = 0.0f;
     private CollisionShape collider;
 
     [HideFromInspector]
+    [DontSerialise]
     public CollisionShape Collider
     {
         get { return collider; }
@@ -128,10 +130,10 @@ public class BearingRigidbody : Component
     private Vector3 prevPos = Vector3.One;
     private void PosChanged()
     {
-        if (prevPos != Transform().position)
+        if (prevPos != Transform().worldPosition)
         {
-            prevPos = Transform().position;
-            SetPosition(Transform().position, false);
+            prevPos = Transform().worldPosition;
+            SetPosition(Transform().worldPosition, false);
         }
     }
 
@@ -150,7 +152,10 @@ public class BearingRigidbody : Component
     public void SetPosition(Vector3 newPosition, bool setTransform = true)
     {
         if (setTransform)
-            Transform().position = newPosition;
+            Transform().worldPosition = newPosition;
+
+        rb.LinearVelocity = BulletSharp.Math.Vector3.Zero;
+
         UpdateFromModelMatrix();
     }
 

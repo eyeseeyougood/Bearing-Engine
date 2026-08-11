@@ -1,213 +1,65 @@
 (GameObject){
-    name: "Scene Root",
-    #defaultTransform.bst#
+    name: "Scene Root"
     immediateChildren: [
         (GameObject){
-            name: "Triangle",
-            transform: (Transform3D){
-                position:  (Vector3: 0, -2, 0) {},
-                eRotation: (Vector3: 0,  0, 0) {},
-                scale:     (Vector3: 1,  1, 1) {},
-            },
+            name: "___UI Manager___",
             components: [
-                (MeshRenderer:"eng/Cube.obj"){
+                (EditorUI){}
+            ],
+            metadata: ["___HIDEFROMHIERARCHY___"]
+        },
+
+        (GameObject){
+            name: "___Camera___",
+            components: [
+                (CameraMovement){
+                    normalSpeed: 3.0,
+                    fastSpeed: 7.0,
+                    mouseSenseX: 0.2,
+                    mouseSenseY: 0.2
+                }
+            ],
+            metadata: ["___HIDEFROMHIERARCHY___"]
+        },
+
+        (GameObject){
+            name: "Cube",
+            transform: (Transform3D){position:(Vector3:0,0,0){},scale:(Vector3:1.5,1.5,1.5){}},
+            components: [
+                (MeshRenderer:"Cube.obj"){
                     material: (Material){
-                        shader: (Shader:"eng/default.vert","eng/lighting.frag"){},
-
-                        parameters: [
-                            (ShaderParam){
-                                name: "mainColour",
-                                value: [0.7, 0.1, 0.1, 1.0],
+                        shader: (Shader:"eng/default.vert","eng/default.frag"){},
+                        parameters: [(ShaderParam){name: "mainColour", value: [0.0, 0.3, 1.0, 1.0]}]
+                    }
+                }
+            ],
+            immediateChildren: [
+                (GameObject){
+                    name: "Child Cube",
+                    transform: (Transform3D){position:(Vector3:1.5,0,0){},scale:(Vector3:1,1.5,1){}},
+                    components: [
+                        (MeshRenderer:"Cube.obj"){
+                            material: (Material){
+                                shader: (Shader:"eng/default.vert","eng/default.frag"){},
+                                parameters: [(ShaderParam){name: "mainColour", value: [1.0, 0.3, 0.0, 1.0]}]
                             }
-                        ]
-                    },
-                },
-                (BearingRigidbody){
-                    Collider: (BoxShape: 0.5){}
-                },
+                        },
+                        (TestComponent){},
+                        (TestComponent){}
+                    ]
+                }
             ]
         },
 
         (GameObject){
-            name: "Light",
-            transform: (Transform3D){
-                position:  (Vector3: 2, 2, 0) {},
-                eRotation: (Vector3: 0, 0, 0) {},
-                scale:     (Vector3: 1, 1, 1) {},
-            },
+            name: "Cube 2",
             components: [
-                (PointLight){
-                    range: 10,
-                    intensity: 1,
-                },
-            ]
-        },
-
-
-        (GameObject){
-            name: "Heirarchy",
-            tag: "EditorObject",
-            #defaultTransform2D.bst#,
-            components: [
-                (UIPanel){
-                    renderLayer: -3,
-                    anchor: (Vector2:0,0){},
-
-                    position: (UDim2){
-                        scale: (Vector2:0,0){}
-                    },
-
-                    size: (UDim2){
-                        scale: (Vector2:0.2,1.0){}
-                    },
-
-                    rid: 6,
-                },
-
-                (UIVerticalScrollView){
-                    parent: 6,
-                    renderLayer: -2,
-                    anchor: (Vector2:0,0){},
-
-                    position: (UDim2){
-                        scale: (Vector2:0,0){}
-                    },
-
-                    size: (UDim2){
-                        scale: (Vector2:1,1){},
-                        offset: (Vector2:0,-100){}
-                    },
-
-                    rid: 1,
-                    clipContents: false,
-                    scrollSensitivity: 15,
-                    scrollByComponents: false,
-                },
-
-                (UIButton){
-                    parent: 6,
-                    renderLayer: 100,
-                    anchor: (Vector2:0,1){},
-
-                    position: (UDim2){
-                        scale: (Vector2:0,1){}
-                    },
-
-                    size: (UDim2){
-                        scale: (Vector2:1,0){},
-                        offset: (Vector2:0,100){}
-                    },
-
-                    rid: 7,
-                },
-
-                (UILabel){
-                    parent: 6,
-                    renderLayer: 101,
-                    anchor: (Vector2:0,1){},
-
-                    position: (UDim2){
-                        scale: (Vector2:0,1){}
-                    },
-
-                    size: (UDim2){
-                        scale: (Vector2:1,0){},
-                        offset: (Vector2:0,100){}
-                    },
-
-                    rid: 8,
-                    font: "Times New Roman",
-                    text: "Add GameObject",
-                },
-
-                (Hierarchy){}
-            ]
-        },
-
-
-        (GameObject){
-            name: "Inspector",
-            tag: "EditorObject",
-            #defaultTransform2D.bst#,
-            components: [
-                (UIPanel){
-                    renderLayer: -3,
-                    anchor: (Vector2:1,0){},
-
-                    position: (UDim2){
-                        scale: (Vector2:1,0){}
-                    },
-
-                    size: (UDim2){
-                        scale: (Vector2:0.2,1.0){}
-                    },
-
-                    rid: 3,
-                },
-
-                (UIVerticalScrollView){
-                    parent: 3,
-                    renderLayer: -2,
-                    anchor: (Vector2:0,0){},
-
-                    position: (UDim2){
-                        scale: (Vector2:0,0){}
-                    },
-
-                    size: (UDim2){
-                        scale (Vector2:1,1){},
-                        offset: (Vector2:0,-100){}
-                    },
-
-                    rid: 2,
-                    clipContents: false,
-                    scrollSensitivity: 7,
-                    scrollByComponents: false,
-                },
-
-                (UIButton){
-                    parent: 3,
-                    renderLayer: 100,
-                    anchor: (Vector2:0,1){},
-
-                    position: (UDim2){
-                        scale: (Vector2:0,1){}
-                    },
-
-                    size: (UDim2){
-                        scale: (Vector2:1,0){},
-                        offset: (Vector2:0,100){}
-                    },
-
-                    rid: 4,
-                },
-
-                (UILabel){
-                    parent: 3,
-                    renderLayer: 101,
-                    anchor: (Vector2:0,1){},
-
-                    position: (UDim2){
-                        scale: (Vector2:0,1){}
-                    },
-
-                    size: (UDim2){
-                        scale: (Vector2:1,0){},
-                        offset: (Vector2:0,100){}
-                    },
-
-                    rid: 5,
-                    font: "Times New Roman",
-                    text: "Add Component",
-                },
-
-                (Inspector){},
-
-                (SceneExporter){},
-
-                (PresetImporter){},
-
-                (CameraMovement){}
+                (MeshRenderer:"Cube.obj"){
+                    material: (Material){
+                        shader: (Shader:"eng/default.vert","eng/default.frag"){},
+                        parameters: [(ShaderParam){name: "mainColour", value: [0.6, 0.3, 1.0, 1.0]}]
+                    }
+                }
             ]
         }
     ]

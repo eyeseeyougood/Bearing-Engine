@@ -51,6 +51,7 @@ public static class ModelLoader
 
         result.vertices = verts.ToArray();
         result.indices = finalIndices;
+        result.name = mesh.GetName();
 
         return result;
     }

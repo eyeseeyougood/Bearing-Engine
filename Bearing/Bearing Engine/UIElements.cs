@@ -5,16 +5,27 @@ using OpenTK.Mathematics;
 
 namespace Bearing;
 
+public enum UIMouseCaptureMode
+{
+    PassThrough = 0,
+    HandleAndPass = 1,
+    Consume = 2,
+}
+
+[DontSerialise]
 public class UIElement : SpriteRenderer
 {
     public UITheme theme = UIManager.currentTheme;
     public UITheme themeOverride;
 
-    public UIElement() : base() { themeOverride = (UITheme)UITheme.Empty.Clone(); UIManager.AddUI(this); }
+    public UIElement(params object[] meta) : base() { themeOverride = (UITheme)UITheme.Empty.Clone(); UIManager.AddUI(this); metadata = meta; }
 
-    public List<string> consumedInputs = new List<string>() { "mouseEnter" }; // this really needs a better way to standardise this
+    public UIMouseCaptureMode mouseCaptureMode = UIMouseCaptureMode.Consume;
 
     public int renderLayer { get; set; }
+
+    public bool useParentVisibility = true;
+    public bool useParentActivity = true;
 
     protected bool _setVisible = true;
     protected bool _visible = true;
@@ -27,13 +38,26 @@ public class UIElement : SpriteRenderer
         set
         {
             _setVisible = value;
-            UpdateVisibility();
-            if (!visible)
+            _visible = value;
+        }
+    }
+
+    protected bool _setActive = true;
+    protected bool _active = true;
+    public bool active
+    {
+        get
+        {
+            return _active;
+        }
+        set
+        {
+            _setActive = value;
+            _active = value;
+
+            if (!_active && mouseOver)
             {
-                if (mouseOver)
-                {
-                    UIManager.SendEvent(this, "MouseExit");
-                }
+                UIManager.SendEvent(this, "MouseExit");
             }
         }
     }
@@ -93,7 +117,7 @@ public class UIElement : SpriteRenderer
     protected UDim2 _position { get; set; } = new UDim2(0.0f, 0.0f, 0, 0);
     public UDim2 position { 
         get {
-            return _position;
+            return _setPos;
         }
         set {
             _setPos = value;
@@ -101,13 +125,20 @@ public class UIElement : SpriteRenderer
             positionChanged.Invoke();
         }
     }
+
+    public UDim2 worldPosition { 
+        get {
+            return _position;
+        }
+    }
+
     protected UDim2 _setSize { get; set; } = new UDim2(0.0f,0.0f,200,200);
     protected UDim2 _size { get; set; } = new UDim2(0.0f,0.0f,200,200);
     public UDim2 size
     {
         get
         {
-            return _size;
+            return _setSize;
         }
         set
         {
@@ -117,27 +148,70 @@ public class UIElement : SpriteRenderer
         }
     }
 
-    public T GetThemeValue<T>(string key)
+    public UDim2 worldSize
     {
-        if (typeof(UITheme).GetField(key).GetValue(themeOverride) == null)
+        get
         {
-            return (T)typeof(UITheme).GetField(key).GetValue(theme);
+            return _size;
+        }
+    }
+
+    public T? GetThemeValue<T>(string key)
+    {
+        if (typeof(T) == typeof(BearingColour))
+        {
+            return (T?)(object?)(themeOverride.ContainsColour(key) ? themeOverride.GetColour(key) : theme.GetColour(key));
+        }
+        else if (typeof(T) == typeof(Resource))
+        {
+            return (T?)(object?)(themeOverride.ContainsAudio(key) ? themeOverride.GetAudio(key) : theme.GetAudio(key));
         }
         else
         {
-            return (T)typeof(UITheme).GetField(key).GetValue(themeOverride);
+            throw new Exception("You are either being silly or doing some unimaginable levels of voodoo");
         }
     }
 
     public Vector4 GetScreenBoundingBox()
     {
-        Vector2 sizing = size.scale * Game.instance.ClientSize + size.offset;
-        Vector2 positioning = position.scale * Game.instance.ClientSize + position.offset + sizing / 2.0f - anchor * sizing;
+        Vector2 sizing = worldSize.scale * Game.instance.ClientSize + worldSize.offset;
+        Vector2 positioning = worldPosition.scale * Game.instance.ClientSize + worldPosition.offset + sizing / 2.0f - anchor * sizing;
 
         Vector2 p1 = new Vector2(-0.5f, -0.5f) * sizing + positioning;
         Vector2 p2 = new Vector2(0.5f, 0.5f) * sizing + positioning;
 
         return new Vector4((int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y);
+    }
+
+    public override string ToString()
+    {
+        return $"UIElement ({GetType().FullName}) - meta: {metadata.ElementsToString()}";
+    }
+
+    public bool GetSetVisibility()
+    {
+        return _setVisible;
+    }
+
+    public void SetVisibility(bool visible, bool changeSetVisibility = true)
+    {
+        if (changeSetVisibility)
+            this.visible = visible;
+        else
+            _visible = visible;
+    }
+
+    public bool GetSetActive()
+    {
+        return _setActive;
+    }
+
+    public void SetActive(bool active, bool changeSetActive = true)
+    {
+        if (changeSetActive)
+            this.active = active;
+        else
+            _active = active;
     }
 
     protected virtual void UpdateVisibility()
@@ -148,13 +222,10 @@ public class UIElement : SpriteRenderer
             return;
         }
 
-        if (_parent == null)
+        if (useParentVisibility && _parent != null)
         {
-            _visible = _setVisible;
-            return;
+            _visible = _parent.visible;
         }
-
-        _visible = _parent.visible;
     }
 
     /// <summary>
@@ -164,15 +235,15 @@ public class UIElement : SpriteRenderer
     {
         if (_parent == null) { _position = _setPos; return; }
 
-        Vector2 parentNormalisedScale = _parent.size.scale + (_parent.size.offset / Game.instance.ClientSize);
+        Vector2 parentNormalisedScale = _parent.worldSize.Normalize(Game.instance.ClientSize);
 
         Vector2 scale = _setPos.scale
                       * parentNormalisedScale
-                      + _parent.position.scale
+                      + _parent.worldPosition.scale
                       - _parent.anchor
                       * parentNormalisedScale;
 
-        _position = new UDim2(scale, _setPos.offset + _parent.position.offset);
+        _position = new UDim2(scale, _setPos.offset + _parent.worldPosition.offset);
     }
 
     /// <summary>
@@ -182,7 +253,28 @@ public class UIElement : SpriteRenderer
     {
         if (_parent == null) { _size = _setSize; return; }
 
-        _size = new UDim2(_setSize.scale * (_parent.size.scale + (_parent.size.offset / Game.instance.ClientSize)), _setSize.offset);
+        _size = new UDim2(_setSize.scale * (_parent.worldSize.Normalize(Game.instance.ClientSize)), _setSize.offset);
+    }
+
+    public void UpdateActive()
+    {
+        if (!useParentActivity)
+        {
+            return;
+        }
+
+        if (!_setActive)
+        {
+            _active = false;
+        }
+
+        if (_parent == null)
+        {
+            _active = true;
+            return;
+        }
+
+        _active = _parent.active;
     }
 
     public override void OnLoad()
@@ -196,16 +288,17 @@ public class UIElement : SpriteRenderer
     {
         UpdatePosition();
         UpdateSize();
+        UpdateActive();
 
         float screenW = Game.instance.ClientSize.X;
         float screenH = Game.instance.ClientSize.Y;
 
-        if (!visible)
+        if (!active)
             return;
 
         // TODO: OPTIMISATION - getting bounds box
         bool m = Extensions.PointInQuad(Input.GetMousePosition(), GetScreenBoundingBox());
-        if (m && !mouseOver && consumedInputs.Contains("mouseEnter"))
+        if (m && !mouseOver && mouseCaptureMode != UIMouseCaptureMode.PassThrough)
         {
             // mouse entered
             UIManager.SendEvent(this, "MouseEnter");
@@ -236,10 +329,10 @@ public class UIElement : SpriteRenderer
 
         material.SetShaderParameter("screenSize", Game.instance.ClientSize);
         material.SetShaderParameter("anchor", anchor);
-        material.SetShaderParameter("posOffset", position.offset);
-        material.SetShaderParameter("posScale", position.scale);
-        material.SetShaderParameter("sizeOffset", size.offset);
-        material.SetShaderParameter("sizeScale", size.scale);
+        material.SetShaderParameter("posOffset", worldPosition.offset);
+        material.SetShaderParameter("posScale", worldPosition.scale);
+        material.SetShaderParameter("sizeOffset", worldSize.offset);
+        material.SetShaderParameter("sizeScale", worldSize.scale);
 
         material.LoadParameters();
 
@@ -254,6 +347,27 @@ public class UIElement : SpriteRenderer
 
         GL.DrawElements(PrimitiveType.Triangles, (uint)mesh.indices.Length, DrawElementsType.UnsignedInt, (void*)0);
     }
+
+    public void OnMouseEvent()
+    {
+        switch (mouseCaptureMode)
+        {
+            case UIMouseCaptureMode.PassThrough:
+                if (_parent is not null)
+                    _parent.OnMouseEvent();
+                break;
+            case UIMouseCaptureMode.HandleAndPass:
+                OnHandleMouseEvent();
+                if (_parent is not null)
+                    _parent.OnMouseEvent();
+                break;
+            case UIMouseCaptureMode.Consume:
+                OnHandleMouseEvent();
+                break;
+        }
+    }
+
+    protected virtual void OnHandleMouseEvent() {}
 
     public void ParentCleanedUp()
     {
@@ -285,11 +399,11 @@ public class UIElement : SpriteRenderer
 
 public class UIPanel : UIElement
 {
-    public UIPanel() : base()
+    public UIPanel(params object[] meta) : base(meta)
     {
         material = new Material()
         {
-            shader = new Shader("defaultUI.vert", "defaultUI.frag"),
+            shader = new Shader("eng/defaultUI.vert", "eng/defaultUI.frag"),
         };
     }
 
@@ -297,17 +411,17 @@ public class UIPanel : UIElement
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("uiPanelBG").zeroToOne);
+        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("panelBG").zeroToOne);
     }
 }
 
 public class UIImage : UIElement
 {
-    public UIImage() : base()
+    public UIImage(params object[] meta) : base(meta)
     {
         material = new Material()
         {
-            shader = new Shader("defaultUI.vert", "textureUI.frag"),
+            shader = new Shader("eng/defaultUI.vert", "eng/textureUI.frag"),
             parameters = new List<ShaderParam>()
             {
                 new ShaderParam() { name = "mainColour", value = new List<object> {1.0f, 1.0f, 1.0f, 1.0f} },
@@ -354,9 +468,21 @@ public class UILabel : UIElement
     public bool fitHeightToWidth { get; set; } = true;
     public string font { get; set; } = "Arial";
 
+    private int _truncateThreshold = -1;
+    public int truncateThreshold {
+        get {
+            return _truncateThreshold;
+        }
+        set {
+            _truncateThreshold = value;
+            ResetTexture();
+        }
+    }
+    public bool useElipsisTruncation { get; set; } = false;
+
     public event EventHandler<string> onTextChanged = (i,j) => { };
 
-    public UILabel() : base() { }
+    public UILabel(params object[] meta) : base(meta) { }
 
     public override void Cleanup()
     {
@@ -388,9 +514,22 @@ public class UILabel : UIElement
         ResetTexture();
     }
 
-    protected virtual void ResetTexture()
+    public virtual void ResetTexture()
     {
-        sprite.SetTexture(UIManager.UITextHelper.RenderTextToBmp(text, font));
+        string finalText = text;
+
+        if (text == "")
+            finalText = " ";
+
+        if (text.Length > truncateThreshold && truncateThreshold != -1)
+        {
+            finalText = finalText.Substring(0, truncateThreshold);
+
+            if (useElipsisTruncation)
+                finalText += "...";
+        }
+
+        sprite.SetTexture(UIManager.UITextHelper.RenderTextToBmp(finalText, font));
     }
 
     protected virtual void TextChanged(string val)
@@ -408,44 +547,31 @@ public class UILabel : UIElement
         Texture? tex = sprite.Peak();
 
         material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("labelText").zeroToOne);
-        material.SetShaderParameter("texSize", new Vector2(tex._width, tex._height));
+        if (tex is not null)
+            material.SetShaderParameter("texSize", new Vector2(tex._width, tex._height));
         fitHeightToWidth = true;
         material.SetShaderParameter("fitToTexRatio", fitHeightToWidth ? 1:0);
     }
 }
 
+/*
 public class UITextBox : UILabel
 {
-    private UIButton button;
+    protected UIButton button;
 
-    private bool selected = false;
+    protected bool selected = false;
 
     public bool multiline { get; set; } = true;
 
     public event EventHandler<string> onTextSubmit = (i, j) => { };
-    public event EventHandler onPressed = (i, j) => { };
+    public event Action<UITextBox> onPressed = (i) => { };
 
-    private bool emptyText = false;
+    protected bool emptyText = false;
 
-    private int caretPos;
-    private int caretLine;
+    protected int caretPos;
+    protected int caretLine;
 
-    public UITextBox() : base()
-    {
-        consumedInputs = new List<string>()
-        {
-            "leftClick",
-            "enter",
-            "characters",
-            "escape",
-            "leftShift",
-            "backspace",
-            "leftArrow",
-            "rightArrow",
-            "upArrow",
-            "downArrow",
-        };
-    }
+    public UITextBox(params object[] meta) : base(meta) {}
 
     public void ClearText()
     {
@@ -525,9 +651,13 @@ public class UITextBox : UILabel
             position = new UDim2(0.5f, 0.5f),
 
             size = new UDim2(1, 1),
+
+            useParentActivity = false,
         };
 
         gameObject.AddComponent(button);
+
+        active = false;
 
         button.buttonPressed += Pressed;
         UIManager.uiEvent += OnEvent;
@@ -537,7 +667,7 @@ public class UITextBox : UILabel
         Input.onCharacterPressed += OnCharacterPressed;
     }
 
-    private void OnEvent(object? sender, string e)
+    protected void OnEvent(object? sender, string e)
     {
         if (e != "UIClicked")
             return;
@@ -560,13 +690,13 @@ public class UITextBox : UILabel
         CaretToEnd();
     }
 
-    private void Pressed(object? sender, EventArgs e)
+    protected void Pressed(UIButton sender)
     {
         Select();
-        onPressed.Invoke(this, e);
+        onPressed.Invoke(this);
     }
 
-    private int LenOfCurLine()
+    protected int LenOfCurLine()
     {
         return text.Split("\n")[caretLine].Length;
     }
@@ -575,9 +705,9 @@ public class UITextBox : UILabel
     {
         base.OnTick(dt);
 
-        button.themeOverride.buttonHoverBackground = selected ? theme.selection : null;
-        button.themeOverride.buttonDownBackground = selected ? theme.selection : null;
-        button.themeOverride.buttonUpBackground = selected ? theme.selection : null;
+        button.themeOverride.SetColour("buttonHoverBackground", selected ? theme.GetColour("selection") : null);
+        button.themeOverride.SetColour("buttonDownBackground", selected ? theme.GetColour("selection") : null);
+        button.themeOverride.SetColour("buttonUpBackground", selected ? theme.GetColour("selection") : null);
 
         if (Input.GetKeyDown(Key.Backspace) && selected)
         {
@@ -663,7 +793,7 @@ public class UITextBox : UILabel
         material.SetShaderParameter("caretSize", new Vector2(2, UIManager.UITextHelper.fontHeights[font]) * (selected?1:0));
     }
 
-    private int SumOfLineChars(int n)
+    protected int SumOfLineChars(int n)
     {
         int sumOfLines = 0;
         int idx = 0;
@@ -680,7 +810,7 @@ public class UITextBox : UILabel
         return sumOfLines;
     }
 
-    private void OnCharacterPressed(string character)
+    protected void OnCharacterPressed(string character)
     {
         if (!selected)
             return;
@@ -701,37 +831,207 @@ public class UITextBox : UILabel
 
         ResetTexture();
     }
+}*/
+
+///<summary>
+///!!! Consumes 2 Renderlayers !!!
+///</summary>
+public class UITextBox : UIButton
+{
+    public UITextBox(params object[] meta) : base(meta) {}
+
+    public event Action<UITextBox> textSubmitted = (i) => {};
+
+    private string _placeholderText = "enter text here...";
+    public string placeholderText {
+        get {
+            return _placeholderText;
+        }
+        set {
+            _placeholderText = value;
+            if (label is not null)
+                Deselect();
+        }
+    }
+    private string _text = "";
+    public string text {
+        get {
+            return _text;
+        }
+        set {
+            _text = value;
+            if (label is not null)
+                Deselect();
+        }
+    }
+
+    public int truncateThreshold {
+        get {
+            return label.truncateThreshold;
+        }
+        set {
+            label.truncateThreshold = value;
+        }
+    }
+
+    public bool useElipsisTruncation {
+        get {
+            return label.useElipsisTruncation;
+        }
+        set {
+            label.useElipsisTruncation = value;
+        }
+    }
+
+    protected bool selected;
+
+    public bool isSelected
+    {
+        get {
+            return selected;
+        }
+        set {
+            selected = value;
+        }
+    }
+
+    protected BearingColour? themeSave1;
+    protected BearingColour? themeSave2;
+    protected BearingColour? themeSave3;
+
+    protected UILabel label;
+
+    public override void OnLoad()
+    {
+        base.OnLoad();
+
+        buttonPressed += Pressed;
+
+        Input.onCharacterPressed += onCharacterPressed;
+
+        label = new UILabel();
+        label.parent = rid;
+        label.renderLayer = renderLayer + 1;
+        label.position = new UDim2(0,0,10,10);
+        label.size = new UDim2(1,1,-20,-20);
+        label.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+        gameObject.AddComponent(label);
+
+        Deselect();
+    }
+
+    public void ResetTexture()
+    {
+        label.ResetTexture();
+    }
+
+    protected virtual void Pressed(UIButton sender)
+    {
+        Select();
+    }
+
+    public override void OnTick(float dt)
+    {
+        base.OnTick(dt);
+
+        if (!selected)
+            return;
+
+        if (Input.GetKeyDown(Key.Escape))
+        {
+            Deselect();
+        }
+
+        if (Input.GetKeyDown(Key.Enter) || Input.GetKeyDown(Key.KeypadEnter))
+        {
+            Deselect();
+            textSubmitted.Invoke(this);
+        }
+
+        if (Input.GetKeyDown(Key.Backspace))
+        {
+            RemoveCharacter();
+        }
+    }
+
+    protected virtual void onCharacterPressed(string s)
+    {
+        if (!selected)
+            return;
+        
+        _text += s[0];
+        label.text = text;
+    }
+
+    public void RemoveCharacter()
+    {
+        if (text.Length - 1 < 0)
+            return;
+
+        _text = text.Substring(0, text.Length - 1);
+
+        label.text = text;
+    }
+
+    public void Deselect()
+    {
+        if (selected)
+        {
+            themeOverride.SetColour("buttonHoverBackground", themeSave1);
+            themeOverride.SetColour("buttonUpBackground", themeSave2);
+            themeOverride.SetColour("buttonDownBackground", themeSave3);
+        }
+
+        selected = false;
+
+        if (text == "")
+            label.text = placeholderText;
+    }
+
+    public void Select()
+    {
+        if (!selected)
+        {
+            themeSave1 = themeOverride.GetColour("buttonHoverBackground");
+            themeSave2 = themeOverride.GetColour("buttonUpBackground");
+            themeSave3 = themeOverride.GetColour("buttonDownBackground");
+
+            themeOverride.SetColour("buttonHoverBackground", GetThemeValue<BearingColour>("selection"));
+            themeOverride.SetColour("buttonUpBackground", GetThemeValue<BearingColour>("selection"));
+            themeOverride.SetColour("buttonDownBackground", GetThemeValue<BearingColour>("selection"));
+        }
+
+        selected = true;
+    }
 }
 
 public class UIButton : UIElement
 {
-    public event EventHandler buttonPressed = (i, j) => { };
-    public event EventHandler buttonHold = (i, j) => { };
-    public event EventHandler buttonReleased = (i, j) => { };
+    public event Action<UIButton> buttonPressed = (i) => { };
+    public event Action<UIButton> buttonHold = (i) => { };
+    public event Action<UIButton> buttonReleased = (i) => { };
 
-    public event EventHandler mouseEnter = (i, j) => { };
-    public event EventHandler mouseLeave = (i, j) => { };
+    public event Action<UIButton> mouseEnter = (i) => { };
+    public event Action<UIButton> mouseLeave = (i) => { };
 
-    public UIButton() : base()
+    public UIButton(params object[] meta) : base(meta)
     {
         material = new Material()
         {
-            shader = new Shader("defaultUI.vert", "defaultUI.frag"),
+            shader = new Shader("eng/defaultUI.vert", "eng/defaultUI.frag"),
         };
     }
 
-    private bool prevHover = false;
-    private bool hover = false;
-    private bool prevPressed = false;
+    private bool prevHovered = false;
     private bool pressed = false;
 
-    private void RemoveSubscribers(EventHandler del)
+    private void RemoveSubscribers(Action<UIButton> del)
     {
         if (del != null)
         {
             Delegate[] subscribers = del.GetInvocationList();
             foreach (var d in subscribers)
-                del -= d as EventHandler;
+                del -= d as Action<UIButton>;
         }
     }
 
@@ -745,7 +1045,7 @@ public class UIButton : UIElement
 
         base.Cleanup();
     }
-
+    /*
     private bool mouseDown;
     private bool prevMouseDown;
     private bool wasPressed;
@@ -775,12 +1075,8 @@ public class UIButton : UIElement
             // mouse entered this frame
             mouseEnter.Invoke(this, new EventArgs());
 
-            var tg = GetThemeValue<string>("buttonHoverAudio");
-
-            if (GetThemeValue<string>("buttonHoverAudio") != "None")
-            {
-                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonHoverAudio")));
-            }
+            if (GetThemeValue<Resource>("buttonHoverAudio") is not null)
+                UIManager.PlaySFX(GetThemeValue<Resource>("buttonHoverAudio"));
         }
 
         if (!hover && prevHover)
@@ -798,8 +1094,8 @@ public class UIButton : UIElement
 
             UIManager.SendEvent(this, "UIClicked");
 
-            if (GetThemeValue<string>("buttonDownAudio") != "None")
-                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonDownAudio")));
+            if (GetThemeValue<Resource>("buttonDownAudio") is not null)
+                UIManager.PlaySFX(GetThemeValue<Resource>("buttonDownAudio"));
         }
 
         if (pressed)
@@ -815,8 +1111,8 @@ public class UIButton : UIElement
             wasPressed = false;
             UIManager.mouseUsingObject = null;
 
-            if (GetThemeValue<string>("buttonUpAudio") != "None")
-                UIManager.PlaySFX(Resource.GetSFX(GetThemeValue<string>("buttonUpAudio")));
+            if (GetThemeValue<Resource>("buttonUpAudio") is not null)
+                UIManager.PlaySFX(GetThemeValue<Resource>("buttonUpAudio"));
         }
 
         prevPressed = pressed;
@@ -825,6 +1121,65 @@ public class UIButton : UIElement
 
         // handle colour
         material.SetShaderParameter("mainColour", bg.zeroToOne);
+    }*/
+
+    private void PlaySFX(string name)
+    {
+        if (GetThemeValue<Resource>(name) is not null)
+            UIManager.PlaySFX(GetThemeValue<Resource>(name));
+    }
+
+    public override void OnTick(float dt)
+    {
+        base.OnTick(dt);
+
+        if (pressed)
+            buttonHold.Invoke(this);
+
+        BearingColour bg;
+        if (UIManager.GetHoveredElement() == this && !pressed)
+        {
+            bg = GetThemeValue<BearingColour>("buttonHoverBackground");
+        }
+        else if (pressed)
+        {
+            bg = GetThemeValue<BearingColour>("buttonDownBackground");
+        }
+        else
+        {
+            bg = GetThemeValue<BearingColour>("buttonUpBackground");
+        }
+
+        material.SetShaderParameter("mainColour", bg.zeroToOne);
+
+        if (UIManager.GetHoveredElement() == this && !prevHovered)
+        {
+            PlaySFX("buttonHoverAudio");
+        }
+
+        prevHovered = UIManager.GetHoveredElement() == this;
+    }
+
+    protected override void OnHandleMouseEvent()
+    {
+        base.OnHandleMouseEvent();
+
+        if (Input.GetMouseButtonUp(0) && pressed)
+        {
+            buttonReleased.Invoke(this);
+            PlaySFX("buttonUpAudio");
+            pressed = false;
+        }
+
+        if (!active)
+            return;
+        
+        if (Input.GetMouseButtonDown(0))
+        {
+            buttonPressed.Invoke(this);
+            PlaySFX("buttonDownAudio");
+            pressed = true;
+        }
     }
 }
 
@@ -861,7 +1216,7 @@ public class UIVerticalSlider : UIPanel
     {
         base.OnLoad();
 
-        themeOverride.uiPanelBG = UIManager.currentTheme.sliderBackground;
+        themeOverride.SetColour("panelBG", UIManager.currentTheme.GetColour("sliderBackground"));
 
         button = new UIButton();
         button.parent = rid;
@@ -878,7 +1233,7 @@ public class UIVerticalSlider : UIPanel
         fill.position = new UDim2(0.5f, 1.0f);
         fill.size = new UDim2(1f, 0.5f);
         fill.renderLayer = renderLayer + 1;
-        fill.themeOverride.uiPanelBG = UIManager.currentTheme.sliderFill;
+        fill.themeOverride.SetColour("panelBG", UIManager.currentTheme.GetColour("sliderFill"));
         gameObject.AddComponent(fill);
     }
 
@@ -887,7 +1242,7 @@ public class UIVerticalSlider : UIPanel
         return dragging;
     }
 
-    public void ButtonClicked(object? sender, EventArgs e)
+    public void ButtonClicked(UIButton sender)
     {
         dragging = true;
     }
@@ -899,9 +1254,9 @@ public class UIVerticalSlider : UIPanel
 
         fill.visible = showFillLine;
         fill.size = new UDim2(1f, value);
-        fill.themeOverride.uiPanelBG = theme.sliderFill;
+        fill.themeOverride.SetColour("panelBG", theme.GetColour("sliderFill"));
         
-        themeOverride.uiPanelBG = theme.sliderBackground;
+        themeOverride.SetColour("panelBG", theme.GetColour("sliderBackground"));
 
         if (dragging && Input.GetMouseButtonUp(0))
         {
@@ -943,6 +1298,8 @@ public class UIVerticalSlider : UIPanel
     }
 }
 
+// THIS IS FULLY HACKED TOGETHER, I NEED TO REMAKE NOT JUST THIS WHOLE COMPONENT BUT PROBABLY MOST OF THE UI CODE AT THIS POINT
+/*
 public class UIVerticalScrollView : UIElement
 {
     public int scrollSensitivity { get; set; } = 1;
@@ -959,7 +1316,7 @@ public class UIVerticalScrollView : UIElement
     {
         material = new Material()
         {
-            shader = new Shader("defaultUI.vert", "defaultUI.frag"),
+            shader = new Shader("eng/defaultUI.vert", "eng/defaultUI.frag"),
         };
 
         consumedInputs.Add("Scroll");
@@ -1206,5 +1563,124 @@ public class UIVerticalScrollView : UIElement
             bar.size = new UDim2(par.size.scale * new Vector2(1,0.5f), par.size.offset);
             base.BeforeRender();
         }
+    }
+}*/
+
+
+public class UIVerticalScrollView : UIElement
+{
+    public int scrollSensitivity { get; set; } = 1;
+    public int spacing { get; set; } = 5;
+
+    private List<UIElement> contents { get; set; } = new List<UIElement>();
+
+    private int scrollAmount;
+
+    public UIVerticalScrollView(params object[] meta) : base(meta)
+    {
+        material = new Material()
+        {
+            shader = new Shader("eng/defaultUI.vert", "eng/defaultUI.frag"),
+        };
+    }
+
+    public override void OnTick(float dt)
+    {
+        base.OnTick(dt);
+
+        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("verticalScrollBG").zeroToOne);
+
+        foreach (UIElement element in contents)
+        {
+            if (!visible)
+            {
+                element.visible = false;
+                element.SetActive(false, changeSetActive: false);
+            }
+        }
+    }
+
+    protected override void BeforeRender()
+    {
+        base.BeforeRender();
+
+        for (int i = 0; i < contents.Count; i++)
+        {
+            UIElement element = contents[i];
+            element.position = new UDim2(0,0,element.position.offset.X,(element.size.offset.Y + spacing) * (i - scrollAmount));
+
+            if (element.position.offset.Y < 0 || element.position.offset.Y + element.worldSize.offset.Y > worldSize.Normalize(Game.instance.ClientSize).Y * Game.instance.ClientSize.Y)
+            {
+                element.visible = false;
+                element.SetActive(false, changeSetActive: false);
+            }
+            else
+            {
+                element.visible = true;
+                element.SetActive(element.GetSetActive(), changeSetActive: false);
+            }
+        }
+    }
+
+    protected override void OnHandleMouseEvent()
+    {
+        base.OnHandleMouseEvent();
+
+        if (!active)
+            return;
+
+        scrollAmount -= (int)Input.GetMouseScrollDelta().Y;
+
+        if (scrollAmount < 0)
+            scrollAmount = 0;
+    }
+
+    public void ClearContents()
+    {
+        foreach (UIElement elem in contents.ToList())
+        {
+            if (elem != null)
+            {
+                elem.gameObject.RemoveComponent(elem);
+            }
+        }
+
+        contents.Clear();
+    }
+
+    public List<UIElement> GetContents()
+    {
+        return contents;
+    }
+
+    public void RemoveElement(UIElement element)
+    {
+        contents.Remove(element);
+    }
+
+    public void AddElement(UIElement element)
+    {
+        contents.Add(element);
+        element.parent = rid;
+        element.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+        element.useParentActivity = false;
+        element.useParentVisibility = false;
+    }
+
+    public override void Cleanup()
+    {
+        ClearContents();
+
+        base.Cleanup();
+    }
+
+    public void SetScrollAmount(int amount)
+    {
+        scrollAmount = amount;
+    }
+
+    public int GetScrollAmount()
+    {
+        return scrollAmount;
     }
 }

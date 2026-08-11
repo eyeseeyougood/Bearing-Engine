@@ -10,14 +10,14 @@ namespace Bearing;
 
 public class Resource : IMetadata
 {
-    public object[] metadata { get; set; } = new object[1];
-    public string fullpath { get; set; }
+    public object[] metadata { get; set; } = new object[0];
+    public string fullpath { get; set; } = "";
 
     public static Resource FromPath(string path, string type = "unknown")
     {
         Resource r = new Resource();
         r.fullpath = path;
-        r.metadata[0] = type;
+        r.AddMeta(type);
         return r;
     }
 

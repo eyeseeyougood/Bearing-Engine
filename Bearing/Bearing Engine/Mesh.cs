@@ -10,7 +10,7 @@ public abstract class Mesh
     public abstract float[] GetVertexPositions();
     public abstract ShaderAttrib[] GetAttributes();
     public uint[] indices = new uint[0];
-    public string name { get; set; }
+    public string name { get; set; } = "";
 }
 
 
@@ -31,6 +31,7 @@ public class Mesh3D : Mesh
 
     public Mesh3D(Resource mesh)
     {
+        name = mesh.GetName();
         Mesh3D m = ModelLoader.FileToMesh3D(mesh);
         vertices = m.vertices;
         indices = m.indices;
@@ -123,7 +124,7 @@ public class Mesh2D : Mesh
 
     public Mesh2D(Resource mesh)
     {
-        name = mesh.GetName(false);
+        name = mesh.GetName();
         Mesh2D m = ModelLoader.FileToMesh2D(mesh);
         vertices = m.vertices;
         indices = m.indices;

@@ -7,13 +7,15 @@ using OpenTK.Mathematics;
 
 namespace Bearing
 {
-    public class Shader
+    public class Shader : IBSTSerialisable
     {
         public readonly uint Handle;
 
         private readonly Dictionary<string, int> _uniformLocations;
 
+        [DontSerialise]
         public string vert { get; set; }
+        [DontSerialise]
         public string frag { get; set; }
 
         private Shader(uint handle, Dictionary<string, int> uniformLocations) { Handle = handle; _uniformLocations = uniformLocations; }
@@ -231,6 +233,19 @@ namespace Bearing
             GL GL = GLContext.gl;
             GL.UseProgram(Handle);
             GL.Uniform4(_uniformLocations[name], data.X, data.Y, data.Z, data.W);
+        }
+
+        public void Serialise(StringBuilder sb, object value)
+        {
+            Shader sd = (Shader)value;
+
+            sb.Append("(Shader:\"");
+            sb.Append(sd.vert);
+            sb.Append("\",\"");
+            sb.Append(sd.frag);
+            sb.Append("\"){");
+            SceneLoader.SerialiseProperties(sb, sd);
+            sb.Append("}");
         }
 
         public void Cleanup()

@@ -1,166 +1,169 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK.Mathematics;
 using Bearing;
 
 public class Hierarchy : Component
 {
-    public static Hierarchy instance;
+	public static Hierarchy? instance;
 
-    private UIVerticalScrollView scrollView;
+	public GameObject? selectedObject;
+	public UIButton? selectedButton;
 
-    public override void Cleanup()
-    {
-    }
+	public event Action<GameObject> onHierarchyObjectSelected = (i) => {};
 
+	private CustomPanel hierarchyPanel;
+	private UIVerticalScrollView scroll;
+
+	private int parent;
+	public Hierarchy(int parent) {this.parent=parent; instance = this;}
     public override void OnLoad()
     {
-        instance = this;
+    	hierarchyPanel = new CustomPanel("hierarchyPanel");
+    	hierarchyPanel.renderLayer = 1;
+    	hierarchyPanel.parent = parent;
+    	hierarchyPanel.size = new UDim2(0.2f, 1f);
 
-        scrollView = (UIVerticalScrollView)UIManager.FindFromRID(1);
-        ((UIButton)UIManager.FindFromRID(7)).buttonPressed += AddGameObjectPressed;
+    	gameObject.AddComponent(hierarchyPanel);
 
-        selectionTheme = new UITheme();
-        selectionTheme.buttonUpBackground = BearingColour.LightBlue;
-        selectionTheme.buttonDownBackground = BearingColour.LightBlue;
-        selectionTheme.buttonHoverBackground = BearingColour.LightBlue;
+    	scroll = new UIVerticalScrollView();
+    	scroll.renderLayer = 2;
+    	scroll.parent = hierarchyPanel.rid;
+    	scroll.position = new UDim2(0,0,10,10);
+    	scroll.size = new UDim2(1,1, -20, -20);
+    	scroll.themeOverride.SetColour("verticalScrollBG", BearingColour.Transparent);
+
+    	gameObject.AddComponent(scroll);
+
+    	UpdateHierarchy();
     }
 
-    private void AddGameObjectPressed(object? sender, EventArgs e)
+    private CustomButton CreateTextButton(string text)
     {
-        GameObject go = new GameObject();
-        go.name = "New GameObject";
-        go.Load();
-        go.parent = Game.instance.root;
+    	CustomButton button = new CustomButton();
+    	button.size = new UDim2(1f, 0, 0, 40);
+		button.renderLayer = 3;
+		button.borderWidth = 4;
+		button.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(211,125,199));
+		button.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(29,28,29));
+		button.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(19,18,19));
+		button.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(9,8,9));
+		button.visible = true;
+		gameObject.AddComponent(button);
 
-        UpdateView();
+		UILabel label = new UILabel();
+		label.parent = button.rid;
+		label.renderLayer = 4;
+		label.position = new UDim2(0,0,8,8);
+		label.size = new UDim2(1,1,-16,-16);
+		label.text = text;
+		label.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
+		label.useParentVisibility = true;
+		gameObject.AddComponent(label);
+
+		button.AddMeta(label);
+
+		return button;
     }
 
-    bool tes;
-    public override void OnTick(float dt)
+    public void UpdateHierarchy()
     {
-        if (!tes)
-        {
-            tes = true;
-            UpdateView();
-        }
+    	scroll.ClearContents();
+
+    	CreateObjectButton((GameObject)Game.instance.root, 0);
+    	CreateTreeRecursive(Game.instance.root, 1);
+
+    	UIManager.Sort();
     }
 
-    private List<GameObject> TraverseForChildren(GameObject root)
+    // returns true if created
+    public bool CreateObjectButton(GameObject go, int indent)
     {
-        List<GameObject> result = new List<GameObject>();
+    	if (go.GetMeta<string>() == "___HIDEFROMHIERARCHY___")
+			return false;
 
-        if (root.immediateChildren.Count == 0)
-        {
-            result.Add(root);
-            return result;
-        }
+		CustomButton button = CreateTextButton(go.name);
+		button.metadata = new object[] { go, button.metadata[0] };
+		button.buttonPressed += HierarchySelectPressed;
+		button.position = new UDim2(0,0,indent * 10,0);
+		button.size = new UDim2(1,0,-indent * 10,40);
 
-        for (int i = 0; i < root.immediateChildren.Count; i++)
-            result.AddRange(TraverseForChildren(root.immediateChildren[i]));
+		if (selectedObject == go)
+		{
+    		selectedButton = button;
+    		selectedButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(88,132,220));
+		}
 
-        result.Add(root);
-        return result;
+		if (go != Game.instance.root)
+		{
+			button.GetMeta<UILabel>(1).size = new UDim2(1,1,-16 - 20,-16);
+
+			CustomButton removeButton = new CustomButton();
+	        removeButton.renderLayer = 4;
+	        removeButton.parent = button.rid;
+	        removeButton.anchor = new Vector2(1,0);
+	        removeButton.position = new UDim2(1, 0, -2, 2);
+	        removeButton.size = new UDim2(0, 1, 25, -4);
+	        removeButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
+	        removeButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
+	        removeButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
+	        removeButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(0,0,0,0));
+	        removeButton.buttonPressed += (b) => {
+	        	go.Cleanup();
+	        	scroll.RemoveElement(button);
+	        	button.Cleanup();
+	        };
+	        gameObject.AddComponent(removeButton);
+
+	        UILabel removeLabel = new UILabel();
+	        removeLabel.renderLayer = 5;
+	        removeLabel.parent = removeButton.rid;
+	        removeLabel.position = new UDim2(0f,0f,4,4);
+	        removeLabel.size = new UDim2(1f,1f,-8,-8);
+	        removeLabel.text = "X";
+	        removeLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
+	        removeLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
+	        gameObject.AddComponent(removeLabel);
+		}
+
+		scroll.AddElement(button);
+
+		return true;
     }
 
-    public void UpdateView()
+    public void CreateTreeRecursive(GameObject currentObject, int indent)
     {
-        // remove all UI from hierarchy
-        foreach (int elem in scrollView.contents.ToList())
-        {
-            UIElement element = UIManager.FindFromRID(elem);
-
-            if (element == null) continue;
-
-            element.gameObject.RemoveComponent(element);
-        }
-
-        scrollView.contents.Clear();
-
-        // add back new, updated UI
-        List<GameObject> allObjects = TraverseForChildren(Game.instance.root).SkipLast(1).ToList();
-
-        foreach (GameObject obj in allObjects)
-        {
-            if (obj.tag == "EditorObject" || obj.tag == "HierarchyHidden")
-                continue;
-            
-            AddHierarchyObject(obj);
-        }
-
-        selectedID = -1;
+    	foreach (GameObject go in currentObject.immediateChildren)
+    	{
+    		if (CreateObjectButton(go, indent))
+    			CreateTreeRecursive(go, indent+1);
+    	}
     }
 
-    private void AddHierarchyObject(GameObject go)
+    private void HierarchySelectPressed(UIButton sender)
     {
-        UIButton button = new UIButton();
-        button.renderLayer = -1;
-        button.anchor = new Vector2(0.5f, 0.5f);
-        button.position = new UDim2(0.5f, 0.5f);
-        button.size = new UDim2(0.0f, 0.0f, 0, 100);
-        button.buttonPressed += ItemSelected;
-        button.metadata = new object[] { go.id };
-        gameObject.AddComponent(button);
-        
-        UILabel label = new UILabel();
-        label.renderLayer = 0;
-        label.anchor = new Vector2(0.5f, 0.5f);
-        label.position = new UDim2(0.5f, 0.5f);
-        label.size = new UDim2(1.0f, 1.0f);
-        label.text = go.name;
-        label.parent = button.rid;
-        gameObject.AddComponent(label);
+    	GameObject? go = sender.GetMeta<GameObject>();
 
-        scrollView.contents.Add(button.rid);
+    	if (go is null)
+    		return;
+
+    	if (go == selectedObject)
+    	{
+    		selectedObject = null;
+    		selectedButton?.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(211,125,199));
+    	}
+    	else
+    	{
+    		selectedObject = go;
+    		selectedButton?.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(211,125,199));
+    		selectedButton = sender;
+    		sender.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(88,132,220));
+    	}
+
+    	if (selectedObject is not null)
+    		onHierarchyObjectSelected.Invoke(selectedObject);
+
+    	ComponentView.instance.UpdateComponentView();
     }
 
-    public int selectedID = -1;
-    public int selectedObjID = -1;
-    private UITheme selectionTheme;
-    public event Action itemSelected = () => { };
-
-    private void ItemSelected(object? sender, EventArgs e)
-    {
-        SelectItem((UIButton)sender);
-    }
-
-    public void SelectItem(UIButton button, bool invokeSelectedEvent = true)
-    {
-        if (selectedID != -1)
-            ((UIButton)UIManager.FindFromRID(selectedID)).theme = UIManager.currentTheme;
-
-        if (selectedID == button.rid)
-        {
-            selectedID = -1;
-            selectedObjID = -1; // TODO: maybe this could cause bugs
-        }
-        else
-        {
-            selectedID = button.rid;
-            selectedObjID = button.GetMeta<int>();
-        }
-
-        if (selectedID != -1)
-            button.theme = selectionTheme;
-
-        if (invokeSelectedEvent)
-            itemSelected.Invoke();
-    }
-
-    public UIButton? GetHierarchyButtonForObject(GameObject go)
-    {
-        foreach (int elem in scrollView.contents)
-        {
-            UIButton element = (UIButton)UIManager.FindFromRID(elem);
-            if (element.GetMeta<int>() == go.id)
-            {
-                return element;
-            }
-        }
-
-        return null;
-    }
+    public override void OnTick(float dt) {}
+    public override void Cleanup() {}
 }

@@ -10,9 +10,12 @@ public class Renderable : Component
     public override void OnTick(float dt){}
     public override void Cleanup(){ Game.instance.RemoveRenderable(this); }
 
+    [HideFromInspector]
+    [DontSerialise]
     public int rid { get; set; } = -1;
     public int renderPass { get; set; } = 0;
-    public bool useTransparency { get; set; } = false;
+    [HideFromInspector]
+    public bool useTransparency { get; set; } = false; // I actually don't know what I was thinking when making this but im afraid to remove this just in case.
 
     protected Mesh? mesh;
 

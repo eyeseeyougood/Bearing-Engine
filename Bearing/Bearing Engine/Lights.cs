@@ -23,3 +23,8 @@ public class PointLight : Light
     public float intensity { get; set; } = 1;
     public float range { get; set; } = 10;
 }
+
+public class DirectionalLight : Light
+{
+    public float intensity { get; set; } = 1;
+}

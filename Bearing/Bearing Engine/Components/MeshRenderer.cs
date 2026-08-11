@@ -1,14 +1,20 @@
-﻿using Silk.NET.OpenGL;
+﻿using System.Text;
+using Silk.NET.OpenGL;
 
 namespace Bearing;
 
-public class MeshRenderer : Renderable
+public class MeshRenderer : Renderable, IBSTSerialisable
 {
     protected bool setup3DMatrices = true;
 
-    public Texture texture0;
-    public Texture texture1;
-    public Texture texture2;
+    public bool drawOnTop { get; set; }
+
+    [DontSerialise]
+    public Texture texture0 { get; set; }
+    [DontSerialise]
+    public Texture texture1 { get; set; }
+    [DontSerialise]
+    public Texture texture2 { get; set; }
 
     protected uint ebo;
     protected uint vao;
@@ -43,6 +49,17 @@ public class MeshRenderer : Renderable
         base.OnLoad();
     }
 
+    public void Serialise(StringBuilder sb, object value)
+    {
+        MeshRenderer mr = (MeshRenderer)value;
+
+        sb.Append("(MeshRenderer:\"");
+        sb.Append(mr.GetMesh().name);
+        sb.Append("\"){");
+        SceneLoader.SerialiseProperties(sb, mr);
+        sb.Append("}");
+    }
+
     public override void OnTick(float dt)
     {
     }
@@ -50,6 +67,11 @@ public class MeshRenderer : Renderable
     public override unsafe void Render()
     {
         GL GL = GLContext.gl;
+
+        if (drawOnTop)
+            GL.Disable(GLEnum.DepthTest);
+        else
+            GL.Enable(GLEnum.DepthTest);
 
         material.Use();
 

@@ -119,6 +119,31 @@ public static class Extensions
         return (T)m.metadata[index];
     }
 
+    public static void AddMeta(this IMetadata m, params object[] meta)
+    {
+        List<object> clone = m.metadata.ToList();
+        clone.AddRange(meta);
+        m.metadata = clone.ToArray();
+    }
+
+    public static string ElementsToString(this object[] array)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        sb.Append('{');
+        foreach (object o in array)
+        {
+            sb.Append(o.ToString());
+            sb.Append(',');
+            sb.Append(' ');
+        }
+        if (sb.Length > 1)
+            sb.Remove(sb.Length-2, 2);
+        sb.Append('}');
+
+        return sb.ToString();
+    }
+
     public static BulletSharp.Math.Vector3 ToBulletVector(this Vector3 vector)
     {
         return new BulletSharp.Math.Vector3(vector.X, vector.Y, vector.Z);
@@ -162,12 +187,20 @@ public static class Extensions
 
     public static Quaternion LookAt(Vector3 start, Vector3 target)
     {
-        Vector3 diff = (start - target).Normalized();
+        Vector3 diff = (target - start).Normalized();
 
-        Vector3 right = Vector3.Cross(Vector3.UnitY, diff);
-        Vector3 up = Vector3.Cross(diff, right);
+        Vector3 up = MathF.Abs(Vector3.Dot(diff, Vector3.UnitY)) > 0.999f
+            ? Vector3.UnitZ
+            : Vector3.UnitY;
 
-        Quaternion rot = new Matrix3(right.X, right.Y, right.Z, up.X, up.Y, up.Z, diff.X, diff.Y, diff.Z).ExtractRotation();
+        Vector3 right = Vector3.Cross(up, diff).Normalized();
+        up = Vector3.Cross(diff, right);
+
+        Quaternion rot = new Matrix3(
+            right.X, right.Y, right.Z,
+            up.X,    up.Y,    up.Z,
+            diff.X,  diff.Y,  diff.Z
+        ).ExtractRotation();
 
         return rot;
     }
@@ -354,9 +387,10 @@ public static class Extensions
 
         (Vector3, Vector3) bbSize = mesh.GetBoundingBox();
 
-        Vector3 pos = transform.position;
+        Vector3 pos = transform.worldPosition;
+        Vector3 scale = transform.worldScale;
 
-        if (Extensions.RayAABBIntersection(ray, bbSize.Item1 + pos, bbSize.Item2 + pos, out float d, out Vector3 p))
+        if (Extensions.RayAABBIntersection(ray, bbSize.Item1*scale + pos, bbSize.Item2*scale + pos, out float d, out Vector3 p))
         {
             if (Extensions.RayMeshIntersection(mesh, transform, ray))
             {
@@ -404,18 +438,16 @@ public static class Extensions
         return result;
     }
 
-    // Möller–Trumbore implementation - more accurate than the previous method
+    // Möller-Trumbore implementation - more accurate than the previous method
     public static bool RayTriangleIntersection(Vector3 p1, Vector3 p2, Vector3 p3, Ray ray)
     {
-        const float EPSILON = 0.000001f;
-
         Vector3 edge1 = p2 - p1;
         Vector3 edge2 = p3 - p1;
 
         Vector3 h = Vector3.Cross(ray.direction, edge2);
         float a = Vector3.Dot(edge1, h);
 
-        if (MathF.Abs(a) < EPSILON)
+        if (MathF.Abs(a) < float.Epsilon)
             return false;
 
         float f = 1.0f / a;
@@ -433,7 +465,7 @@ public static class Extensions
 
         float t = f * Vector3.Dot(edge2, q);
 
-        return t > EPSILON;
+        return t > float.Epsilon;
     }
 
     public static bool RayQuadIntersection(Vector3 p1, Vector3 p2, Vector3 p3, Ray ray)
@@ -475,46 +507,38 @@ public static class Extensions
         Vector3 d = ray.direction;
 
         intersectionPoint = new Vector3(float.NaN, float.NaN, float.NaN);
-        intersectionDepth = 0.0f;             // Start with the minimum distance (can be -FLT_MAX for entire ray)
-        float tmax = float.MaxValue;    // Maximum allowable distance for the ray (segment length or ∞)
+        intersectionDepth = 0.0f;
+        float tmax = float.MaxValue;
 
-        // Iterate over each axis (x, y, z)
         for (int i = 0; i < 3; i++)
         {
-            // If the ray is parallel to the slab (AABB plane pair)
             if (Math.Abs(d[i]) < float.Epsilon)
             {
-                // If the origin is outside the slab, there's no intersection
                 if (p[i] < aabbMin[i] || p[i] > aabbMax[i])
                     return false;
             }
             else
             {
-                // Compute the intersection t-values for the near and far planes of the slab
                 float ood = 1.0f / d[i];
                 float t1 = (aabbMin[i] - p[i]) * ood;
                 float t2 = (aabbMax[i] - p[i]) * ood;
 
-                // Ensure t1 is the intersection with the near plane, and t2 with the far plane
                 if (t1 > t2)
                 {
-                    float temp = t1; // Swap t1 and t2
+                    float temp = t1;
                     t1 = t2;
                     t2 = temp;
                 }
 
-                // Update intersectionDepth and tmax to compute the intersection interval
                 intersectionDepth = Math.Max(intersectionDepth, t1);
                 tmax = Math.Min(tmax, t2);
 
-                // If the interval becomes invalid, there is no intersection
                 if (intersectionDepth > tmax)
                     return false;
             }
         }
 
-        // If we reach here, the ray intersects the AABB on all 3 axes
-        intersectionPoint = p + d * intersectionDepth; // Compute the intersection point
+        intersectionPoint = p + d * intersectionDepth;
         return true;
     }
 

@@ -88,9 +88,13 @@ public class SpriteRenderer : Renderable
         material.Use();
 
         GL.DrawElements(PrimitiveType.Triangles, (uint)mesh.indices.Length, DrawElementsType.UnsignedInt, (void*)0);
+
+        AfterRender();
     }
 
     protected virtual void BeforeRender() { }
+
+    protected virtual void AfterRender() { }
 
     public override void Cleanup()
     {

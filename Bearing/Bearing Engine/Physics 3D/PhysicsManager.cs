@@ -17,6 +17,8 @@ public static class PhysicsManager
     public static float gravity { get; private set; } = -9.81f;
     public static bool simulating = true;
 
+    public static event Action<float> onPhysicsStep = (dt)=>{};
+
     public static void Init()
     {
         var collisionConfig = new DefaultCollisionConfiguration();
@@ -43,6 +45,8 @@ public static class PhysicsManager
         if (simulating)
             world.StepSimulation(delta, 10, delta / 10f);
         
+        onPhysicsStep.Invoke(delta);
+
         // Get updated cube position
         foreach (GameObject sh in physicsObjects.ToList())
         {

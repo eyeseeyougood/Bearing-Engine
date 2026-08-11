@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Silk.NET.Input;
 
 namespace Bearing;
 
 public static class UIManager
 {
     public static List<UIElement> uiElements = new List<UIElement>();
+    private static List<UIElement> hoveredObjects = new List<UIElement>();
 
     public static event EventHandler<string> uiEvent = (i,v)=>{};
 
@@ -18,10 +20,6 @@ public static class UIManager
     public static UITheme currentTheme = new UITheme();
 
     public static bool cursorOverUI = false;
-    /// <summary>
-    /// This stores the object that the mouse is currently using
-    /// </summary>
-    public static object mouseUsingObject;
 
     public static Mesh2D quadMeshCache = new Mesh2D(Resource.GetModel("eng/Quad.obj"));
 
@@ -57,6 +55,22 @@ public static class UIManager
         return null;
     }
 
+    public static UIElement? GetHoveredElement()
+    {
+        if (hoveredObjects.Count == 0)
+            return null;
+
+        return hoveredObjects.Last();
+    }
+
+    public static void OnMouseEvent()
+    {
+        if (GetHoveredElement() is not null)
+        {
+            GetHoveredElement()?.OnMouseEvent();
+        }
+    }
+
     public static void RenderUI()
     {
         foreach (UIElement element in uiElements.ToList())
@@ -67,7 +81,7 @@ public static class UIManager
         // hover
         foreach (var hO in hoveredObjects.ToList())
         {
-            if (!((UIElement)hO).visible)
+            if (!((UIElement)hO).active)
             {
                 hoveredObjects.Remove(hO);
             }
@@ -75,17 +89,19 @@ public static class UIManager
         cursorOverUI = hoveredObjects.Count > 0;
     }
 
-    private static List<object> hoveredObjects = new List<object>();
     public static void SendEvent(object sender, string eventType)
     {
         if (eventType == "MouseEnter")
         {
-            if (((UIElement)sender).visible)
-                hoveredObjects.Add(sender);
+            if (((UIElement)sender).active)
+            {
+                hoveredObjects.Add((UIElement)sender);
+                hoveredObjects.Sort(elementComp);
+            }
         }
         if (eventType == "MouseExit")
         {
-            hoveredObjects.Remove(sender);
+            hoveredObjects.Remove((UIElement)sender);
         }
 
         cursorOverUI = hoveredObjects.Count > 0;
@@ -93,8 +109,14 @@ public static class UIManager
         uiEvent.Invoke(sender, eventType);
     }
 
-    public static void PlaySFX(Resource resource)
+    public static void PlaySFX(Resource? resource)
     {
+        if (resource is null)
+        {
+            Logger.Log("Warning: potentially unwanted behaviour! Attempted to play null audio resource.");
+            return;
+        }
+
         sfxSource.resource = resource;
         sfxSource.Play();
     }
@@ -104,6 +126,9 @@ public static class UIManager
         // audio init
         sfxSource = new AudioSource();
         Game.instance.root.AddComponent(sfxSource);
+
+        // mouse event handling
+        Input.onMouseEvent += OnMouseEvent;
     }
 
     public static class UITextHelper

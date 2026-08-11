@@ -20,17 +20,33 @@ public static class Logger
         Log($"Counted \"{key}\": {counts[key]} times");
     }
 
-    private static float startTime = 0;
-    public static void MeasureStart()
+    private static Dictionary<string, float> startTimes = new Dictionary<string, float>();
+    private static Dictionary<string, float> totalTime = new Dictionary<string, float>();
+    private static Dictionary<string, int> exeTimes = new Dictionary<string, int>();
+    public static void MeasureStart(string taskName = "Dafault Task")
     {
-        startTime = Time.now;
+        startTimes.Add(taskName, Time.now);
+
+        if (!exeTimes.ContainsKey(taskName))
+            exeTimes.Add(taskName, 0);
+
+        exeTimes[taskName]++;
     }
 
     public static void MeasureEnd(string taskName = "Default Task")
     {
-        float diff = Time.now - startTime;
+        float diff = Time.now - startTimes[taskName];
 
-        Log($"'{taskName}' Task took {diff}s");
+        startTimes.Remove(taskName);
+
+        if (!totalTime.ContainsKey(taskName))
+            totalTime.Add(taskName, 0);
+
+        totalTime[taskName] += diff;
+
+        Log($"'{taskName}' Task took {diff}s, and ran {exeTimes[taskName]} times.");
+
+        Log($"Total time consumption of '{taskName}' Task is {totalTime[taskName]}s");
     }
 
     public static void Log(object message)

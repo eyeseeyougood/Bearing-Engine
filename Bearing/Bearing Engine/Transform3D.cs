@@ -65,12 +65,54 @@ public class Transform3D : Transform
         }
     }
 
+    [HideFromInspector]
+    [DontSerialise]
     public Vector3 worldPosition
     {
         get { return GetModelMatrix().ExtractTranslation(); }
         set
         {
             position = (new Vector4(value, 1.0f) * ((Transform3D)parent).GetModelMatrix().Inverted()).Xyz;
+        }
+    }
+
+    [HideFromInspector]
+    [DontSerialise]
+    public Vector3 worldScale
+    {
+        get { return GetModelMatrix().ExtractScale(); }
+        set
+        {
+            if (parent is null)
+            {
+                scale = value;
+            }
+            else
+            {
+                scale = value / ((Transform3D)parent).worldScale;;
+            }
+        }
+    }
+
+    [HideFromInspector]
+    [DontSerialise]
+    public Vector3 worldERotation
+    {
+        get { return GetModelMatrix().ExtractRotation().ToEulerAngles(); }
+        set
+        {
+            eRotation = (new Vector4(value, 1.0f) * ((Transform3D)parent).GetModelMatrix().Inverted()).Xyz;
+        }
+    }
+
+    [HideFromInspector]
+    [DontSerialise]
+    public Quaternion worldQRotation
+    {
+        get { return GetModelMatrix().ExtractRotation(); }
+        set
+        {
+            qRotation = value * ((Transform3D)parent).GetModelMatrix().Inverted().ExtractRotation();
         }
     }
 
@@ -116,9 +158,7 @@ public class Transform3D : Transform
 
         if (parent != null)
         {
-            world *= Matrix4.CreateScale(((Transform3D)parent).scale);
-            world *= Matrix4.CreateFromQuaternion(((Transform3D)parent).qRotation);
-            world *= Matrix4.CreateTranslation(((Transform3D)parent).position);
+            world *= ((Transform3D)parent).GetModelMatrix();
         }
 
         return world;

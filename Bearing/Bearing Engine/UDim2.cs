@@ -24,6 +24,9 @@ public struct UDim2
     public UDim2(float scaleX, float scaleY) { scale = new Vector2(scaleX, scaleY); }
     public UDim2(float scaleX, float scaleY, float offsetX, float offsetY) { scale = new Vector2(scaleX, scaleY); offset = new Vector2(offsetX, offsetY); }
 
+    ///<summary>
+    ///Converts from UDim2 to a Vector2 where the x and y are 0-1 values indicating percentage of the given screenSize.
+    ///</summary>
     public Vector2 Normalize(Vector2 screenSize)
     {
         return scale + (offset / screenSize);

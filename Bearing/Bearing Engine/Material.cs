@@ -15,7 +15,7 @@ public class ShaderParam // json bullshit
 
     public object GetData()
     {
-        float f(object x){if (x is double) {return Convert.ToSingle((double)x);} else {return (float)x;} }
+        float f(object x){if (x is double || x is int) {return Convert.ToSingle(x);} else {return (float)x;} }
 
         switch (value.Count)
         {

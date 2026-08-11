@@ -15,10 +15,20 @@ struct PointLight {
     float range;
 };
 
+struct DirectionalLight {
+    vec3 direction;
+    vec4 col;
+    float intensity;
+};
+
 #define NO_POINT_LIGHTS 100
+#define NO_DIRECTIONAL_LIGHTS 3
 
 uniform PointLight pointLights[NO_POINT_LIGHTS];
 uniform int numPointLights;
+
+uniform DirectionalLight directionalLights[NO_DIRECTIONAL_LIGHTS];
+uniform int numDirectionalLights;
 
 void main()
 {
@@ -53,9 +63,37 @@ void main()
 
         float lightingDivision = pow(length(pos - lightPos), 2)/lightRange;
         lightingDivision = max(0.9, lightingDivision);
-        final = final + vec4(lightColor.xyz*(diffuse+ambient+specular) / lightingDivision, 1.0);
+        final = final + (vec4(lightColor.xyz*(diffuse+ambient+specular) / lightingDivision, 1.0))/numPointLights;
     }
-    final = final / numPointLights;
+
+    for (int i = 0; i < numDirectionalLights; i++)
+    {
+        vec3 lightDirection = directionalLights[i].direction;
+        vec4 lightColor = directionalLights[i].col;
+        float lightIntensity = directionalLights[i].intensity;
+
+        float ambient = (lightIntensity);
+        ambient = min(ambient, 2);
+
+        vec3 normal = normalize(Normal);
+
+        float diffuse = max(dot(normal, lightDirection), 0.0) * lightIntensity;
+
+        float specularLight = 0.5;
+
+        float specular = 0.0;
+        if (diffuse != 0.0)
+        {
+            vec3 viewDirection = normalize(cameraPos - pos);
+
+            vec3 halfwayVec = normalize(viewDirection + lightDirection);
+
+            float specAmount = pow(max(dot(normal, halfwayVec), 0.0), 16);
+            specular = specAmount * specularLight * lightIntensity;
+        }
+
+        final = final + (vec4(lightColor.xyz*(diffuse+ambient+specular), 1.0)) / numDirectionalLights;
+    }
 
     final = vec4(final.xyz, 1.0);
 

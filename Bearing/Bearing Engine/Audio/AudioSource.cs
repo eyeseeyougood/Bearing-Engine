@@ -9,8 +9,8 @@ namespace Bearing;
 
 public class AudioSource : Component
 {
-    private Resource _resource = new Resource();
-    public Resource resource
+    private Resource? _resource = null;
+    public Resource? resource
     {
         get
         {
@@ -18,7 +18,13 @@ public class AudioSource : Component
         }
         set
         {
-            bool same = _resource.fullpath == value.fullpath;
+            if (value is null)
+            {
+                _resource = null;
+                return;
+            }
+
+            bool same = _resource?.fullpath == value.fullpath;
             _resource = value;
 
             if (!same)
@@ -29,8 +35,30 @@ public class AudioSource : Component
     }
     public bool playOnLoad { get; set; } = false;
     public bool loop { get; set; } = false;
-    public float volume { get; set; } = 1.0f;
-    public float pitch { get; set; } = 1.0f;
+
+    private float _volume = 1.0f;
+    public float volume
+    {
+        get{
+            return _volume;
+        }
+        set{
+            _volume = value;
+            AudioManager.GetAL().SetSourceProperty(source, SourceFloat.Gain, _volume);
+        }
+    }
+
+    private float _pitch = 1.0f;
+    public float pitch
+    {
+        get{
+            return _pitch;
+        }
+        set{
+            _pitch = value;
+            AudioManager.GetAL().SetSourceProperty(source, SourceFloat.Pitch, _pitch);
+        }
+    }
 
     public AudioStream? stream;
     private uint source;
@@ -97,10 +125,8 @@ public class AudioSource : Component
 
     private void InitSource()
     {
-        if (resource.fullpath == null)
-        {
+        if (resource == null)
             return;
-        }
 
         Cleanup();
 

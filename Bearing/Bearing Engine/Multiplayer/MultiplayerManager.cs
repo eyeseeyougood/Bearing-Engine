@@ -155,6 +155,7 @@ public static class MultiplayerManager
 
     public static void Cleanup()
     {
-        netModel.Cleanup();
+        if (netModel is not null)
+            netModel.Cleanup();
     }
 }

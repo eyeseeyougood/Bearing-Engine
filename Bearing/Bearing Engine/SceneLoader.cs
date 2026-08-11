@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
@@ -345,6 +346,8 @@ public static class SceneLoader
 
     #endregion
 
+    #region Deserialisation
+
     private enum TokenType { EOS, Identifier, Object, LBracket, RBracket, LCurly, RCurly, LSquare, RSquare };
     
     private class Token()
@@ -475,6 +478,13 @@ public static class SceneLoader
             case '[':
                 result.AddRange(TokeniseList(cs));
                 break;
+            case 'N':
+                cs.Expect('N', true);
+                cs.Expect('U');
+                cs.Expect('L');
+                cs.Expect('L');
+                result.Add(new Token(){ type = TokenType.Object, value = null });
+                break;
             case 't':
                 cs.Expect('t', true);
                 cs.Expect('r');
@@ -596,24 +606,18 @@ public static class SceneLoader
         private List<Token> tokens = new List<Token>();
         private int currentIndex;
 
-        private static void LogTokens(List<Token> tokens)
+        public static TokenStream FromString(String serialisedString)
         {
-            int c = 0;
-            foreach (Token t in tokens)
-            {
-                c++;
-            }
+            TokenStream ts = new TokenStream();
+
+            ts.tokens = Tokenise(Preprocess(serialisedString.Replace("\n","").Replace(""+(char)13, "").Replace("\t","")));
+
+            return ts;
         }
 
         public static TokenStream FromResource(Resource resource)
         {
-            TokenStream ts = new TokenStream();
-
-            ts.tokens = Tokenise(Preprocess(Resources.ReadAllText(resource).Replace("\n","").Replace(""+(char)13, "").Replace("\t","")));
-
-            LogTokens(ts.tokens);
-
-            return ts;
+            return FromString(Resources.ReadAllText(resource));
         }
 
         public Token Peek()
@@ -720,24 +724,36 @@ public static class SceneLoader
 
             Type propType = objType.GetProperty(prop)?.PropertyType;
 
+            if (value is null)
+            {
+                objType.GetProperty(prop)?.SetValue(result, null);
+                continue;
+            }
+
             if (value.GetType() == typeof(List<object>))
             {
                 // if it's a list then we have to convert the type from the generic List<object> to the type that the property expects
-
-                Type generic = propType.GetGenericArguments()[0];
-
-                Type newListType = typeof(List<>).MakeGenericType(generic);
-                IList? newList = (IList?)Activator.CreateInstance(newListType);
-
-                if (newList is null)
-                    throw new Exception($"Failed to create a list of type: {newListType.FullName}");
-
-                foreach (object val in (List<object>)value)
+                if (propType != typeof(object[])) // an edge case for object[] and which is not generic and needs no conversion
                 {
-                    newList.Add(val);
-                }
+                    Type generic = propType.GetGenericArguments()[0];
 
-                value = newList;
+                    Type newListType = typeof(List<>).MakeGenericType(generic);
+                    IList? newList = (IList?)Activator.CreateInstance(newListType);
+
+                    if (newList is null)
+                        throw new Exception($"Failed to create a list of type: {newListType.FullName}");
+
+                    foreach (object val in (List<object>)value)
+                    {
+                        newList.Add(val);
+                    }
+
+                    value = newList;
+                }
+                else
+                {
+                    value = ((List<object>)value).ToArray();
+                }
             }
 
             objType.GetProperty(prop)?.SetValue(result, value);
@@ -752,4 +768,170 @@ public static class SceneLoader
     {
         return (GameObject)ParseObject(TokenStream.FromResource(resource));
     }
+
+    public static GameObject DeserialiseGameObject(string serialisedString)
+    {
+        return (GameObject)ParseObject(TokenStream.FromString(serialisedString));
+    }
+
+    #endregion
+
+    #region Serialisation
+
+    public enum SceneSerialisationStyle
+    {
+        NoSpaces = 0,
+        Spaces = 1,
+    }
+
+    public static SceneSerialisationStyle serialisationStyle = SceneSerialisationStyle.NoSpaces;
+
+    public static void SerialiseValue(StringBuilder sb, object value, params object[] ignoreInstances)
+    {
+        if (value is null)
+        {
+            sb.Append("NULL,");
+            return;
+        }
+
+        switch (value.GetType().Name)
+        {
+            case "String":
+                sb.Append("\"");
+                sb.Append(value.ToString());
+                sb.Append("\"");
+                break;
+            case "Single":
+                sb.Append(value.ToString());
+                break;
+            case "Int32":
+                sb.Append(value.ToString());
+                break;
+            case "Boolean":
+                sb.Append(value.ToString()?.ToLower());
+                break;
+            case "Vector3":
+                SerialiseVector3(sb, (Vector3)value);
+                break;
+            case "Vector2":
+                SerialiseVector2(sb, (Vector2)value);
+                break;
+            case "Quaternion":
+                SerialiseQuaternion(sb, (Quaternion)value);
+                break;
+            case "Object[]":
+                sb.Append("[");
+                foreach (object v in (object[])value)
+                {
+                    SerialiseValue(sb, v, ignoreInstances);
+                }
+                sb.Append("]");
+                break;
+            case "List`1":
+                sb.Append("[");
+                foreach (object v in (IList)value)
+                {
+                    SerialiseValue(sb, v, ignoreInstances);
+                }
+                sb.Append("]");
+                break;
+            default:
+                if (value.GetType().GetCustomAttribute<DontSerialiseAttribute>() is not null)
+                    return;
+
+                if (ignoreInstances.Contains(value))
+                    return;
+
+                if (value.GetType().GetInterface("IBSTSerialisable") is not null)
+                {
+                    ((IBSTSerialisable)value).Serialise(sb, value);
+                    return;
+                }
+
+                SerialiseObject(sb, value);
+                break;
+        }
+        sb.Append(",");
+    }
+
+    public static void SerialiseProperties(StringBuilder sb, object obj, params object[] ignoreInstances)
+    {
+        foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
+        {
+            if (propertyInfo.GetCustomAttribute<DontSerialiseAttribute>() is not null)
+                continue;
+
+            if (propertyInfo.SetMethod is null)
+                continue;
+
+            if (ignoreInstances.Contains(propertyInfo.GetValue(obj)))
+                continue;
+
+            sb.Append(propertyInfo.Name + ":");
+            if (serialisationStyle == SceneSerialisationStyle.Spaces)
+                sb.Append(" ");
+            SerialiseValue(sb, propertyInfo.GetValue(obj), ignoreInstances);
+            if (serialisationStyle == SceneSerialisationStyle.Spaces)
+                sb.Append(" ");
+        }
+    }
+
+    public static void SerialiseObject(StringBuilder sb, object obj)
+    {
+        sb.Append("(");
+        sb.Append(obj.GetType().Name);
+        sb.Append("){");
+
+        SerialiseProperties(sb, obj);
+
+        sb.Append("}");
+    }
+
+    public static void SerialiseVector3(StringBuilder sb, Vector3 value)
+    {
+        sb.Append("(Vector3:");
+        sb.Append(value.X.ToString());
+        sb.Append(",");
+        sb.Append(value.Y.ToString());
+        sb.Append(",");
+        sb.Append(value.Z.ToString());
+        sb.Append("){}");
+    }
+    
+    public static void SerialiseVector2(StringBuilder sb, Vector2 value)
+    {
+        sb.Append("(Vector2:");
+        sb.Append(value.X.ToString());
+        sb.Append(",");
+        sb.Append(value.Y.ToString());
+        sb.Append("){}");
+    }
+
+    public static void SerialiseQuaternion(StringBuilder sb, Quaternion value)
+    {
+        sb.Append("(Quaternion:");
+        sb.Append(value.X.ToString());
+        sb.Append(",");
+        sb.Append(value.Y.ToString());
+        sb.Append(",");
+        sb.Append(value.Z.ToString());
+        sb.Append(",");
+        sb.Append(value.W.ToString());
+        sb.Append("){}");
+    }
+
+    public static string SerialiseGameObject(GameObject go, params object[] ignoreInstances)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        sb.Append("(GameObject){");
+
+        SerialiseProperties(sb, go, ignoreInstances);
+
+        sb.Append("}");
+
+        return sb.ToString();
+    }
+
+    #endregion
 }

@@ -5,6 +5,7 @@ public class Transform
     private Transform? _parent;
 
     [HideFromInspector]
+    [DontSerialise]
     public Transform? parent
     {
         get { return _parent; }

@@ -31,6 +31,11 @@ public static class Program
         window.Run();
     }
 
+    public static Vector2i GetClientSize()
+    {
+        return new Vector2i(window.Size.X, window.Size.Y);
+    }
+
     public static void OnLoad()
     {
         GLContext.gl = window.CreateOpenGL();

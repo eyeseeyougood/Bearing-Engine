@@ -32,7 +32,7 @@ public class Skybox : MeshRenderer
             shader = new Shader("eng/skybox.vert", "eng/skybox.frag"),
             parameters = new List<ShaderParam>()
             {
-                new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
+                new ShaderParam() { name = "mainColour", value = new List<object> {1.0f, 1.0f, 1.0f, 1.0f} },
             },
         };
 
@@ -41,8 +41,6 @@ public class Skybox : MeshRenderer
         setup3DMatrices = false;
 
         base.OnLoad();
-
-        Logger.Log("initialised skybox!");
     }
 
     public override void OnTick(float dt)

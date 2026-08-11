@@ -9,7 +9,7 @@ public class Game
 {
     public static Game instance = null;
 
-    public Scene root;
+    public GameObject root;
 
     private List<Renderable> renderables = new List<Renderable>();
     // this code is currently undergoing a refactor, and so doesnt make loads of sense
@@ -21,6 +21,7 @@ public class Game
 
     public event Action rootLoaded = () => {};
     public event Action gameTick = () => {};
+    public event Action beforeRender = () => {};
     public event Action onTitleChangeableChanged = () => {};
 
     public bool titleChangeable { get; private set; } = false;
@@ -32,8 +33,8 @@ public class Game
     public void AddRenderable(Renderable renderable)
     {
         if (!renderables.Contains(renderable))
+        // TODO: Handle transparent renderables 
             renderables.Add(renderable);
-        // TODO: Handle transparent renderables
     }
 
     public void RemoveRenderable(Renderable renderable)
@@ -60,6 +61,8 @@ public class Game
     {
         instance = this;
 
+        ClientSize = Program.GetClientSize();
+
         camera = new Camera(new Vector3(0,2,4f), 8f/6f);
 
         // init stuff
@@ -79,7 +82,7 @@ public class Game
         Physics2D.Physics2DManager.Init();
 
         GameObject go = SceneLoader.Load(Resource.FromPath(@"./Resources/Scene/main.bst"));
-        root = new Scene(go);
+        root = go;
         go.Load();
 
         rootLoaded.Invoke();
@@ -120,6 +123,8 @@ public class Game
     public void OnRender(double dt)
     {
         GL GL = GLContext.gl;
+
+        beforeRender.Invoke();
 
         GL.Enable(EnableCap.CullFace);
         GL.Enable(EnableCap.DepthTest);

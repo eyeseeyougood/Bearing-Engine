@@ -3,6 +3,7 @@ using StbImageSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
@@ -18,6 +19,12 @@ public class Texture
     public byte[] GetData()
     {
         return data;
+    }
+
+    public static Texture CreateEmpty(int width, int height, TextureWrapMode wrapMode = TextureWrapMode.Repeat, TextureMinFilter minF = TextureMinFilter.Linear, TextureMagFilter magF = TextureMagFilter.Linear)
+    {
+        byte[] bytes = new byte[width * height * 4];
+        return FromData(width, height, bytes, wrapMode, minF, magF);
     }
 
     public static unsafe Texture FromData(int width, int height, byte[] data, TextureWrapMode wrapMode = TextureWrapMode.Repeat, TextureMinFilter minF = TextureMinFilter.Linear, TextureMagFilter magF = TextureMagFilter.Linear)
@@ -116,6 +123,59 @@ public class Texture
         GL.GenerateMipmap(TextureTarget.Texture2D);
 
         return result;
+    }
+
+    public BearingColour Sample(int x, int y)
+    {
+        if (data.Length == 0)
+            return BearingColour.Transparent;
+
+        x = Math.Clamp(x, 0, _width - 1);
+        y = Math.Clamp(y, 0, _height - 1);
+
+        int index = (y * _width + x) * 4;
+
+        return BearingColour.FromZeroTo255(data[index], data[index + 1], data[index + 2], data[index + 3]);
+    }
+
+    public BearingColour SampleUVRepeat(Vector2 uv)
+    {
+        if (data.Length == 0)
+            return BearingColour.Transparent;
+
+        float u = uv.X;
+        float v = uv.Y;
+
+        u = u - (float)Math.Floor(u);
+        v = v - (float)Math.Floor(v);
+
+        int x = (int)(u * _width);
+        int y = (int)(v * _height);
+
+        x %= _width;
+        y %= _height;
+
+        return Sample(x,y);
+    }
+
+    public void SetPixel(int x, int y, BearingColour pixelColour)
+    {
+        int index = (y * _width + x) * 4;
+
+        Vector4 pixel = pixelColour.GetZeroTo255A();
+
+        data[index] = (byte)pixel.X;
+        data[index+1] = (byte)pixel.Y;
+        data[index+2] = (byte)pixel.Z;
+        data[index+3] = (byte)pixel.W;
+    }
+
+    public unsafe void ApplyChanges()
+    {
+        Use(TextureUnit.Texture0);
+
+        fixed (void* ptr = data)
+            GLContext.gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)_width, (uint)_height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
     }
 
     public Texture(uint glHandle)

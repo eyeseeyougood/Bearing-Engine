@@ -14,17 +14,20 @@ public static class Input
     public static int currentKeyboard = 0;
     public static int currentMouse = 0;
     public static event Action<string> onCharacterPressed = (i) => { };
-    public static List<string> mouseOccupiedBy = new List<string>(); // used to add tags when a system is using the mouse for something
-    // TODO: Really should get around to unifying this whole mouse occupied stuff here and with UIManager. It is a mess.
+    public static event Action onMouseEvent = () => { };
 
     public static void Init(IInputContext context)
     {
         input = context;
+
+        input.Mice[currentMouse].Scroll += (i,j)=>{onMouseEvent.Invoke();};
+        input.Mice[currentMouse].MouseDown += (i,j)=>{onMouseEvent.Invoke();};
+        input.Mice[currentMouse].MouseUp += (i,j)=>{onMouseEvent.Invoke();};
     }
 
     public static void LinkToGame()
     {
-        input.Keyboards[0].KeyChar += Game.instance.OnTextInput;
+        input.Keyboards[currentKeyboard].KeyChar += Game.instance.OnTextInput;
     }
 
     private static Vector2 prevMousePos = Vector2.Zero;

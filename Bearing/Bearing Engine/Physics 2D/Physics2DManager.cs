@@ -18,6 +18,8 @@ public static class Physics2DManager
 
 	public static bool simulating = true;
 
+	public static event Action<float> onPhysicsStep = (dt)=>{};
+
 	public static void Init()
 	{
 		B2WorldDef def = new B2WorldDef();
@@ -43,6 +45,8 @@ public static class Physics2DManager
 	{
 		if (simulating)
 			b2World_Step(world, dt, 4);
+
+		onPhysicsStep.Invoke(dt);
 
         foreach (GameObject sh in physicsObjects.ToList())
         {

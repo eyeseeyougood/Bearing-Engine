@@ -13,14 +13,20 @@ public class GameObject : IMetadata
 {
     public string name { get; set; } = "";
     public string tag { get; set; } = "";
+
+    [HideFromInspector]
+    [DontSerialise]
     public int id { get; private set; }
 
     public object[] metadata { get; set; } = new object[0];
 
+    [HideFromInspector]
     public Transform transform { get; set; }
 
+    [HideFromInspector]
     public List<GameObject> immediateChildren { get; set; }
 
+    [HideFromInspector]
     public List<Component> components { get; set; }
 
     private GameObject _parent = null;
@@ -49,6 +55,16 @@ public class GameObject : IMetadata
         Cleanup();
     }
 
+    public Transform2D Transform2D()
+    {
+        return (Transform2D)transform;
+    }
+
+    public Transform3D Transform3D()
+    {
+        return (Transform3D)transform;
+    }
+
     public override string ToString()
     {
         return base.ToString() + " '" + name + "'";
@@ -68,6 +84,30 @@ public class GameObject : IMetadata
         GameObject? result = null;
 
         result = Game.instance.root.GetChildFromName(name);
+
+        return result;
+    }
+
+    public static GameObject? Find(int id, GameObject? searchFrom = null)
+    {
+        GameObject? result = null;
+
+        if (searchFrom is null)
+            result = Game.instance.root.GetChildFromID(id);
+        else
+            result = searchFrom.GetChildFromID(id);
+
+        return result;
+    }
+
+    public static GameObject? Find(string name, GameObject? searchFrom = null)
+    {
+        GameObject? result = null;
+
+        if (searchFrom is null)
+            result = Game.instance.root.GetChildFromName(name);
+        else
+            result = searchFrom.GetChildFromName(name);
 
         return result;
     }
@@ -111,6 +151,23 @@ public class GameObject : IMetadata
         return result;
     }
 
+    ///<summary>
+    ///This gets all of the immediate children of this object AND all of the sub children recursively
+    ///</summary>
+    public GameObject[] GetAllChildren()
+    {
+        List<GameObject> result = new List<GameObject>();
+
+        result.AddRange(immediateChildren);
+
+        foreach (GameObject child in immediateChildren)
+        {
+            result.AddRange(child.GetAllChildren());
+        }
+
+        return result.ToArray();
+    }
+
     private int currentCompID = -1;
     private int GetUniqueCompID()
     {
@@ -118,6 +175,7 @@ public class GameObject : IMetadata
         return currentCompID;
     }
 
+    [DontSerialise]
     public GameObject parent
     {
         get { return _parent; }
