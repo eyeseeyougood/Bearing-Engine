@@ -3,17 +3,20 @@ using OpenTK.Mathematics;
 
 namespace Bearing;
 
-public class LineRenderer3D : Renderable
+public class LineRenderer3D : Renderable, IBSTSerialisable
 {
     private List<Vector3> points = new List<Vector3>() {};
 
-    public float width = 1.0f;
+    public float width { get; set; } = 1.0f;
 
-    public bool drawOnTop;
+    public bool drawOnTop { get; set; } = false;
 
-    public Texture texture0;
-    public Texture texture1;
-    public Texture texture2;
+    [DontSerialise]
+    public Texture texture0 { get; set; }
+    [DontSerialise]
+    public Texture texture1 { get; set; }
+    [DontSerialise]
+    public Texture texture2 { get; set; }
 
     protected uint ebo;
     protected uint vao;
@@ -148,8 +151,6 @@ public class LineRenderer3D : Renderable
             pointer += 6;
         }
 
-        newMesh.name = "Generated Line Mesh";
-
         mesh = newMesh;
     }
 
@@ -173,6 +174,16 @@ public class LineRenderer3D : Renderable
     protected virtual void BeforeRender() { }
 
     protected virtual void AfterRender() { }
+
+    public void Serialise(System.Text.StringBuilder sb, object value)
+    {
+        MeshRenderer mr = (MeshRenderer)value;
+
+        sb.Append("(LineRenderer3D)");
+        sb.Append("{");
+        SceneLoader.SerialiseProperties(sb, mr);
+        sb.Append("}");
+    }
 
     public override void Cleanup()
     {

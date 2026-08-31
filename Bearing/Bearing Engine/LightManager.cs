@@ -18,6 +18,11 @@ public static class LightManager
         lights.Add(light);
     }
 
+    public static void RemoveLight(Light light)
+    {
+        lights.Remove(light);
+    }
+
     private static void AddPointLights(Material mat)
     {
         GL GL = GLContext.gl;
@@ -39,7 +44,7 @@ public static class LightManager
                 pointId++;
             }
         }
-        mat.SetShaderParameter("numPointLights", pointId+1);
+        mat.SetShaderParameter("numPointLights", pointId);
         mat.SetShaderParameter("cameraPos", Game.instance.camera.Position);
     }
 
@@ -56,6 +61,7 @@ public static class LightManager
             {
                 GL.UseProgram((uint)mat.shader.Handle);
                 Vector3 dir = ((Transform3D)pl.gameObject.transform).GetForward();
+                //Gizmos.CreateVector(-dir, pl.gameObject.Transform3D().position, 0.2f, BearingColour.White);
                 GL.Uniform3(mat.shader.GetUniformLoc($"directionalLights[{pointId}].direction"), dir.X, dir.Y, dir.Z);
                 Vector4 col = pl.colour.GetZeroToOneA();
                 GL.Uniform4(mat.shader.GetUniformLoc($"directionalLights[{pointId}].col"), col.X, col.Y, col.Z, col.W);
@@ -63,7 +69,7 @@ public static class LightManager
                 pointId++;
             }
         }
-        mat.SetShaderParameter("numDirectionalLights", pointId+1);
+        mat.SetShaderParameter("numDirectionalLights", pointId);
         mat.SetShaderParameter("cameraPos", Game.instance.camera.Position);
     }
 

@@ -59,6 +59,11 @@ public class UIElement : SpriteRenderer
             {
                 UIManager.SendEvent(this, "MouseExit");
             }
+
+            if (_active && mouseOver && mouseCaptureMode != UIMouseCaptureMode.PassThrough)
+            {
+                UIManager.SendEvent(this, "MouseEnter");
+            }
         }
     }
 
@@ -235,7 +240,7 @@ public class UIElement : SpriteRenderer
     {
         if (_parent == null) { _position = _setPos; return; }
 
-        Vector2 parentNormalisedScale = _parent.worldSize.Normalize(Game.instance.ClientSize);
+        Vector2 parentNormalisedScale = _parent.worldSize.Normalized(Game.instance.ClientSize);
 
         Vector2 scale = _setPos.scale
                       * parentNormalisedScale
@@ -253,7 +258,7 @@ public class UIElement : SpriteRenderer
     {
         if (_parent == null) { _size = _setSize; return; }
 
-        _size = new UDim2(_setSize.scale * (_parent.worldSize.Normalize(Game.instance.ClientSize)), _setSize.offset);
+        _size = new UDim2(_setSize.scale * (_parent.worldSize.Normalized(Game.instance.ClientSize)), _setSize.offset);
     }
 
     public void UpdateActive()
@@ -293,17 +298,14 @@ public class UIElement : SpriteRenderer
         float screenW = Game.instance.ClientSize.X;
         float screenH = Game.instance.ClientSize.Y;
 
-        if (!active)
-            return;
-
         // TODO: OPTIMISATION - getting bounds box
         bool m = Extensions.PointInQuad(Input.GetMousePosition(), GetScreenBoundingBox());
-        if (m && !mouseOver && mouseCaptureMode != UIMouseCaptureMode.PassThrough)
+        if (m && !mouseOver && mouseCaptureMode != UIMouseCaptureMode.PassThrough && active)
         {
             // mouse entered
             UIManager.SendEvent(this, "MouseEnter");
         }
-        else if (!m && mouseOver)
+        else if (!m && mouseOver && active)
         {
             // mouse left
             UIManager.SendEvent(this, "MouseExit");
@@ -467,6 +469,8 @@ public class UILabel : UIElement
 
     public bool fitHeightToWidth { get; set; } = true;
     public string font { get; set; } = "Arial";
+    public HorizontalAlignment horizontalAlignment { get; set; } = HorizontalAlignment.Centre;
+    public VerticalAlignment verticalAlignment { get; set; } = VerticalAlignment.Centre;
 
     private int _truncateThreshold = -1;
     public int truncateThreshold {
@@ -551,6 +555,9 @@ public class UILabel : UIElement
             material.SetShaderParameter("texSize", new Vector2(tex._width, tex._height));
         fitHeightToWidth = true;
         material.SetShaderParameter("fitToTexRatio", fitHeightToWidth ? 1:0);
+
+        Vector2 alignment = new Vector2((int)horizontalAlignment / 2f, (int)verticalAlignment / 2f);
+        material.SetShaderParameter("alignment", alignment);
     }
 }
 
@@ -838,9 +845,56 @@ public class UITextBox : UILabel
 ///</summary>
 public class UITextBox : UIButton
 {
-    public UITextBox(params object[] meta) : base(meta) {}
+    public UITextBox(params object[] meta) : base(meta)
+    {
+        label = new UILabel();
+        label.parent = rid;
+        label.position = new UDim2(0,0,10,10);
+        label.size = new UDim2(1,1,-20,-20);
+        label.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
+        label.text = text;
+    }
 
     public event Action<UITextBox> textSubmitted = (i) => {};
+
+    public bool useMultiline { get; set; } = false;
+    public bool useSubtleSelection { get; set; } = false;
+
+    public HorizontalAlignment _horizontalAlignment { get; set; } = HorizontalAlignment.Centre;
+    public HorizontalAlignment horizontalAlignment {
+        get {
+            return _horizontalAlignment;
+        }
+        set {
+            _horizontalAlignment = value;
+            if (label is not null)
+                label.horizontalAlignment = horizontalAlignment;
+        }
+    }
+    public VerticalAlignment _verticalAlignment { get; set; } = VerticalAlignment.Centre;
+    public VerticalAlignment verticalAlignment {
+        get {
+            return _verticalAlignment;
+        }
+        set {
+            _verticalAlignment = value;
+            if (label is not null)
+                label.verticalAlignment = verticalAlignment;
+        }
+    }
+
+    public new int renderLayer {
+        get {
+            return base.renderLayer;
+        }
+        set {
+            base.renderLayer = value;
+            if (label is not null)
+                label.renderLayer = value + 1;
+        }
+    }
+
+    private float backspaceStartTime = 0f;
 
     private string _placeholderText = "enter text here...";
     public string placeholderText {
@@ -850,7 +904,8 @@ public class UITextBox : UIButton
         set {
             _placeholderText = value;
             if (label is not null)
-                Deselect();
+                if (text == "")
+                    label.text = placeholderText;
         }
     }
     private string _text = "";
@@ -861,7 +916,11 @@ public class UITextBox : UIButton
         set {
             _text = value;
             if (label is not null)
-                Deselect();
+            {
+                label.text = _text;
+                if (text == "")
+                    label.text = placeholderText;
+            }
         }
     }
 
@@ -909,15 +968,11 @@ public class UITextBox : UIButton
 
         Input.onCharacterPressed += onCharacterPressed;
 
-        label = new UILabel();
-        label.parent = rid;
         label.renderLayer = renderLayer + 1;
-        label.position = new UDim2(0,0,10,10);
-        label.size = new UDim2(1,1,-20,-20);
-        label.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
         gameObject.AddComponent(label);
 
-        Deselect();
+        if (text == "")
+            label.text = placeholderText;
     }
 
     public void ResetTexture()
@@ -942,15 +997,41 @@ public class UITextBox : UIButton
             Deselect();
         }
 
-        if (Input.GetKeyDown(Key.Enter) || Input.GetKeyDown(Key.KeypadEnter))
+        if ((Input.GetKeyDown(Key.Enter) || Input.GetKeyDown(Key.KeypadEnter)))
         {
-            Deselect();
-            textSubmitted.Invoke(this);
+            if (!useSubtleSelection && !Input.GetKeyDown(Key.ShiftLeft))
+            {
+                Deselect();
+                textSubmitted.Invoke(this);
+            }
+            else if (useMultiline && useSubtleSelection)
+            {
+                NewLine();
+            }
         }
 
         if (Input.GetKeyDown(Key.Backspace))
         {
             RemoveCharacter();
+
+            backspaceStartTime = Time.now;
+        }
+
+        if (Input.GetKey(Key.Backspace) && Time.now >= backspaceStartTime + 0.3f)
+        {
+            RemoveCharacter();
+
+            backspaceStartTime = Time.now - 0.275f;
+        }
+
+        if (Input.GetKey(Key.ControlLeft) && Input.GetKeyDown(Key.V))
+        {
+            string? clip = Game.instance.GetClipboard();
+            if (clip is not null)
+            {
+                _text += clip;
+                label.text = text;
+            }
         }
     }
 
@@ -961,6 +1042,11 @@ public class UITextBox : UIButton
         
         _text += s[0];
         label.text = text;
+    }
+
+    public void NewLine()
+    {
+        text += "\n";
     }
 
     public void RemoveCharacter()
@@ -1155,6 +1241,13 @@ public class UIButton : UIElement
         if (UIManager.GetHoveredElement() == this && !prevHovered)
         {
             PlaySFX("buttonHoverAudio");
+        }
+
+        if (!Input.GetMouseButton(0) && pressed)
+        {
+            buttonReleased.Invoke(this);
+            PlaySFX("buttonUpAudio");
+            pressed = false;
         }
 
         prevHovered = UIManager.GetHoveredElement() == this;
@@ -1609,7 +1702,7 @@ public class UIVerticalScrollView : UIElement
             UIElement element = contents[i];
             element.position = new UDim2(0,0,element.position.offset.X,(element.size.offset.Y + spacing) * (i - scrollAmount));
 
-            if (element.position.offset.Y < 0 || element.position.offset.Y + element.worldSize.offset.Y > worldSize.Normalize(Game.instance.ClientSize).Y * Game.instance.ClientSize.Y)
+            if (element.position.offset.Y < 0 || element.position.offset.Y + element.worldSize.offset.Y > worldSize.Normalized(Game.instance.ClientSize).Y * Game.instance.ClientSize.Y)
             {
                 element.visible = false;
                 element.SetActive(false, changeSetActive: false);
@@ -1653,14 +1746,30 @@ public class UIVerticalScrollView : UIElement
         return contents;
     }
 
-    public void RemoveElement(UIElement element)
+    public int GetElementIndex(UIElement element)
+    {
+        return contents.IndexOf(element);
+    }
+
+    public void RemoveElement(UIElement element, bool cleanup = true)
     {
         contents.Remove(element);
+        if (cleanup)
+            element.gameObject.RemoveComponent(element);
     }
 
     public void AddElement(UIElement element)
     {
         contents.Add(element);
+        element.parent = rid;
+        element.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+        element.useParentActivity = false;
+        element.useParentVisibility = false;
+    }
+
+    public void InsertElement(int index, UIElement element)
+    {
+        contents.Insert(index, element);
         element.parent = rid;
         element.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
         element.useParentActivity = false;

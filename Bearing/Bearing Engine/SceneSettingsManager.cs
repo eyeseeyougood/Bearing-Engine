@@ -12,7 +12,7 @@ public static class SceneSettingsManager
 
     public static void Init()
     {
-        settings = Resources.ReadAllText(Resource.FromPath("./Resources/Scene/settings.txt"));
+        settings = Resources.ReadAllText(EmbeddedResource.FromPath("./Resources/Scene/settings.txt"));
     }
 
     /// <summary>

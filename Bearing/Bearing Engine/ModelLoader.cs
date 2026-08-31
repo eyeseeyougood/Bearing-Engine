@@ -49,9 +49,11 @@ public static class ModelLoader
             k++;
         }
 
+        importer.Dispose();
+
         result.vertices = verts.ToArray();
         result.indices = finalIndices;
-        result.name = mesh.GetName();
+        result.resource = mesh;
 
         return result;
     }
@@ -78,7 +80,7 @@ public static class ModelLoader
 
         Mesh3D result = Mesh3D.FromData(finalVerts.ToArray(), finalIndices.ToArray());
 
-        fStream.DisposeAsync();
+        importer.Dispose();
 
         return result;
     }
@@ -114,6 +116,8 @@ public static class ModelLoader
             finalIndices[k] = Convert.ToUInt32(i);
             k++;
         }
+
+        importer.Dispose();
 
         result.vertices = verts.ToArray();
         result.indices = finalIndices;

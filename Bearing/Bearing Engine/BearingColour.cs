@@ -77,12 +77,12 @@ public struct BearingColour
 
     public Vector3 GetZeroTo255()
     {
-        return zeroToOne.Xyz * 255f;
+        return (Vector3i)(zeroToOne.Xyz * 255f);
     }
 
     public Vector4 GetZeroTo255A()
     {
-        return zeroToOne * 255f;
+        return (Vector4i)(zeroToOne * 255f);
     }
 
     public Vector3 GetZeroToOne()

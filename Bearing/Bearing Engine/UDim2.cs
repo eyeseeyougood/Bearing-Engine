@@ -27,8 +27,18 @@ public struct UDim2
     ///<summary>
     ///Converts from UDim2 to a Vector2 where the x and y are 0-1 values indicating percentage of the given screenSize.
     ///</summary>
-    public Vector2 Normalize(Vector2 screenSize)
+    public Vector2 Normalized(Vector2 screenSize)
     {
         return scale + (offset / screenSize);
+    }
+
+    public static UDim2 operator +(UDim2 a, UDim2 b)
+    {
+        return new UDim2(a.scale + b.scale, a.offset + b.offset);
+    }
+
+    public static UDim2 operator -(UDim2 a, UDim2 b)
+    {
+        return new UDim2(a.scale - b.scale, a.offset - b.offset);
     }
 }

@@ -18,10 +18,11 @@ public static class UIManager
     private static ElementComparer elementComp = new ElementComparer();
 
     public static UITheme currentTheme = new UITheme();
+    public static Dictionary<string, UITheme> themes = new Dictionary<string, UITheme>();
 
     public static bool cursorOverUI = false;
 
-    public static Mesh2D quadMeshCache = new Mesh2D(Resource.GetModel("eng/Quad.obj"));
+    public static Mesh2D quadMeshCache = new Mesh2D(EmbeddedResource.GetModel("eng/Quad.obj"));
 
     private static AudioSource sfxSource;
 
@@ -40,6 +41,13 @@ public static class UIManager
     public static void RemoveUI(UIElement element)
     {
         uiElements.Remove(element);
+    }
+
+    public static void LoadTheme(string alias, Resource themeFile)
+    {
+        UITheme newTheme = new UITheme();
+        newTheme.ImportValues(Resources.ReadAllText(themeFile));
+        UIManager.themes.Add(alias, newTheme);
     }
 
     public static UIElement? FindFromRID(int rid)

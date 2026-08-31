@@ -71,7 +71,6 @@ public class Material
 
     public List<ShaderParam> parameters { get; set; } = new List<ShaderParam>();
 
-    [HideFromInspector]
     public Shader shader { get; set; }
 
     public Material() { }

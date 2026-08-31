@@ -9,6 +9,8 @@ namespace Bearing;
 
 public class Texture
 {
+    public static readonly Texture blank = Texture.LoadFromResource(EmbeddedResource.GetTexture("eng/Blank.png"));
+
     public readonly uint Handle;
 
     public int _width { get; private set; }
@@ -34,7 +36,7 @@ public class Texture
         uint handle = GL.GenTexture();
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, handle);
-        
+
         fixed (void* ptr = data)
             GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
 
@@ -72,7 +74,7 @@ public class Texture
 
         // OpenGL has it's texture origin in the lower left corner instead of the top left corner,
         // so we tell StbImageSharp to flip the image when loading.
-        StbImage.stbi_set_flip_vertically_on_load(0);
+        StbImage.stbi_set_flip_vertically_on_load(1);
 
         // Here we open a stream to the file and pass it to StbImageSharp to load.
         using (Stream? stream = Resources.Open(texture))

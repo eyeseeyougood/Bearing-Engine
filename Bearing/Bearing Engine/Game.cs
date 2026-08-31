@@ -22,6 +22,7 @@ public class Game
     public event Action rootLoaded = () => {};
     public event Action gameTick = () => {};
     public event Action beforeRender = () => {};
+    public event Action afterRender = () => {};
     public event Action onTitleChangeableChanged = () => {};
 
     public bool titleChangeable { get; private set; } = false;
@@ -81,7 +82,7 @@ public class Game
 
         Physics2D.Physics2DManager.Init();
 
-        GameObject go = SceneLoader.Load(Resource.FromPath(@"./Resources/Scene/main.bst"));
+        GameObject go = SceneLoader.Load(EmbeddedResource.FromPath(@"./Resources/Scene/main.bst"));
         root = go;
         go.Load();
 
@@ -149,6 +150,8 @@ public class Game
 
         Gizmos.Render();
         
+        afterRender.Invoke();
+
         GL.Disable(EnableCap.DepthTest);
         UIManager.RenderUI();
     }
@@ -177,5 +180,15 @@ public class Game
     public void SetTitle(string title)
     {
         Program.Retitle(title);
+    }
+
+    public void SetClipboard(string text)
+    {
+        Program.SetClipboard(text);
+    }
+
+    public string? GetClipboard()
+    {
+        return Program.GetClipboard();
     }
 }

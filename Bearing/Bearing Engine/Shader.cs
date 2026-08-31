@@ -11,22 +11,33 @@ namespace Bearing
     {
         public readonly uint Handle;
 
-        private readonly Dictionary<string, int> _uniformLocations;
+        private Dictionary<string, int> _uniformLocations;
 
-        [DontSerialise]
-        public string vert { get; set; }
-        [DontSerialise]
-        public string frag { get; set; }
+        public Resource vert { get; set; }
+        public Resource frag { get; set; }
 
         private Shader(uint handle, Dictionary<string, int> uniformLocations) { Handle = handle; _uniformLocations = uniformLocations; }
-        public Shader(string vert, string frag)
+        public Shader(string embeddedVert, string embeddedFrag)
         {
-            GL GL = GLContext.gl;
+            this.vert = EmbeddedResource.GetShader(embeddedVert);
+            this.frag = EmbeddedResource.GetShader(embeddedFrag);
 
+            Handle = InitShader();
+        }
+
+        public Shader(Resource vert, Resource frag)
+        {
             this.vert = vert;
             this.frag = frag;
 
-            var shaderSource = Resources.ReadAllText(Resource.GetShader(vert));
+            Handle = InitShader();
+        }
+
+        private uint InitShader()
+        {
+            GL GL = GLContext.gl;
+
+            var shaderSource = Resources.ReadAllText(vert);
 
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
             
@@ -34,35 +45,37 @@ namespace Bearing
 
             CompileShader(vertexShader);
 
-            shaderSource = Resources.ReadAllText(Resource.GetShader(frag));
+            shaderSource = Resources.ReadAllText(frag);
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, shaderSource);
             CompileShader(fragmentShader);
 
-            Handle = GL.CreateProgram();
+            uint h = GL.CreateProgram();
 
-            GL.AttachShader(Handle, vertexShader);
-            GL.AttachShader(Handle, fragmentShader);
+            GL.AttachShader(h, vertexShader);
+            GL.AttachShader(h, fragmentShader);
 
-            LinkProgram(Handle);
+            LinkProgram(h);
 
-            GL.DetachShader(Handle, vertexShader);
-            GL.DetachShader(Handle, fragmentShader);
+            GL.DetachShader(h, vertexShader);
+            GL.DetachShader(h, fragmentShader);
             GL.DeleteShader(fragmentShader);
             GL.DeleteShader(vertexShader);
 
-            GL.GetProgram(Handle, ProgramPropertyARB.ActiveUniforms, out var numberOfUniforms);
+            GL.GetProgram(h, ProgramPropertyARB.ActiveUniforms, out var numberOfUniforms);
 
             _uniformLocations = new Dictionary<string, int>();
 
             for (var i = 0; i < numberOfUniforms; i++)
             {
-                var key = GL.GetActiveUniform(Handle, (uint)i, out _, out _);
+                var key = GL.GetActiveUniform(h, (uint)i, out _, out _);
 
-                var location = GL.GetUniformLocation(Handle, key);
+                var location = GL.GetUniformLocation(h, key);
 
                 _uniformLocations.Add(key, location);
             }
+
+            return h;
         }
 
         public static Shader FromResources(Resource vert, Resource frag)
@@ -107,8 +120,8 @@ namespace Bearing
             }
 
             Shader result = new Shader(nHandle, dict);
-            result.vert = vert.fullpath;
-            result.frag = frag.fullpath;
+            result.vert = vert;
+            result.frag = frag;
 
             return result;
         }
@@ -239,12 +252,11 @@ namespace Bearing
         {
             Shader sd = (Shader)value;
 
-            sb.Append("(Shader:\"");
-            sb.Append(sd.vert);
-            sb.Append("\",\"");
-            sb.Append(sd.frag);
-            sb.Append("\"){");
-            SceneLoader.SerialiseProperties(sb, sd);
+            sb.Append("(Shader:");
+            SceneLoader.SerialiseValue(sb, sd.vert);
+            sb.Append(",");
+            SceneLoader.SerialiseValue(sb, sd.frag);
+            sb.Append("){");
             sb.Append("}");
         }
 

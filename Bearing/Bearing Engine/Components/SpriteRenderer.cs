@@ -16,7 +16,7 @@ public class SpriteRenderer : Renderable
     public SpriteRenderer() : base()
     {
         if (quad == null)
-            quad = new Mesh2D(Resource.GetModel("eng/Quad.obj"));
+            quad = new Mesh2D(EmbeddedResource.GetModel("eng/Quad.obj"));
 
         mesh = quad;
         material = new Material()

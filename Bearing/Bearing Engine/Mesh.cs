@@ -10,7 +10,7 @@ public abstract class Mesh
     public abstract float[] GetVertexPositions();
     public abstract ShaderAttrib[] GetAttributes();
     public uint[] indices = new uint[0];
-    public string name { get; set; } = "";
+    public Resource? resource { get; set; }
 }
 
 
@@ -27,11 +27,11 @@ public class Mesh3D : Mesh
         }; 
     }
 
-    public MeshVertex3D[] vertices;
+    public MeshVertex3D[] vertices = new MeshVertex3D[0];
 
     public Mesh3D(Resource mesh)
     {
-        name = mesh.GetName();
+        resource = mesh;
         Mesh3D m = ModelLoader.FileToMesh3D(mesh);
         vertices = m.vertices;
         indices = m.indices;
@@ -120,11 +120,11 @@ public class Mesh2D : Mesh
         }; 
     }
 
-    public MeshVertex2D[] vertices;
+    public MeshVertex2D[] vertices = new MeshVertex2D[0];
 
     public Mesh2D(Resource mesh)
     {
-        name = mesh.GetName();
+        resource = mesh;
         Mesh2D m = ModelLoader.FileToMesh2D(mesh);
         vertices = m.vertices;
         indices = m.indices;

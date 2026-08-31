@@ -18,9 +18,10 @@ public class Hierarchy : Component
     public override void OnLoad()
     {
     	hierarchyPanel = new CustomPanel("hierarchyPanel");
+    	hierarchyPanel.theme = UIManager.themes["Objects"];
     	hierarchyPanel.renderLayer = 1;
     	hierarchyPanel.parent = parent;
-    	hierarchyPanel.size = new UDim2(0.2f, 1f);
+    	hierarchyPanel.size = new UDim2(0.2f, 0.7f);
 
     	gameObject.AddComponent(hierarchyPanel);
 
@@ -28,8 +29,7 @@ public class Hierarchy : Component
     	scroll.renderLayer = 2;
     	scroll.parent = hierarchyPanel.rid;
     	scroll.position = new UDim2(0,0,10,10);
-    	scroll.size = new UDim2(1,1, -20, -20);
-    	scroll.themeOverride.SetColour("verticalScrollBG", BearingColour.Transparent);
+    	scroll.size = new UDim2(1,0.7f, -20, -20);
 
     	gameObject.AddComponent(scroll);
 
@@ -39,17 +39,15 @@ public class Hierarchy : Component
     private CustomButton CreateTextButton(string text)
     {
     	CustomButton button = new CustomButton();
+    	button.theme = UIManager.themes["Objects"];
     	button.size = new UDim2(1f, 0, 0, 40);
 		button.renderLayer = 3;
 		button.borderWidth = 4;
-		button.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(211,125,199));
-		button.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(29,28,29));
-		button.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(19,18,19));
-		button.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(9,8,9));
 		button.visible = true;
 		gameObject.AddComponent(button);
 
 		UILabel label = new UILabel();
+		label.theme = UIManager.themes["Objects"];
 		label.parent = button.rid;
 		label.renderLayer = 4;
 		label.position = new UDim2(0,0,8,8);
@@ -97,29 +95,26 @@ public class Hierarchy : Component
 			button.GetMeta<UILabel>(1).size = new UDim2(1,1,-16 - 20,-16);
 
 			CustomButton removeButton = new CustomButton();
+			removeButton.theme = UIManager.themes["Objects"];
 	        removeButton.renderLayer = 4;
 	        removeButton.parent = button.rid;
 	        removeButton.anchor = new Vector2(1,0);
 	        removeButton.position = new UDim2(1, 0, -2, 2);
 	        removeButton.size = new UDim2(0, 1, 25, -4);
-	        removeButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-	        removeButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-	        removeButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-	        removeButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(0,0,0,0));
+	        removeButton.themeOverride.SetColour("panelOutline", BearingColour.Transparent);
 	        removeButton.buttonPressed += (b) => {
 	        	go.Cleanup();
 	        	scroll.RemoveElement(button);
-	        	button.Cleanup();
 	        };
 	        gameObject.AddComponent(removeButton);
 
 	        UILabel removeLabel = new UILabel();
+	        removeLabel.theme = UIManager.themes["Objects"];
 	        removeLabel.renderLayer = 5;
 	        removeLabel.parent = removeButton.rid;
 	        removeLabel.position = new UDim2(0f,0f,4,4);
 	        removeLabel.size = new UDim2(1f,1f,-8,-8);
 	        removeLabel.text = "X";
-	        removeLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
 	        removeLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
 	        gameObject.AddComponent(removeLabel);
 		}
@@ -148,14 +143,14 @@ public class Hierarchy : Component
     	if (go == selectedObject)
     	{
     		selectedObject = null;
-    		selectedButton?.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(211,125,199));
+    		selectedButton?.themeOverride.RemoveColour("panelOutline");
     	}
     	else
     	{
     		selectedObject = go;
-    		selectedButton?.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(211,125,199));
+    		selectedButton?.themeOverride.RemoveColour("panelOutline");
     		selectedButton = sender;
-    		sender.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(88,132,220));
+    		sender.themeOverride.SetColour("panelOutline", UIManager.themes["Objects"].GetColour("selection"));
     	}
 
     	if (selectedObject is not null)

@@ -126,6 +126,20 @@ public static class Extensions
         m.metadata = clone.ToArray();
     }
 
+    public static void RemoveMeta(this IMetadata m, object meta)
+    {
+        List<object> clone = m.metadata.ToList();
+        clone.Remove(meta);
+        m.metadata = clone.ToArray();
+    }
+
+    public static void RemoveMeta(this IMetadata m, int index)
+    {
+        List<object> clone = m.metadata.ToList();
+        clone.RemoveAt(index);
+        m.metadata = clone.ToArray();
+    }
+
     public static string ElementsToString(this object[] array)
     {
         StringBuilder sb = new StringBuilder();

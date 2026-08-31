@@ -19,6 +19,7 @@ public class ComponentView : Component
     public override void OnLoad()
     {
     	componentViewPanel = new CustomPanel("componentViewPanel");
+    	componentViewPanel.theme = UIManager.themes["Objects"];
     	componentViewPanel.renderLayer = 1;
     	componentViewPanel.parent = parent;
     	componentViewPanel.position = new UDim2(0.8f, 0f);
@@ -30,29 +31,25 @@ public class ComponentView : Component
     	scroll.parent = componentViewPanel.rid;
     	scroll.position = new UDim2(0,0,10,10);
     	scroll.size = new UDim2(1,1, -20, -100);
-    	scroll.themeOverride.SetColour("verticalScrollBG", BearingColour.Transparent);
     	gameObject.AddComponent(scroll);
 
     	CustomButton createCompButton = new CustomButton();
+    	createCompButton.theme = UIManager.themes["BigButtons"];
         createCompButton.renderLayer = 2;
         createCompButton.parent = componentViewPanel.rid;
         createCompButton.anchor = new Vector2(0,1);
         createCompButton.position = new UDim2(0, 1, 10, -10);
         createCompButton.size = new UDim2(1, 0, -20, 70);
-        createCompButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        createCompButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        createCompButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        createCompButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
         createCompButton.buttonPressed += ToggleCreateCompMenu;
         gameObject.AddComponent(createCompButton);
 
         UILabel createCompLabel = new UILabel();
+        createCompLabel.theme = UIManager.themes["BigButtons"];
         createCompLabel.renderLayer = 3;
         createCompLabel.parent = createCompButton.rid;
         createCompLabel.position = new UDim2(0.05f,0.05f,8,8);
         createCompLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         createCompLabel.text = "Add Component";
-        createCompLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         createCompLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(createCompLabel);
 
@@ -132,15 +129,12 @@ public class ComponentView : Component
     private CustomTextBox CreateInputField(int parent, string value)
     {
     	CustomTextBox inp = new CustomTextBox("input field");
+    	inp.theme = UIManager.themes["ListItems"];
     	inp.parent = parent;
     	inp.renderLayer = 6;
     	inp.position = new UDim2(0.5f,0,0,0);
     	inp.size = new UDim2(0.166667f,1,-1,0);
 		inp.borderWidth = 2;
-		inp.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        inp.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        inp.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-		inp.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(245,149,169));
 		inp.placeholderText = value;
 		inp.textSubmitted += (t) => {
 			t.placeholderText = t.text;
@@ -156,9 +150,9 @@ public class ComponentView : Component
     public void CreateComponentPanel(object c)
     {
     	CustomPanel panel = new CustomPanel("Component Title", c.GetType());
+    	panel.theme = UIManager.themes["Objects"];
     	panel.renderLayer = 3;
     	panel.size = new UDim2(1,0,-20,300);
-    	panel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(212,125,199));
     	gameObject.AddComponent(panel);
 
     	UILabel name = new UILabel();
@@ -172,29 +166,26 @@ public class ComponentView : Component
     	if (c.GetType().IsSubclassOf(typeof(Component)))
     	{
 	    	CustomButton removeButton = new CustomButton();
+	    	removeButton.theme = UIManager.themes["Objects"];
 	        removeButton.renderLayer = 4;
 	        removeButton.parent = panel.rid;
 	        removeButton.anchor = new Vector2(1,0);
 	        removeButton.position = new UDim2(1, 0, -12, 10);
 	        removeButton.size = new UDim2(0, 0, 25, 35);
-	        removeButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-	        removeButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-	        removeButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-	        removeButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(0,0,0,0));
+	        removeButton.themeOverride.SetColour("panelOutline", BearingColour.Transparent);
 	        removeButton.buttonPressed += (b) => {
 	        	((Component)c).gameObject.RemoveComponent((Component)c);
 	        	scroll.RemoveElement(panel);
-	        	panel.Cleanup();
 	        };
 	        gameObject.AddComponent(removeButton);
 
 	        UILabel removeLabel = new UILabel();
+	        removeLabel.theme = UIManager.themes["Objects"];
 	        removeLabel.renderLayer = 5;
 	        removeLabel.parent = removeButton.rid;
 	        removeLabel.position = new UDim2(0f,0f,4,4);
 	        removeLabel.size = new UDim2(1f,1f,-8,-8);
 	        removeLabel.text = "X";
-	        removeLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
 	        removeLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
 	        gameObject.AddComponent(removeLabel);
     	}
@@ -204,86 +195,39 @@ public class ComponentView : Component
     	panelScroll.parent = panel.rid;
     	panelScroll.position = new UDim2(0,0,3,50);
     	panelScroll.size = new UDim2(1,1, -6, -60);
-    	panelScroll.themeOverride.SetColour("verticalScrollBG", BearingColour.Transparent);
     	gameObject.AddComponent(panelScroll);
 
     	panel.AddMeta(panelScroll);
 
-    	int index = 0;
-    	foreach (PropertyInfo p in c.GetType().GetProperties())
-    	{
-    		object? value = p.GetValue(c);
-
-    		if (p.GetCustomAttribute(typeof(HideFromInspectorAttribute)) is not null)
-    			continue;
-
-    		bool doRefreshHierarchy = new List<string>() {
-    		
-    			"GameObject.name", "GameObject.parent"
-			
-			}.Contains(p.DeclaringType.Name + "." + p.Name);
-
-    		CustomPanel propertyPanel;
-
-    		if (value is not null)
-    		{
-	    		switch (value.GetType().Name)
-	    		{
-	    			case "Vector3":
-	    				propertyPanel = CreateVector3(p, c, (Vector3)value, refreshHierarchy: doRefreshHierarchy);
-	    				break;
-	    			case "Boolean":
-	    				propertyPanel = CreateBool(p, c, (bool)value, refreshHierarchy: doRefreshHierarchy);
-	    				break;
-	    			case "Int32":
-	    				propertyPanel = CreateInt32(p, c, (int)value, refreshHierarchy: doRefreshHierarchy);
-	    				break;
-	    			case "Single":
-	    				propertyPanel = CreateFloat(p, c, (float)value, refreshHierarchy: doRefreshHierarchy);
-	    				break;
-	    			case "GameObject":
-	    				propertyPanel = CreateObjectSelection(p, c, (GameObject)value, refreshHierarchy: doRefreshHierarchy);
-	    				break;
-					default:
-	    				propertyPanel = CreateString(p, c, value.ToString(), refreshHierarchy: doRefreshHierarchy);
-	    				break;
-	    		}
-    		}
-    		else
-    			propertyPanel = CreateString(p, c, "NULL");
-
-    		panelScroll.AddElement(propertyPanel);
-
-    		index++;
-    	}
+    	FillScrollWithProperties(panelScroll, c);
 
     	scroll.AddElement(panel);
     }
 
-    private CustomPanel CreateBool(PropertyInfo prop, object component, bool value, bool refreshHierarchy = false)
+    private CustomPanel CreateBool(PropertyInfo prop, object component, bool value, bool refreshHierarchy = false, int renderLayerOffset = 0)
     {
     	string key = prop.Name;
 
     	CustomPanel panel = new CustomPanel("Bool panel");
-    	panel.renderLayer = 5;
+    	panel.renderLayer = 5 + renderLayerOffset;
     	panel.position = new UDim2(0,0,3,0);
     	panel.size = new UDim2(1f,0,-6,40);
 		panel.borderWidth = 2;
-		panel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(0,0,0));
     	gameObject.AddComponent(panel);
 
     	CustomPanel namePanel = new CustomPanel();
+    	namePanel.theme = UIManager.themes["ListItems"];
     	namePanel.parent = panel.rid;
-    	namePanel.renderLayer = 6;
+    	namePanel.renderLayer = 6 + renderLayerOffset;
     	namePanel.position = new UDim2(0,0,4,0);
     	namePanel.size = new UDim2(0.5f,1,-8,0);
 		namePanel.borderWidth = 2;
-		namePanel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(245,149,169));
 		namePanel.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
     	gameObject.AddComponent(namePanel);
 
     	UILabel name = new UILabel();
-    	name.renderLayer = 7;
+    	name.theme = UIManager.themes["ListItems"];
+    	name.renderLayer = 7 + renderLayerOffset;
     	name.parent = namePanel.rid;
     	name.position = new UDim2(0,0,2,2);
     	name.size = new UDim2(1,1,-4,-4);
@@ -292,15 +236,12 @@ public class ComponentView : Component
     	gameObject.AddComponent(name);
 
     	CustomButton toggle = new CustomButton("toggle field");
+    	toggle.theme = UIManager.themes["ListItems"];
     	toggle.parent = panel.rid;
-    	toggle.renderLayer = 6;
+    	toggle.renderLayer = 6 + renderLayerOffset;
     	toggle.position = new UDim2(0.5f,0,0,0);
     	toggle.size = new UDim2(0.5f,1,-4,0);
 		toggle.borderWidth = 2;
-		toggle.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        toggle.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        toggle.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-		toggle.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(245,149,169));
 		toggle.buttonPressed += (b) => {
 			bool v = b.GetMeta<UILabel>(2)?.text == "True";
 			v = !v;
@@ -312,12 +253,12 @@ public class ComponentView : Component
     	gameObject.AddComponent(toggle);
 
     	UILabel toggleText = new UILabel();
-    	toggleText.renderLayer = 7;
+    	toggleText.renderLayer = 7 + renderLayerOffset;
     	toggleText.parent = toggle.rid;
     	toggleText.position = new UDim2(0,0,2,2);
     	toggleText.size = new UDim2(1,1,-4,-4);
     	toggleText.text = value.ToString();
-    	toggleText.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+    	toggleText.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
     	gameObject.AddComponent(toggleText);
 
     	toggle.metadata = new object[] {prop, component, toggleText};
@@ -325,32 +266,206 @@ public class ComponentView : Component
     	return panel;
     }
 
-    private CustomPanel CreateVector3(PropertyInfo prop, object component, Vector3 value, bool refreshHierarchy = false)
+    private void FillScrollWithProperties(UIVerticalScrollView scroll, object objectWithProperties, int renderLayerOffset = 0)
+    {
+    	foreach (PropertyInfo prop in objectWithProperties.GetType().GetProperties())
+    	{
+    		object? value = prop.GetValue(objectWithProperties);
+
+    		if (prop.GetCustomAttribute(typeof(HideFromInspectorAttribute)) is not null)
+    			continue;
+
+    		bool doRefreshHierarchy = new List<string>() {
+    		
+    			"GameObject.name", "GameObject.parent"
+			
+			}.Contains(prop.DeclaringType?.Name + "." + prop.Name);
+
+    		CustomPanel propertyPanel;
+
+    		if (value is not null)
+    		{
+	    		switch (value.GetType().Name)
+	    		{
+	    			case "Vector3":
+	    				propertyPanel = CreateVector3(prop, objectWithProperties, (Vector3)value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
+	    				break;
+	    			case "Boolean":
+	    				propertyPanel = CreateBool(prop, objectWithProperties, (bool)value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
+	    				break;
+	    			case "Int32":
+	    				propertyPanel = CreateInt32(prop, objectWithProperties, (int)value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
+	    				break;
+	    			case "Single":
+	    				propertyPanel = CreateFloat(prop, objectWithProperties, (float)value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
+	    				break;
+	    			case "GameObject":
+	    				propertyPanel = CreateObjectSelection(prop, objectWithProperties, (GameObject)value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
+	    				break;
+	    			case "String": // TODO: Make the default open the property panel instead of string.
+	    				propertyPanel = CreateString(prop, objectWithProperties, (string)value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
+	    				break;
+					default:
+	    				propertyPanel = CreateComplex(prop, objectWithProperties, value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
+	    				break;
+	    		}
+    		}
+    		else
+    			propertyPanel = CreateString(prop, objectWithProperties, "NULL", refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
+
+    		scroll.AddElement(propertyPanel);
+    	}
+    }
+
+    private Dictionary<UIPanel, UIPanel> dropdownTree = new Dictionary<UIPanel, UIPanel>();
+    private CustomPanel CreateDropdown(UDim2 pos, int renderLayer, object objectWithProperties, UIPanel parentPanel)
+    {
+    	CustomPanel dropdownPanel = new CustomPanel();
+    	dropdownPanel.theme = UIManager.themes["Objects"];
+    	dropdownPanel.parent = parent;
+    	dropdownPanel.renderLayer = renderLayer + 2;
+    	dropdownPanel.anchor = new Vector2(1,0);
+    	dropdownPanel.position = pos;
+    	dropdownPanel.size = new UDim2(0,0,400,300);
+    	dropdownPanel.borderWidth = 3;
+    	gameObject.AddComponent(dropdownPanel);
+
+    	UIVerticalScrollView scroll = new UIVerticalScrollView();
+    	scroll.parent = dropdownPanel.rid;
+    	scroll.renderLayer = renderLayer + 3;
+    	scroll.position = new UDim2(0,0, 3, 3);
+    	scroll.size = new UDim2(1,1, -6, -6);
+    	gameObject.AddComponent(scroll);
+
+    	FillScrollWithProperties(scroll, objectWithProperties, renderLayer);
+
+    	RegisterDropdown(parentPanel, dropdownPanel);
+
+    	UIManager.Sort();
+
+    	return dropdownPanel;
+    }
+
+    private void RemoveDropdown(UIPanel dropdown)
+    {
+		dropdown.GetMeta<UIButton>()?.RemoveMeta(dropdown);
+
+		if (dropdownTree.ContainsKey(dropdown))
+		{
+			RemoveDropdown(dropdownTree[dropdown]);
+		}
+		dropdownTree.Remove(dropdown);
+
+		gameObject.RemoveComponent(dropdown);
+    }
+
+    private void RegisterDropdown(UIPanel parentPanel, UIPanel childPanel)
+    {
+    	if (dropdownTree.ContainsKey(parentPanel))
+    	{
+    		RemoveDropdown(dropdownTree[parentPanel]);
+    		dropdownTree.Remove(parentPanel);
+    	}
+
+		dropdownTree.Add(parentPanel, childPanel);
+    }
+
+    private CustomPanel CreateComplex(PropertyInfo prop, object component, object value, bool refreshHierarchy = false, int renderLayerOffset = 0)
+    {
+    	string key = prop.Name;
+
+    	CustomPanel panel = new CustomPanel("complex panel");
+    	panel.renderLayer = 5 + renderLayerOffset;
+    	panel.position = new UDim2(0,0,3,0);
+    	panel.size = new UDim2(1f,0,-6,40);
+		panel.borderWidth = 2;
+    	gameObject.AddComponent(panel);
+
+    	CustomPanel namePanel = new CustomPanel();
+    	namePanel.theme = UIManager.themes["ListItems"];
+    	namePanel.parent = panel.rid;
+    	namePanel.renderLayer = 6 + renderLayerOffset;
+    	namePanel.position = new UDim2(0,0,4,0);
+    	namePanel.size = new UDim2(0.5f,1,-8,0);
+		namePanel.borderWidth = 2;
+		namePanel.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+    	gameObject.AddComponent(namePanel);
+
+    	UILabel name = new UILabel();
+    	name.theme = UIManager.themes["ListItems"];
+    	name.renderLayer = 7 + renderLayerOffset;
+    	name.parent = namePanel.rid;
+    	name.position = new UDim2(0,0,2,2);
+    	name.size = new UDim2(1,1,-4,-4);
+    	name.text = key;
+    	name.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+    	gameObject.AddComponent(name);
+
+    	CustomButton button = new CustomButton("complex field");
+    	button.theme = UIManager.themes["ListItems"];
+    	button.parent = panel.rid;
+    	button.renderLayer = 6 + renderLayerOffset;
+    	button.position = new UDim2(0.5f,0,0,0);
+    	button.size = new UDim2(0.5f,1,-4,0);
+		button.borderWidth = 2;
+		button.buttonPressed += (b) => {
+			CustomPanel? existingDropdown = button.GetMeta<CustomPanel>(3);
+			if (existingDropdown is null)
+			{
+				UIPanel parentPanel = (UIPanel)UIManager.FindFromRID(UIManager.FindFromRID(panel.parent).parent);
+				CustomPanel dropdown = CreateDropdown(button.worldPosition + button.worldSize, button.renderLayer, value, parentPanel);
+				dropdown.AddMeta(button);
+				button.AddMeta(dropdown);
+			}
+			else
+			{
+				RemoveDropdown(existingDropdown);
+			}
+		};
+		button.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+    	gameObject.AddComponent(button);
+
+    	UILabel buttonText = new UILabel();
+    	buttonText.theme = UIManager.themes["ListItems"];
+    	buttonText.renderLayer = 7 + renderLayerOffset;
+    	buttonText.parent = button.rid;
+    	buttonText.position = new UDim2(0,0,2,2);
+    	buttonText.size = new UDim2(1,1,-4,-4);
+    	buttonText.text = value.ToString();
+    	buttonText.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
+    	gameObject.AddComponent(buttonText);
+
+    	button.metadata = new object[] {prop, component, buttonText};
+
+    	return panel;
+    }
+
+    private CustomPanel CreateVector3(PropertyInfo prop, object component, Vector3 value, bool refreshHierarchy = false, int renderLayerOffset = 0)
     {
     	string key = prop.Name;
 
     	CustomPanel panel = new CustomPanel(prop, component);
-    	panel.renderLayer = 5;
+    	panel.renderLayer = 5 + renderLayerOffset;
     	panel.position = new UDim2(0,0,3,0);
     	panel.size = new UDim2(1f,0,-6,40);
 		panel.borderWidth = 2;
-		panel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(0,0,0));
 
     	gameObject.AddComponent(panel);
 
     	CustomPanel namePanel = new CustomPanel();
+    	namePanel.theme = UIManager.themes["ListItems"];
     	namePanel.parent = panel.rid;
-    	namePanel.renderLayer = 6;
+    	namePanel.renderLayer = 6 + renderLayerOffset;
     	namePanel.position = new UDim2(0,0,4,0);
     	namePanel.size = new UDim2(0.5f,1,-8,0);
 		namePanel.borderWidth = 2;
-		namePanel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(245,149,169));
 		namePanel.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
 
     	gameObject.AddComponent(namePanel);
 
     	UILabel name = new UILabel();
-    	name.renderLayer = 7;
+    	name.theme = UIManager.themes["ListItems"];
+    	name.renderLayer = 7 + renderLayerOffset;
     	name.parent = namePanel.rid;
     	name.position = new UDim2(0,0,2,2);
     	name.size = new UDim2(1,1,-4,-4);
@@ -360,7 +475,7 @@ public class ComponentView : Component
     	gameObject.AddComponent(name);
 
     	CustomTextBox x = CreateInputField(panel.rid, value.X.ToString());
-    	x.renderLayer = 6;
+    	x.renderLayer = 6 + renderLayerOffset;
     	x.position = new UDim2(0.5f,0,0,0);
     	x.size = new UDim2(0.166667f,1,-1,0);
     	x.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
@@ -389,7 +504,7 @@ public class ComponentView : Component
     	x.metadata = new object[] { prop, component, value.X };
 
     	CustomTextBox y = CreateInputField(panel.rid, value.Y.ToString());
-    	y.renderLayer = 6;
+    	y.renderLayer = 6 + renderLayerOffset;
     	y.position = new UDim2(0.5f + 0.166667f,0,0,0);
     	y.size = new UDim2(0.166667f,1,-1,0);
     	y.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
@@ -418,7 +533,7 @@ public class ComponentView : Component
     	y.metadata = new object[] { prop, component, value.Y };
 
 		CustomTextBox z = CreateInputField(panel.rid, value.Z.ToString());
-    	z.renderLayer = 6;
+    	z.renderLayer = 6 + renderLayerOffset;
     	z.position = new UDim2(0.5f + 2 * 0.166667f,0,0,0);
     	z.size = new UDim2(0.166667f,1,-1,0);
     	z.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
@@ -451,30 +566,30 @@ public class ComponentView : Component
     	return panel;
     }
 
-    private CustomPanel CreateString(PropertyInfo prop, object component, string value, bool refreshHierarchy = false)
+    private CustomPanel CreateString(PropertyInfo prop, object component, string value, bool refreshHierarchy = false, int renderLayerOffset = 0)
     {
     	string key = prop.Name;
 
     	CustomPanel panel = new CustomPanel(prop, component);
-    	panel.renderLayer = 5;
+    	panel.renderLayer = 5 + renderLayerOffset;
     	panel.position = new UDim2(0,0,3,0);
     	panel.size = new UDim2(1f,0,-6,40);
 		panel.borderWidth = 2;
-		panel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(0,0,0));
     	gameObject.AddComponent(panel);
 
     	CustomPanel namePanel = new CustomPanel();
+    	namePanel.theme = UIManager.themes["ListItems"];
     	namePanel.parent = panel.rid;
-    	namePanel.renderLayer = 6;
+    	namePanel.renderLayer = 6 + renderLayerOffset;
     	namePanel.position = new UDim2(0,0,4,0);
     	namePanel.size = new UDim2(0.5f,1,-8,0);
 		namePanel.borderWidth = 2;
-		namePanel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(245,149,169));
 		namePanel.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
     	gameObject.AddComponent(namePanel);
 
     	UILabel name = new UILabel();
-    	name.renderLayer = 7;
+    	name.theme = UIManager.themes["ListItems"];
+    	name.renderLayer = 7 + renderLayerOffset;
     	name.parent = namePanel.rid;
     	name.position = new UDim2(0,0,2,2);
     	name.size = new UDim2(1,1,-4,-4);
@@ -483,7 +598,7 @@ public class ComponentView : Component
     	gameObject.AddComponent(name);
 
     	CustomTextBox inp = CreateInputField(panel.rid, value);
-    	inp.renderLayer = 6;
+    	inp.renderLayer = 6 + renderLayerOffset;
     	inp.position = new UDim2(0.5f,0,0,0);
     	inp.size = new UDim2(0.5f,1,-4,0);
     	inp.textSubmitted += (s) => {
@@ -497,29 +612,29 @@ public class ComponentView : Component
     	return panel;
     }
 
-	private CustomPanel CreateFloat(PropertyInfo prop, object component, float value, bool refreshHierarchy = false)
+	private CustomPanel CreateFloat(PropertyInfo prop, object component, float value, bool refreshHierarchy = false, int renderLayerOffset = 0)
     {
     	string key = prop.Name;
 
     	CustomPanel panel = new CustomPanel(prop, component);
-    	panel.renderLayer = 5;
+    	panel.renderLayer = 5 + renderLayerOffset;
     	panel.position = new UDim2(0,0,3,0);
     	panel.size = new UDim2(1f,0,-6,40);
 		panel.borderWidth = 2;
-		panel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(0,0,0));
     	gameObject.AddComponent(panel);
 
     	CustomPanel namePanel = new CustomPanel();
+    	namePanel.theme = UIManager.themes["ListItems"];
     	namePanel.parent = panel.rid;
-    	namePanel.renderLayer = 6;
+    	namePanel.renderLayer = 6 + renderLayerOffset;
     	namePanel.position = new UDim2(0,0,4,0);
     	namePanel.size = new UDim2(0.5f,1,-8,0);
 		namePanel.borderWidth = 2;
-		namePanel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(245,149,169));
 		namePanel.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
     	gameObject.AddComponent(namePanel);
 
     	UILabel name = new UILabel();
+    	name.theme = UIManager.themes["ListItems"];
     	name.renderLayer = 7;
     	name.parent = namePanel.rid;
     	name.position = new UDim2(0,0,2,2);
@@ -529,7 +644,7 @@ public class ComponentView : Component
     	gameObject.AddComponent(name);
 
     	CustomTextBox inp = CreateInputField(panel.rid, value.ToString());
-    	inp.renderLayer = 6;
+    	inp.renderLayer = 6 + renderLayerOffset;
     	inp.position = new UDim2(0.5f,0,0,0);
     	inp.size = new UDim2(0.5f,1,-4,0);
     	inp.textSubmitted += (s) => {
@@ -551,30 +666,30 @@ public class ComponentView : Component
     	return panel;
     }
 
-    private CustomPanel CreateInt32(PropertyInfo prop, object component, int value, bool refreshHierarchy = false)
+    private CustomPanel CreateInt32(PropertyInfo prop, object component, int value, bool refreshHierarchy = false, int renderLayerOffset = 0)
     {
     	string key = prop.Name;
 
     	CustomPanel panel = new CustomPanel(prop, component);
-    	panel.renderLayer = 5;
+    	panel.renderLayer = 5 + renderLayerOffset;
     	panel.position = new UDim2(0,0,3,0);
     	panel.size = new UDim2(1f,0,-6,40);
 		panel.borderWidth = 2;
-		panel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(0,0,0));
     	gameObject.AddComponent(panel);
 
     	CustomPanel namePanel = new CustomPanel();
+    	namePanel.theme = UIManager.themes["ListItems"];
     	namePanel.parent = panel.rid;
-    	namePanel.renderLayer = 6;
+    	namePanel.renderLayer = 6 + renderLayerOffset;
     	namePanel.position = new UDim2(0,0,4,0);
     	namePanel.size = new UDim2(0.5f,1,-8,0);
 		namePanel.borderWidth = 2;
-		namePanel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(245,149,169));
 		namePanel.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
     	gameObject.AddComponent(namePanel);
 
     	UILabel name = new UILabel();
-    	name.renderLayer = 7;
+    	name.theme = UIManager.themes["ListItems"];
+    	name.renderLayer = 7 + renderLayerOffset;
     	name.parent = namePanel.rid;
     	name.position = new UDim2(0,0,2,2);
     	name.size = new UDim2(1,1,-4,-4);
@@ -583,7 +698,7 @@ public class ComponentView : Component
     	gameObject.AddComponent(name);
 
     	CustomTextBox inp = CreateInputField(panel.rid, value.ToString());
-    	inp.renderLayer = 6;
+    	inp.renderLayer = 6 + renderLayerOffset;
     	inp.position = new UDim2(0.5f,0,0,0);
     	inp.size = new UDim2(0.5f,1,-4,0);
     	inp.textSubmitted += (s) => {
@@ -605,30 +720,30 @@ public class ComponentView : Component
     	return panel;
     }
 
-    private CustomPanel CreateObjectSelection(PropertyInfo prop, object component, GameObject value, bool refreshHierarchy = false)
+    private CustomPanel CreateObjectSelection(PropertyInfo prop, object component, GameObject value, bool refreshHierarchy = false, int renderLayerOffset = 0)
     {
     	string key = prop.Name;
 
     	CustomPanel panel = new CustomPanel(prop, component);
-    	panel.renderLayer = 5;
+    	panel.renderLayer = 5 + renderLayerOffset;
     	panel.position = new UDim2(0,0,3,0);
     	panel.size = new UDim2(1f,0,-6,40);
 		panel.borderWidth = 2;
-		panel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(0,0,0));
     	gameObject.AddComponent(panel);
 
     	CustomPanel namePanel = new CustomPanel();
+    	namePanel.theme = UIManager.themes["ListItems"];
     	namePanel.parent = panel.rid;
-    	namePanel.renderLayer = 6;
+    	namePanel.renderLayer = 6 + renderLayerOffset;
     	namePanel.position = new UDim2(0,0,4,0);
     	namePanel.size = new UDim2(0.5f,1,-8,0);
 		namePanel.borderWidth = 2;
-		namePanel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(245,149,169));
 		namePanel.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
     	gameObject.AddComponent(namePanel);
 
     	UILabel name = new UILabel();
-    	name.renderLayer = 7;
+    	name.theme = UIManager.themes["ListItems"];
+    	name.renderLayer = 7 + renderLayerOffset;
     	name.parent = namePanel.rid;
     	name.position = new UDim2(0,0,2,2);
     	name.size = new UDim2(1,1,-4,-4);
@@ -637,15 +752,12 @@ public class ComponentView : Component
     	gameObject.AddComponent(name);
 
     	CustomButton valButton = new CustomButton();
+    	valButton.theme = UIManager.themes["ListItems"];
     	valButton.parent = panel.rid;
-    	valButton.renderLayer = 6;
+    	valButton.renderLayer = 6 + renderLayerOffset;
     	valButton.position = new UDim2(0.5f,0,0,0);
     	valButton.size = new UDim2(0.5f,1,-4,0);
 		valButton.borderWidth = 2;
-		valButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        valButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        valButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-		valButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(245,149,169));
 		valButton.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
 		valButton.buttonPressed += (b) => {
 			PropertyInfo p = b.GetMeta<PropertyInfo>();
@@ -666,12 +778,13 @@ public class ComponentView : Component
     	gameObject.AddComponent(valButton);
 
     	UILabel valText = new UILabel();
-    	valText.renderLayer = 7;
+    	valText.theme = UIManager.themes["ListItems"];
+    	valText.renderLayer = 7 + renderLayerOffset;
     	valText.parent = valButton.rid;
     	valText.position = new UDim2(0,0,2,2);
     	valText.size = new UDim2(1,1,-4,-4);
     	valText.text = value.name;
-    	valText.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+    	valText.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
     	gameObject.AddComponent(valText);
 
     	valButton.metadata = new object[] { prop, component, valText };

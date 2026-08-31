@@ -45,13 +45,13 @@ public class Sprite : IMetadata
         SetAnimation(containingFolder.fullpath);
     }
 
-    public void SetAnimation(string containingFolder)
+    public void SetAnimation(string embeddedContainingFolder)
     {
         List<Texture> frames = new List<Texture>();
 
-        foreach (string path in Resources.GetFiles(containingFolder))
+        foreach (string path in Resources.GetEmbeddedFiles(embeddedContainingFolder))
         {
-            Texture t = Texture.LoadFromResource(Resource.FromPath(path));
+            Texture t = Texture.LoadFromResource(EmbeddedResource.FromPath(path));
             frames.Add(t);
         }
 

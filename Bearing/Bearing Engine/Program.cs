@@ -1,6 +1,7 @@
 ﻿using Silk.NET.Input;
 using Silk.NET.Windowing;
 using Silk.NET.OpenGL;
+using Silk.NET.GLFW;
 using OpenTK.Mathematics;
 
 namespace Bearing;
@@ -15,12 +16,16 @@ public static class Program
     {
         Console.WriteLine("Starting Bearing Engine");
 
+
         WindowOptions options = WindowOptions.Default with {
             Size = new Silk.NET.Maths.Vector2D<int>(800, 600),
-            Title = "Bearing Engine"
+            Title = "Bearing Engine",
         };
 
         window = Window.Create(options);
+
+        Silk.NET.Maths.Vector2D<int> mainMonitorCentre = Silk.NET.Windowing.Monitor.GetMainMonitor(window).Bounds.Center;
+        window.Position = mainMonitorCentre - new Silk.NET.Maths.Vector2D<int>(400, 300);
 
         window.Load += OnLoad;
         window.Update += OnUpdate;
@@ -52,6 +57,35 @@ public static class Program
     public static void Close()
     {
         wantsToClose = true;
+    }
+
+    public static void SetClipboard(string text)
+    {
+        Glfw glfw = Glfw.GetApi();
+
+        unsafe
+        {
+            glfw.SetClipboardString(
+                (WindowHandle*)window.Handle,
+                text
+            );
+        }
+    }
+
+    public static string? GetClipboard()
+    {
+        Glfw glfw = Glfw.GetApi();
+
+        string? result = null;
+
+        unsafe
+        {
+            result = glfw.GetClipboardString(
+                (WindowHandle*)window.Handle
+            );
+        }
+
+        return result;
     }
 
     public static void OnClose()

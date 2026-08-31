@@ -20,9 +20,14 @@ public class MeshRenderer : Renderable, IBSTSerialisable
     protected uint vao;
     protected uint vbo;
 
-    public MeshRenderer(string mesh)
+    public MeshRenderer(string embeddedMesh)
     {
-        this.mesh = new Mesh3D(Resource.GetModel(mesh));
+        mesh = new Mesh3D(EmbeddedResource.GetModel(embeddedMesh));
+    }
+
+    public MeshRenderer(Resource mesh)
+    {
+        this.mesh = new Mesh3D(mesh);
     }
 
     private MeshRenderer() {}
@@ -53,9 +58,13 @@ public class MeshRenderer : Renderable, IBSTSerialisable
     {
         MeshRenderer mr = (MeshRenderer)value;
 
-        sb.Append("(MeshRenderer:\"");
-        sb.Append(mr.GetMesh().name);
-        sb.Append("\"){");
+        sb.Append("(MeshRenderer:");
+        if (mr.GetMesh() is null)
+            Logger.Log("Warning: Attempt to serialise MeshRenderer with null mesh! This might not be what you want.");
+        else if (mr.GetMesh().resource is null)
+            Logger.Log("Warning: Attempt to serialise MeshRenderer with null resource for mesh! This might not be what you want.");
+        SceneLoader.SerialiseValue(sb, mr.GetMesh().resource);
+        sb.Append("){");
         SceneLoader.SerialiseProperties(sb, mr);
         sb.Append("}");
     }

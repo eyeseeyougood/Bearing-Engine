@@ -38,7 +38,7 @@ public static class SceneLoader
     [Obsolete]
     public static GameObject LegacyLoadFromFile(string filepath, bool initialise = true)
     {
-        string data = Resources.ReadAllText(Resource.FromPath(filepath));
+        string data = Resources.ReadAllText(EmbeddedResource.FromPath(filepath));
 
         while (data.Contains("#PRESET("))
             data = LegacyPreprocess(data); // stuff like presets
@@ -322,7 +322,7 @@ public static class SceneLoader
         int distortion = 0;
         foreach (PresetRef p in presets)
         {
-            string presetData = Resources.ReadAllText(Resource.FromPath($"./Resources/Scene/{p.presetName}.preset"));
+            string presetData = Resources.ReadAllText(EmbeddedResource.FromPath($"./Resources/Scene/{p.presetName}.preset"));
 
             string cleanedPreset = string.Join("",
         presetData.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
@@ -377,7 +377,7 @@ public static class SceneLoader
                 }
                 while (data[loc] != '#');
 
-                result.Insert(result.Length, Preprocess(Resources.ReadAllText(Resource.FromPath($"./Resources/Scene/{sb.ToString()}")).Replace("\n","").Replace("\t","")));
+                result.Insert(result.Length, Preprocess(Resources.ReadAllText(EmbeddedResource.FromPath($"./Resources/Scene/{sb.ToString()}")).Replace("\n","").Replace("\t","")));
                 int startLocation = loc;
                 sb.Clear();
             }
@@ -435,10 +435,25 @@ public static class SceneLoader
             sb.Append(cs.Consume());
         }
 
+        float modifier = 1;
+        if (cs.Peek() == 'E')
+        {
+            cs.Consume();
+            StringBuilder sb2 = new StringBuilder();
+            while (char.IsDigit(cs.Peek()) || cs.Peek() == '-')
+            {
+                sb2.Append(cs.Consume());
+            }
+
+            modifier = MathF.Pow(10f, float.Parse(sb2.ToString()));
+        }
+
         object newValue = 0;
         
         if (isFloat) { newValue = float.Parse(sb.ToString()); }
         else { newValue = int.Parse(sb.ToString()); }
+
+        if (isFloat) { newValue = (float)newValue * modifier; }
 
         return new Token() { type = TokenType.Object, value = newValue };
     }
@@ -810,6 +825,9 @@ public static class SceneLoader
             case "Boolean":
                 sb.Append(value.ToString()?.ToLower());
                 break;
+            case "Vector4":
+                SerialiseVector4(sb, (Vector4)value);
+                break;
             case "Vector3":
                 SerialiseVector3(sb, (Vector3)value);
                 break;
@@ -864,6 +882,8 @@ public static class SceneLoader
             if (propertyInfo.SetMethod is null)
                 continue;
 
+            Logger.Log("obj: " + obj);
+            Logger.Log("prop: " + propertyInfo.Name);
             if (ignoreInstances.Contains(propertyInfo.GetValue(obj)))
                 continue;
 
@@ -885,6 +905,19 @@ public static class SceneLoader
         SerialiseProperties(sb, obj);
 
         sb.Append("}");
+    }
+
+    public static void SerialiseVector4(StringBuilder sb, Vector4 value)
+    {
+        sb.Append("(Vector4:");
+        sb.Append(value.X.ToString());
+        sb.Append(",");
+        sb.Append(value.Y.ToString());
+        sb.Append(",");
+        sb.Append(value.Z.ToString());
+        sb.Append(",");
+        sb.Append(value.W.ToString());
+        sb.Append("){}");
     }
 
     public static void SerialiseVector3(StringBuilder sb, Vector3 value)

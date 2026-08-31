@@ -395,3 +395,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+Bearing/Bearing Engine/EditorData/resourcesPath.txt
+Bearing/User-friendly improvement notes.txt

@@ -13,6 +13,7 @@ uniform vec2 texSize;
 uniform vec2 screenSize;
 
 uniform int fitToTexRatio;
+uniform vec2 alignment;
 
 out vec2 texCoord;
 out float texAspect;
@@ -27,7 +28,7 @@ void main()
                      - ((vec2(1,1) - sizing) / 2)
                      - anchorOffset;
 
-    positioning = vec2(positioning.x, -positioning.y);
+    positioning.y = -positioning.y;
 
     gl_Position = vec4(aPosition * sizing + positioning, 0.0, 0.5);
 
@@ -46,13 +47,15 @@ void main()
     float scaleX = 1.0;
     float scaleY = texAspect / quadAspect;
 
-    if (scaleY < 1.0)
+    if (scaleY < 1.0) // quad is longer on x than on y
     {
+        // hence we know that the text will touch the top and scale will be 1
+        // so we only need to adjust on the x
         scaleY = 1.0;
         scaleX = quadAspect / texAspect;
     }
 
-    vec2 texCenter = aTexCoord - vec2(0.5);
+    vec2 texCenter = aTexCoord - alignment;
     texCenter *= vec2(scaleX, scaleY);
-    texCoord = texCenter + vec2(0.5);
+    texCoord = texCenter + alignment;
 }

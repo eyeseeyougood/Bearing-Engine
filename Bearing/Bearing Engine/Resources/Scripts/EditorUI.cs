@@ -7,35 +7,148 @@ public class EditorUI : Component
 	private CustomPanel topPanel;
     private UIPanel currentView;
     private UIPanel editorView;
+    private UIPanel resourceView;
     private UIPanel pluginView;
+    private UIPanel shaderView;
 
     public override void OnLoad()
     {
-    	UIManager.currentTheme.SetColour("labelText", BearingColour.FromZeroTo255(230,230,230));
-        UIManager.currentTheme.SetColour("panelBG", BearingColour.FromZeroTo255(19,18,19));
-    	UpdateThemeHighlight(BearingColour.FromZeroTo255(209,136,227));
+        UIManager.currentTheme.ImportValues(Resources.ReadAllText(EmbeddedResource.FromPath("./Resources/Themes/Editor.theme")));
+
+        UIManager.LoadTheme("Resources", EmbeddedResource.FromPath("./Resources/Themes/Resources.theme"));
+        UIManager.LoadTheme("BigButtons", EmbeddedResource.FromPath("./Resources/Themes/BigButtons.theme"));
+        UIManager.LoadTheme("BigPanels", EmbeddedResource.FromPath("./Resources/Themes/BigPanels.theme"));
+        UIManager.LoadTheme("ListItems", EmbeddedResource.FromPath("./Resources/Themes/ListItems.theme"));
+        UIManager.LoadTheme("Objects", EmbeddedResource.FromPath("./Resources/Themes/Objects.theme"));
+        UIManager.LoadTheme("Folders", EmbeddedResource.FromPath("./Resources/Themes/Folders.theme"));
+        UIManager.LoadTheme("Files", EmbeddedResource.FromPath("./Resources/Themes/Files.theme"));
 
     	Game.instance.SetClearColour(BearingColour.FromZeroTo255(19,13,18));
+        Game.instance.SetTitle("Bearing Editor");
 
         CreateEditorView();
+        CreateResourceView();
         CreatePluginView();
+        CreateShaderView();
     }
 
     private void CreateEditorView()
     {
-        editorView = new UIPanel();
+        editorView = new UIPanel("Editor View");
         editorView.size = new UDim2(1,1);
         editorView.themeOverride.SetColour("panelBG", BearingColour.Transparent);
         editorView.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
+        editorView.useParentActivity = false;
+        editorView.useParentVisibility = false;
         gameObject.AddComponent(editorView);
 
         currentView = editorView;
 
         CreateHeirarchy();
+        CreateMiniResources();
         CreateTopBar();
         CreateComponentView();
         CreateBottomBar();
         CreateSceneView();
+    }
+
+    private void CreateResourceView()
+    {
+        resourceView = new UIPanel("Resource View");
+        resourceView.size = new UDim2(1,1);
+        resourceView.themeOverride.SetColour("panelBG", BearingColour.Transparent);
+        resourceView.mouseCaptureMode = UIMouseCaptureMode.Consume;
+        resourceView.useParentActivity = false;
+        resourceView.useParentVisibility = false;
+        gameObject.AddComponent(resourceView);
+
+
+        CustomPanel bg = new CustomPanel();
+        bg.theme = UIManager.themes["Resources"];
+        bg.renderLayer = -1;
+        bg.parent = resourceView.rid;
+        bg.size = UDim2.One;
+        gameObject.AddComponent(bg);
+
+        CustomPanel outline = new CustomPanel();
+        outline.theme = UIManager.themes["Resources"];
+        outline.renderLayer = 0;
+        outline.parent = resourceView.rid;
+        outline.position = topPanel.position - new UDim2(0,0,5,5);;
+        outline.anchor = topPanel.anchor;
+        outline.size = topPanel.size + new UDim2(0,0,10,10);
+        gameObject.AddComponent(outline);
+
+        CustomPanel scrollBG = new CustomPanel();
+        scrollBG.theme = UIManager.themes["Resources"];
+        scrollBG.renderLayer = 0;
+        scrollBG.parent = resourceView.rid;
+        scrollBG.position = new UDim2(0.2f, 0.3f);
+        scrollBG.size = new UDim2(0.6f, 0.6f);
+        gameObject.AddComponent(scrollBG);
+
+        UIVerticalScrollView resourceTree = new UIVerticalScrollView();
+        resourceTree.renderLayer = 1;
+        resourceTree.parent = bg.rid;
+        resourceTree.position = new UDim2(0.2f, 0.3f, 10, 10);
+        resourceTree.size = new UDim2(0.6f, 0.6f, -20, -20);
+        resourceTree.themeOverride.SetColour("verticalScrollBG", BearingColour.Transparent);
+        gameObject.AddComponent(resourceTree);
+
+
+        gameObject.AddComponent(new ResourceView(resourceTree));
+
+
+        UIManager.Sort();
+
+
+        resourceView.visible = false;
+        resourceView.active = false;
+
+        MiniResourceView.instance?.UpdateView();
+    }
+
+    private void CreateShaderView()
+    {
+        shaderView = new UIPanel("Shader View");
+        shaderView.size = new UDim2(1,1);
+        shaderView.themeOverride.SetColour("panelBG", BearingColour.Transparent);
+        shaderView.mouseCaptureMode = UIMouseCaptureMode.Consume;
+        shaderView.useParentActivity = false;
+        shaderView.useParentVisibility = false;
+        gameObject.AddComponent(shaderView);
+
+
+        CustomPanel bg = new CustomPanel();
+        bg.theme = UIManager.themes["Resources"];
+        bg.renderLayer = -1;
+        bg.parent = shaderView.rid;
+        bg.size = UDim2.One;
+        gameObject.AddComponent(bg);
+
+        CustomPanel outline = new CustomPanel();
+        outline.theme = UIManager.themes["Resources"];
+        outline.renderLayer = 0;
+        outline.parent = shaderView.rid;
+        outline.position = topPanel.position - new UDim2(0,0,5,5);;
+        outline.anchor = topPanel.anchor;
+        outline.size = topPanel.size + new UDim2(0,0,10,10);
+        gameObject.AddComponent(outline);
+
+        CustomPanel scrollBG = new CustomPanel();
+        scrollBG.theme = UIManager.themes["Resources"];
+        scrollBG.renderLayer = 0;
+        scrollBG.parent = shaderView.rid;
+        scrollBG.position = new UDim2(0.2f, 0.3f);
+        scrollBG.size = new UDim2(0.6f, 0.6f);
+        gameObject.AddComponent(scrollBG);
+
+        UIManager.Sort();
+
+        gameObject.AddComponent(new ShaderView(shaderView.rid));
+
+        shaderView.visible = false;
+        shaderView.active = false;
     }
 
     private void CreatePluginView()
@@ -49,16 +162,15 @@ public class EditorUI : Component
         gameObject.AddComponent(pluginView);
 
         new PluginManager();
+
         if (PluginManager.instance is not null)
             PluginManager.instance.LoadPlugins();
-
         UIVerticalScrollView scroll = new UIVerticalScrollView();
         scroll.renderLayer = 2;
         scroll.parent = pluginView.rid;
         scroll.anchor = new Vector2(0.5f, 0.5f);
         scroll.position = new UDim2(0.5f, 0.5f);
         scroll.size = new UDim2(0.8f, 0.6f);
-        scroll.themeOverride.SetColour("verticalScrollBG", BearingColour.Transparent);
         gameObject.AddComponent(scroll);
 
         if (PluginManager.instance is null)
@@ -77,9 +189,6 @@ public class EditorUI : Component
             toggleButton.parent = pluginUI.rid;
             toggleButton.position = new UDim2(0, 0, 10, 10);
             toggleButton.size = new UDim2(1, 1, -20, -20);
-            toggleButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-            toggleButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-            toggleButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
             toggleButton.themeOverride.SetColour("panelOutline", plugin.isEnabled ? BearingColour.FromZeroTo255(0,255,107) : BearingColour.FromZeroTo255(255,0,107));
             toggleButton.buttonPressed += (s) => {
                 PluginManager.instance.TogglePluginEnabled(plugin);
@@ -89,12 +198,12 @@ public class EditorUI : Component
             gameObject.AddComponent(toggleButton);
 
             UILabel toggleLabel = new UILabel();
+            toggleLabel.theme = UIManager.themes["ListItems"];
             toggleLabel.renderLayer = 5;
             toggleLabel.parent = toggleButton.rid;
             toggleLabel.position = new UDim2(0.05f,0.05f,8,8);
             toggleLabel.size = new UDim2(0.9f,0.9f,-16,-16);
             toggleLabel.text = plugin.displayName;
-            toggleLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
             toggleLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
             gameObject.AddComponent(toggleLabel);
 
@@ -107,113 +216,123 @@ public class EditorUI : Component
         pluginView.active = false;
     }
 
-    private void UpdateThemeHighlight(BearingColour highlight)
-    {
-    	UIManager.currentTheme.SetColour("panelOutline", highlight);
-    }
-
     private void CreateHeirarchy()
     {
     	Hierarchy h = new Hierarchy(editorView.rid);
     	gameObject.AddComponent(h);
     }
 
+    private void CreateMiniResources()
+    {
+        CustomPanel scrollBG = new CustomPanel();
+        scrollBG.theme = UIManager.themes["Resources"];
+        scrollBG.renderLayer = 1;
+        scrollBG.parent = editorView.rid;
+        scrollBG.position = new UDim2(0.0f, 0.7f);
+        scrollBG.size = new UDim2(0.2f, 0.3f);
+        gameObject.AddComponent(scrollBG);
+
+        UIVerticalScrollView resourceTree = new UIVerticalScrollView();
+        resourceTree.renderLayer = 2;
+        resourceTree.parent = scrollBG.rid;
+        resourceTree.position = new UDim2(0.0f, 0.0f, 5, 5);
+        resourceTree.size = new UDim2(1f, 1f, -10, -10);
+        resourceTree.spacing = 0;
+        gameObject.AddComponent(resourceTree);
+
+
+        gameObject.AddComponent(new MiniResourceView(resourceTree));
+
+
+        UIManager.Sort();
+    }
+
     private void CreateTopBar()
     {
     	topPanel = new CustomPanel();
+        topPanel.theme = UIManager.themes["BigPanels"];
         topPanel.renderLayer = 1;
     	topPanel.position = new UDim2(0.2f, 0f);
     	topPanel.size = new UDim2(0.6f, 0.1f);
-		topPanel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(145,124,227));
     	gameObject.AddComponent(topPanel);
 
         // Editor View
         CustomButton editorButton = new CustomButton("Editor View");
+        editorButton.theme = UIManager.themes["BigButtons"];
         editorButton.renderLayer = 2;
         editorButton.parent = topPanel.rid;
         editorButton.position = new UDim2(0, 0, 8, 8);
         editorButton.size = new UDim2(0.25f, 1, -8, -16);
-        editorButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        editorButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        editorButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        editorButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
         editorButton.buttonPressed += SwitchView;
         gameObject.AddComponent(editorButton);
 
         UILabel editorLabel = new UILabel();
+        editorLabel.theme = UIManager.themes["BigButtons"];
         editorLabel.renderLayer = 3;
         editorLabel.parent = editorButton.rid;
         editorLabel.position = new UDim2(0.05f,0.05f,8,8);
         editorLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         editorLabel.text = "Editor View";
-        editorLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         editorLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(editorLabel);
 
         // Resources View
-        CustomButton resourcesView = new CustomButton();
+        CustomButton resourcesView = new CustomButton("Resource View");
+        resourcesView.theme = UIManager.themes["BigButtons"];
         resourcesView.renderLayer = 2;
         resourcesView.parent = topPanel.rid;
         resourcesView.position = new UDim2(0.25f, 0, 4, 8);
         resourcesView.size = new UDim2(0.25f, 1, -4, -16);
-        resourcesView.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        resourcesView.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        resourcesView.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        resourcesView.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
+        resourcesView.buttonPressed += SwitchView;
         gameObject.AddComponent(resourcesView);
 
         UILabel resourcesLabel = new UILabel();
+        resourcesLabel.theme = UIManager.themes["BigButtons"];
         resourcesLabel.renderLayer = 3;
         resourcesLabel.parent = resourcesView.rid;
         resourcesLabel.position = new UDim2(0.05f,0.05f,8,8);
         resourcesLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         resourcesLabel.text = "Resources";
-        resourcesLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         resourcesLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(resourcesLabel);
 
         // Plugin View
         CustomButton pluginButton = new CustomButton("Plugin View");
+        pluginButton.theme = UIManager.themes["BigButtons"];
         pluginButton.renderLayer = 2;
         pluginButton.parent = topPanel.rid;
         pluginButton.position = new UDim2(0.5f, 0, 4, 8);
         pluginButton.size = new UDim2(0.25f, 1, -4, -16);
-        pluginButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        pluginButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        pluginButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        pluginButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
         pluginButton.buttonPressed += SwitchView;
         gameObject.AddComponent(pluginButton);
 
         UILabel pluginLabel = new UILabel();
+        pluginLabel.theme = UIManager.themes["BigButtons"];
         pluginLabel.renderLayer = 3;
         pluginLabel.parent = pluginButton.rid;
         pluginLabel.position = new UDim2(0.05f,0.05f,8,8);
         pluginLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         pluginLabel.text = "Plugins";
-        pluginLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         pluginLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(pluginLabel);
 
         // Shaders View
-        CustomButton shadersView = new CustomButton();
+        CustomButton shadersView = new CustomButton("Shader View");
+        shadersView.theme = UIManager.themes["BigButtons"];
         shadersView.renderLayer = 2;
         shadersView.parent = topPanel.rid;
         shadersView.position = new UDim2(0.75f, 0, 4, 8);
         shadersView.size = new UDim2(0.25f, 1, -12, -16);
-        shadersView.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        shadersView.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        shadersView.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        shadersView.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
+        shadersView.buttonPressed += SwitchView;
         gameObject.AddComponent(shadersView);
 
         UILabel shadersLabel = new UILabel();
+        shadersLabel.theme = UIManager.themes["BigButtons"];
         shadersLabel.renderLayer = 3;
         shadersLabel.parent = shadersView.rid;
         shadersLabel.position = new UDim2(0.05f,0.05f,8,8);
         shadersLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         shadersLabel.text = "Shaders";
-        shadersLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         shadersLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(shadersLabel);
     }
@@ -227,6 +346,12 @@ public class EditorUI : Component
         {
             case "Plugin View":
                 currentView = pluginView;
+                break;
+            case "Resource View":
+                currentView = resourceView;
+                break;
+            case "Shader View":
+                currentView = shaderView;
                 break;
             default:
                 currentView = editorView;
@@ -246,21 +371,18 @@ public class EditorUI : Component
     private void CreateBottomBar()
     {
     	CustomPanel bottomPanel = new CustomPanel();
+        bottomPanel.theme = UIManager.themes["BigPanels"];
     	bottomPanel.parent = editorView.rid;
     	bottomPanel.position = new UDim2(0.2f, 0.7f);
     	bottomPanel.size = new UDim2(0.6f, 0.3f);
-		bottomPanel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(145,124,227));
     	gameObject.AddComponent(bottomPanel);
 
         CustomButton createGOButton = new CustomButton();
+        createGOButton.theme = UIManager.themes["BigButtons"];
         createGOButton.renderLayer = 2;
         createGOButton.parent = bottomPanel.rid;
         createGOButton.position = new UDim2(0, 0, 10, 10);
         createGOButton.size = new UDim2(0.333333f, 0.5f, -15, -15);
-        createGOButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        createGOButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        createGOButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        createGOButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
         createGOButton.buttonPressed += (b) => {
             GameObject go = new GameObject();
             go.name = "Empty GameObject";
@@ -273,24 +395,21 @@ public class EditorUI : Component
         gameObject.AddComponent(createGOButton);
 
         UILabel createGOLabel = new UILabel();
+        createGOLabel.theme = UIManager.themes["BigButtons"];
         createGOLabel.renderLayer = 3;
         createGOLabel.parent = createGOButton.rid;
         createGOLabel.position = new UDim2(0.05f,0.05f,8,8);
         createGOLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         createGOLabel.text = "Create GameObject";
-        createGOLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         createGOLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(createGOLabel);
 
         CustomButton exportSceneButton = new CustomButton();
+        exportSceneButton.theme = UIManager.themes["BigButtons"];
         exportSceneButton.renderLayer = 2;
         exportSceneButton.parent = bottomPanel.rid;
         exportSceneButton.position = new UDim2(0, 0.5f, 10, 0);
         exportSceneButton.size = new UDim2(0.333333f, 0.5f, -15, -10);
-        exportSceneButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        exportSceneButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        exportSceneButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        exportSceneButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
         exportSceneButton.buttonPressed += (b) => {
             List<object> ignores = new List<object>()
             {
@@ -313,24 +432,21 @@ public class EditorUI : Component
         gameObject.AddComponent(exportSceneButton);
 
         UILabel exportSceneLabel = new UILabel();
+        exportSceneLabel.theme = UIManager.themes["BigButtons"];
         exportSceneLabel.renderLayer = 3;
         exportSceneLabel.parent = exportSceneButton.rid;
         exportSceneLabel.position = new UDim2(0.05f,0.05f,8,8);
         exportSceneLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         exportSceneLabel.text = "Export Scene";
-        exportSceneLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         exportSceneLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(exportSceneLabel);
 
         CustomButton importSceneButton = new CustomButton();
+        importSceneButton.theme = UIManager.themes["BigButtons"];
         importSceneButton.renderLayer = 2;
         importSceneButton.parent = bottomPanel.rid;
         importSceneButton.position = new UDim2(0.333333f, 0.5f, 0, 0);
         importSceneButton.size = new UDim2(0.333333f, 0.5f, -5, -10);
-        importSceneButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        importSceneButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        importSceneButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        importSceneButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
         importSceneButton.buttonPressed += (b) => {
             if (!File.Exists("./Export/main.bst"))
                 return;
@@ -361,24 +477,21 @@ public class EditorUI : Component
         gameObject.AddComponent(importSceneButton);
 
         UILabel importSceneLabel = new UILabel();
+        importSceneLabel.theme = UIManager.themes["BigButtons"];
         importSceneLabel.renderLayer = 3;
         importSceneLabel.parent = importSceneButton.rid;
         importSceneLabel.position = new UDim2(0.05f,0.05f,8,8);
         importSceneLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         importSceneLabel.text = "Import Scene";
-        importSceneLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         importSceneLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(importSceneLabel);
 
         CustomButton exportPresetButton = new CustomButton();
+        exportPresetButton.theme = UIManager.themes["BigButtons"];
         exportPresetButton.renderLayer = 2;
         exportPresetButton.parent = bottomPanel.rid;
         exportPresetButton.position = new UDim2(0.666666f, 0.5f, 0, 0);
         exportPresetButton.size = new UDim2(0.333333f, 0.5f, -10, -10);
-        exportPresetButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        exportPresetButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        exportPresetButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        exportPresetButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
         exportPresetButton.buttonPressed += (b) => {
             GameObject? exp = Hierarchy.instance?.selectedObject;
 
@@ -393,12 +506,12 @@ public class EditorUI : Component
         gameObject.AddComponent(exportPresetButton);
 
         UILabel exportPresetLabel = new UILabel();
+        exportPresetLabel.theme = UIManager.themes["BigButtons"];
         exportPresetLabel.renderLayer = 3;
         exportPresetLabel.parent = exportPresetButton.rid;
         exportPresetLabel.position = new UDim2(0.05f,0.05f,8,8);
         exportPresetLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         exportPresetLabel.text = "Export Preset";
-        exportPresetLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         exportPresetLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(exportPresetLabel);
 
@@ -414,14 +527,11 @@ public class EditorUI : Component
         gameObject.AddComponent(importDropUpMenu);
 
         CustomButton importPresetButton = new CustomButton();
+        importPresetButton.theme = UIManager.themes["BigButtons"];
         importPresetButton.renderLayer = 2;
         importPresetButton.parent = bottomPanel.rid;
         importPresetButton.position = new UDim2(0.666666f, 0f, 0, 10);
         importPresetButton.size = new UDim2(0.333333f, 0.5f, -10, -15);
-        importPresetButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        importPresetButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        importPresetButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        importPresetButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
         importPresetButton.buttonPressed += (b) => {
             importDropUpMenu.visible = !importDropUpMenu.visible;
             importDropUpMenu.active = importDropUpMenu.visible;
@@ -430,9 +540,11 @@ public class EditorUI : Component
             {
                 importDropUpMenu.ClearContents();
 
-                if (Directory.Exists("./Export"))
+                string importPath = "./Export";
+
+                if (Directory.Exists(importPath))
                 {
-                    foreach (string path in Directory.GetFiles("./Export"))
+                    foreach (string path in Directory.GetFiles(importPath))
                     {
                         if (path.Split("/").Last() == "main.bst")
                             continue;
@@ -486,12 +598,12 @@ public class EditorUI : Component
         gameObject.AddComponent(importPresetButton);
 
         UILabel importPresetLabel = new UILabel();
+        importPresetLabel.theme = UIManager.themes["BigButtons"];
         importPresetLabel.renderLayer = 3;
         importPresetLabel.parent = importPresetButton.rid;
         importPresetLabel.position = new UDim2(0.05f,0.05f,8,8);
         importPresetLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         importPresetLabel.text = "Import Preset";
-        importPresetLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         importPresetLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(importPresetLabel);
 
@@ -508,14 +620,11 @@ public class EditorUI : Component
         gameObject.AddComponent(addCompDropUpMenu);
 
         CustomButton addCompButton = new CustomButton();
+        addCompButton.theme = UIManager.themes["BigButtons"];
         addCompButton.renderLayer = 2;
         addCompButton.parent = bottomPanel.rid;
         addCompButton.position = new UDim2(0.333333f, 0f, 0, 10);
         addCompButton.size = new UDim2(0.333333f, 0.5f, -5, -15);
-        addCompButton.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(40,40,40));
-        addCompButton.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(30,30,30));
-        addCompButton.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(55,55,55));
-        addCompButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(228,182,183));
         addCompButton.buttonPressed += (b) => {
             addCompDropUpMenu.visible = !addCompDropUpMenu.visible;
             addCompDropUpMenu.active = addCompDropUpMenu.visible;
@@ -578,12 +687,12 @@ public class EditorUI : Component
         gameObject.AddComponent(addCompButton);
 
         UILabel addCompLabel = new UILabel();
+        addCompLabel.theme = UIManager.themes["BigButtons"];
         addCompLabel.renderLayer = 3;
         addCompLabel.parent = addCompButton.rid;
         addCompLabel.position = new UDim2(0.05f,0.05f,8,8);
         addCompLabel.size = new UDim2(0.9f,0.9f,-16,-16);
         addCompLabel.text = "Add Component";
-        addCompLabel.themeOverride.SetColour("labelText", BearingColour.FromZeroTo255(213, 156, 205));
         addCompLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(addCompLabel);
     }
@@ -595,7 +704,6 @@ public class EditorUI : Component
     	scenePanel.position = new UDim2(0.2f, 0.1f);
     	scenePanel.size = new UDim2(0.6f, 0.6f);
 		scenePanel.themeOverride.SetColour("panelBG", BearingColour.Transparent);
-		scenePanel.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(227,112,213));
 		scenePanel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
 
     	gameObject.AddComponent(scenePanel);

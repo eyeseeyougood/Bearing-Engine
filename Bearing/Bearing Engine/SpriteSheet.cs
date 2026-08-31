@@ -39,7 +39,7 @@ public class SpriteSheet
     ///</Summary>
     public void Slice(Resource spriteSheet, int sliceWidth, int sliceHeight, int take = -1)
     {
-        Texture t = Texture.LoadFromResource(Resource.FromPath(spriteSheet.fullpath), Silk.NET.OpenGL.TextureMinFilter.Nearest, Silk.NET.OpenGL.TextureMagFilter.Nearest, Silk.NET.OpenGL.TextureWrapMode.ClampToEdge);
+        Texture t = Texture.LoadFromResource(spriteSheet, Silk.NET.OpenGL.TextureMinFilter.Nearest, Silk.NET.OpenGL.TextureMagFilter.Nearest, Silk.NET.OpenGL.TextureWrapMode.ClampToEdge);
         Slice(t, sliceWidth, sliceHeight, take);
     }
 

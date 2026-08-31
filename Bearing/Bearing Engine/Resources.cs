@@ -8,18 +8,10 @@ using System.Threading.Tasks;
 
 namespace Bearing;
 
-public class Resource : IMetadata
+public abstract class Resource : IMetadata
 {
     public object[] metadata { get; set; } = new object[0];
     public string fullpath { get; set; } = "";
-
-    public static Resource FromPath(string path, string type = "unknown")
-    {
-        Resource r = new Resource();
-        r.fullpath = path;
-        r.AddMeta(type);
-        return r;
-    }
 
     public string GetFileType()
     {
@@ -34,6 +26,30 @@ public class Resource : IMetadata
             result = result.Split('.').First();
 
         return result;
+    }
+
+    public override string ToString()
+    {
+        return fullpath;
+    }
+}
+
+public class EmbeddedResource : Resource
+{
+    public static EmbeddedResource FromPath(string path, string type = "unknown")
+    {
+        EmbeddedResource r = new EmbeddedResource();
+        r.fullpath = path;
+        r.AddMeta(type);
+        return r;
+    }
+
+    public string GetShortPath()
+    {
+        string prefix = fullpath.StartsWith("./Resources/") ? "res/" : "eng/";
+        string following = fullpath.Replace(prefix == "res/" ? "./Resources/" : "./EngineData/", "");
+
+        return prefix + following;
     }
 
     private static string GetPrefix(string name)
@@ -108,23 +124,43 @@ public class Resource : IMetadata
     }
 }
 
+public class ExternalResource : Resource
+{
+    public static ExternalResource FromPath(string path, string type = "unknown")
+    {
+        ExternalResource r = new ExternalResource();
+        r.fullpath = path;
+        r.AddMeta(type);
+        return r;
+    }
+}
+
 public static class Resources
 {
     public static Stream? Open(Resource resource)
     {
-        string? processedName = resource.fullpath[0] == '.' ? new string(resource.fullpath.Skip(1).ToArray()) : resource.fullpath;
-        processedName = processedName.Replace("/", ".");
-        processedName = "Bearing." + (processedName[0] == '.' ? new string(processedName.Skip(1).ToArray()) : processedName);
+        if (resource is EmbeddedResource)
+        {
+            string? processedName = resource.fullpath[0] == '.' ? new string(resource.fullpath.Skip(1).ToArray()) : resource.fullpath;
+            processedName = processedName.Replace("/", ".");
+            processedName = "Bearing." + (processedName[0] == '.' ? new string(processedName.Skip(1).ToArray()) : processedName);
 
-        var assembly = Assembly.GetExecutingAssembly();
-        var stream = assembly.GetManifestResourceStream(processedName);
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            Stream? stream = assembly.GetManifestResourceStream(processedName);
 
-        return stream;
+            return stream;
+        }
+
+        // external resource
+        return File.Open(resource.fullpath, FileMode.Open);
     }
 
     public static string ReadAllText(Resource resource)
     {
         var stream = Open(resource);
+
+        if (stream is null)
+            throw new Exception("Attempt to call ReadAllText() on an invalid resource! Resource: " + resource);
 
         byte[] buffer = new byte[4096];
         int read;
@@ -146,6 +182,9 @@ public static class Resources
     {
         var stream = Open(resource);
 
+        if (stream is null)
+            throw new Exception("Attempt to call ReadAllBytes() on an invalid resource! Resource: " + resource);
+
         byte[] buffer = new byte[4096];
         int read;
         List<byte> result = new List<byte>();
@@ -160,7 +199,7 @@ public static class Resources
         return result.ToArray();
     }
 
-    public static string[] GetFiles(string path)
+    public static string[] GetEmbeddedFiles(string path)
     {
         var assembly = Assembly.GetExecutingAssembly();
         string[] all = assembly.GetManifestResourceNames();
@@ -178,7 +217,7 @@ public static class Resources
         return result.ToArray();
     }
 
-    public static string[] GetFiles(string path, string ext)
+    public static string[] GetEmbeddedFiles(string path, string ext)
     {
         var assembly = Assembly.GetExecutingAssembly();
         string[] all = assembly.GetManifestResourceNames();
