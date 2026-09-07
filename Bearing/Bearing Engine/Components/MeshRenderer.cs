@@ -9,12 +9,45 @@ public class MeshRenderer : Renderable, IBSTSerialisable
 
     public bool drawOnTop { get; set; }
 
-    [DontSerialise]
-    public Texture texture0 { get; set; }
-    [DontSerialise]
-    public Texture texture1 { get; set; }
-    [DontSerialise]
-    public Texture texture2 { get; set; }
+    [DontSerialise, HideFromInspector]
+    public Texture? texture0 { get; set; }
+    [DontSerialise, HideFromInspector]
+    public Texture? texture1 { get; set; }
+    [DontSerialise, HideFromInspector]
+    public Texture? texture2 { get; set; }
+
+    private Resource? _texture0Resource;
+    [DontSerialise, ExpectResource(".png",".jpg",".jpeg")] // others work too, these are just the ones I have tested
+    public Resource? texture0Resource
+    {
+        get{
+            return _texture0Resource;
+        }
+        set{
+            _texture0Resource = value;
+            
+            if (value is null)
+                return;
+
+            if (texture0 is not null)
+                texture0.Dispose();
+
+            texture0 = Texture.LoadFromResource(value);
+        }
+    }
+
+    [DontSerialise, ExpectResource(".obj")]
+    public Resource? meshResource {
+        get{
+            return mesh?.resource;
+        }
+        set{
+            if (value is null)
+                return;
+
+            SetMesh(new Mesh3D(value));
+        }
+    }
 
     protected uint ebo;
     protected uint vao;
@@ -124,6 +157,16 @@ public class MeshRenderer : Renderable, IBSTSerialisable
     protected void SetMesh(Mesh nMesh)
     {
         mesh = nMesh;
+
+        GL GL = GLContext.gl;
+
+        GL.DeleteBuffer(ebo);
+        GL.DeleteBuffer(vbo);
+        GL.DeleteVertexArray(vao);
+
+        Game.instance.RemoveRenderable(this); // remove to prevent duplicates
+
+        OnLoad();
     }
 
     public override void Cleanup()

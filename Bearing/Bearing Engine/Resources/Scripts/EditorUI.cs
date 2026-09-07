@@ -26,6 +26,8 @@ public class EditorUI : Component
     	Game.instance.SetClearColour(BearingColour.FromZeroTo255(19,13,18));
         Game.instance.SetTitle("Bearing Editor");
 
+        gameObject.AddComponent(new UILogger());
+
         CreateEditorView();
         CreateResourceView();
         CreatePluginView();
@@ -516,6 +518,7 @@ public class EditorUI : Component
         gameObject.AddComponent(exportPresetLabel);
 
         UIVerticalScrollView importDropUpMenu = new UIVerticalScrollView();
+        importDropUpMenu.theme = UIManager.themes["BigButtons"];
         importDropUpMenu.renderLayer = 5;
         importDropUpMenu.parent = editorView.rid;
         importDropUpMenu.position = new UDim2(0.6f, 0.15f, 0, 0);
@@ -550,14 +553,11 @@ public class EditorUI : Component
                             continue;
 
                         CustomButton button = new CustomButton();
+                        button.theme = UIManager.themes["Objects"];
                         button.renderLayer = 6;
                         button.position = new UDim2(0,0,0,0);
                         button.size = new UDim2(1,0,0,40);
                         button.borderWidth = 4;
-                        button.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(211,125,199));
-                        button.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(29,28,29));
-                        button.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(19,18,19));
-                        button.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(9,8,9));
                         button.visible = true;
                         button.buttonPressed += (b) => {
                             string path = b.GetMeta<string>();
@@ -579,6 +579,7 @@ public class EditorUI : Component
                         gameObject.AddComponent(button);
 
                         UILabel label = new UILabel();
+                        label.theme = UIManager.themes["Objects"];
                         label.parent = button.rid;
                         label.renderLayer = 7;
                         label.position = new UDim2(0,0,8,8);
@@ -609,6 +610,7 @@ public class EditorUI : Component
 
 
         UIVerticalScrollView addCompDropUpMenu = new UIVerticalScrollView();
+        addCompDropUpMenu.theme = UIManager.themes["BigButtons"];
         addCompDropUpMenu.renderLayer = 5;
         addCompDropUpMenu.parent = editorView.rid;
         addCompDropUpMenu.position = new UDim2(0.4f, 0.15f, 0, 0);
@@ -639,14 +641,11 @@ public class EditorUI : Component
                         continue;
 
                     CustomButton button = new CustomButton();
+                    button.theme = UIManager.themes["Objects"];
                     button.renderLayer = 6;
                     button.position = new UDim2(0,0,0,0);
                     button.size = new UDim2(1,0,0,40);
                     button.borderWidth = 4;
-                    button.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(211,125,199));
-                    button.themeOverride.SetColour("buttonHoverBackground", BearingColour.FromZeroTo255(29,28,29));
-                    button.themeOverride.SetColour("buttonUpBackground", BearingColour.FromZeroTo255(19,18,19));
-                    button.themeOverride.SetColour("buttonDownBackground", BearingColour.FromZeroTo255(9,8,9));
                     button.visible = true;
                     button.buttonPressed += (b) => {
                         GameObject? go = Hierarchy.instance?.selectedObject;
@@ -669,6 +668,7 @@ public class EditorUI : Component
                     gameObject.AddComponent(button);
 
                     UILabel label = new UILabel();
+                    label.theme = UIManager.themes["Objects"];
                     label.parent = button.rid;
                     label.renderLayer = 7;
                     label.position = new UDim2(0,0,8,8);

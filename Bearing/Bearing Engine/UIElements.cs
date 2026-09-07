@@ -1033,6 +1033,11 @@ public class UITextBox : UIButton
                 label.text = text;
             }
         }
+
+        if (Input.GetKey(Key.ControlLeft) && Input.GetKeyDown(Key.C))
+        {
+            Game.instance.SetClipboard(text);
+        }
     }
 
     protected virtual void onCharacterPressed(string s)

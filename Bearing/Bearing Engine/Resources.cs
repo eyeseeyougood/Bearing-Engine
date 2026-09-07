@@ -135,6 +135,17 @@ public class ExternalResource : Resource
     }
 }
 
+[AttributeUsage(validOn: AttributeTargets.Property)]
+public class ExpectResourceAttribute : Attribute
+{
+    public string[] allowedExtensions;
+
+    public ExpectResourceAttribute(params string[] allowedExtensions)
+    {
+        this.allowedExtensions = allowedExtensions;
+    }
+}
+
 public static class Resources
 {
     public static Stream? Open(Resource resource)
@@ -152,7 +163,7 @@ public static class Resources
         }
 
         // external resource
-        return File.Open(resource.fullpath, FileMode.Open);
+        return File.Open(resource.fullpath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
     }
 
     public static string ReadAllText(Resource resource)

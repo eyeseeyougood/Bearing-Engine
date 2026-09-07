@@ -23,41 +23,22 @@
         },
 
         (GameObject){
-            name: "Cube",
-            transform: (Transform3D){position:(Vector3:0,0,0){},scale:(Vector3:1.5,1.5,1.5){}},
+            name: "Light",
+            transform: (Transform3D){position:(Vector3:2,2,2){}},
             components: [
-                (MeshRenderer:"Cube.obj"){
-                    material: (Material){
-                        shader: (Shader:"eng/default.vert","eng/default.frag"){},
-                        parameters: [(ShaderParam){name: "mainColour", value: [0.0, 0.3, 1.0, 1.0]}]
-                    }
+                (PointLight){
+                    intensity: 0.5
                 }
             ],
-            immediateChildren: [
-                (GameObject){
-                    name: "Child Cube",
-                    transform: (Transform3D){position:(Vector3:1.5,0,0){},scale:(Vector3:1,1.5,1){}},
-                    components: [
-                        (MeshRenderer:"Cube.obj"){
-                            material: (Material){
-                                shader: (Shader:"eng/default.vert","eng/default.frag"){},
-                                parameters: [(ShaderParam){name: "mainColour", value: [1.0, 0.3, 0.0, 1.0]}]
-                            }
-                        },
-                        (TestComponent){},
-                        (TestComponent){}
-                    ]
-                }
-            ]
         },
 
         (GameObject){
-            name: "Cube 2",
+            name: "Cube",
             components: [
-                (MeshRenderer:"Cube.obj"){
+                (MeshRenderer:"eng/ICOSphere.obj"){
                     material: (Material){
-                        shader: (Shader:"eng/default.vert","eng/default.frag"){},
-                        parameters: [(ShaderParam){name: "mainColour", value: [0.6, 0.3, 1.0, 1.0]}]
+                        shader: (Shader:"eng/default.vert","eng/lighting.frag"){},
+                        parameters: [(ShaderParam){name: "mainColour", value: [0.9, 0.9, 0.9, 1.0]}]
                     }
                 }
             ]

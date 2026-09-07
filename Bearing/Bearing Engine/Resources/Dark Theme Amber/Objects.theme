@@ -1,0 +1,16 @@
+colours:
+selection:225,145,35,255
+labelText:245,240,230,255
+buttonUpBackground:48,40,30,255
+buttonDownBackground:28,23,17,255
+buttonHoverBackground:76,61,43,255
+verticalScrollBG:0,0,0,0
+panelBG:26,22,16,255
+sliderBackground:69,56,39,255
+sliderFill:225,145,35,255
+panelOutline:96,78,52,255
+
+audios:
+buttonHoverAudio:NULL
+buttonDownAudio:NULL
+buttonUpAudio:NULL

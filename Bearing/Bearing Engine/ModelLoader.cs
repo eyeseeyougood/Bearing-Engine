@@ -49,6 +49,7 @@ public static class ModelLoader
             k++;
         }
 
+        fStream?.Dispose();
         importer.Dispose();
 
         result.vertices = verts.ToArray();
@@ -80,6 +81,7 @@ public static class ModelLoader
 
         Mesh3D result = Mesh3D.FromData(finalVerts.ToArray(), finalIndices.ToArray());
 
+        fStream?.Dispose();
         importer.Dispose();
 
         return result;
@@ -117,6 +119,7 @@ public static class ModelLoader
             k++;
         }
 
+        fStream?.Dispose();
         importer.Dispose();
 
         result.vertices = verts.ToArray();

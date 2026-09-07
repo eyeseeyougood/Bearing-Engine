@@ -1,3 +1,5 @@
+using OpenTK.Mathematics;
+using System.Reflection;
 using Bearing;
 
 public class MiniResourceView : Component
@@ -11,6 +13,10 @@ public class MiniResourceView : Component
 
     private int panel;
 
+    public CustomButton? currentlyDragging = null;
+    private CustomPanel? dragPanel;
+    private UILabel? dragText;
+
     public MiniResourceView(UIVerticalScrollView scroll) { instance = this; this.scroll = scroll; panel = scroll.parent; }
 
     public override void OnLoad()
@@ -23,6 +29,8 @@ public class MiniResourceView : Component
         refreshButton.position = new UDim2(1f, 0.0f, -10, 10);
         refreshButton.size = new UDim2(0.0f, 0.0f, 50, 50);
         refreshButton.borderWidth = 2;
+        refreshButton.useParentActivity = false;
+        refreshButton.useParentVisibility = false;
         refreshButton.buttonPressed += (b) => {
             UpdateView();
         };
@@ -45,10 +53,92 @@ public class MiniResourceView : Component
         notFoundText.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
         gameObject.AddComponent(notFoundText);
 
+        dragPanel = new CustomPanel();
+        dragPanel.theme = UIManager.themes["Files"];
+        dragPanel.renderLayer = 200;
+        dragPanel.anchor = new Vector2(0.5f, 0.5f);
+        dragPanel.size = new UDim2(0f,0,200,30);
+        dragPanel.borderWidth = 3;
+        dragPanel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
+        gameObject.AddComponent(dragPanel);
+
+        dragText = new UILabel();
+        dragText.theme = UIManager.themes["Files"];
+        dragText.parent = dragPanel.rid;
+        dragText.renderLayer = 201;
+        dragText.position = new UDim2(0,0,5,5);
+        dragText.size = new UDim2(1f,1f,-10,-10);
+        dragText.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
+        gameObject.AddComponent(dragText);
+
         UpdateView();
     }
 
-    public override void OnTick(float dt) {}
+    public void AssignFileToButton(UIButton button)
+    {
+        object? target = button.GetMeta<object>(1);
+        PropertyInfo? property = button.GetMeta<PropertyInfo>();
+        if (target is null || property is null)
+            return;
+
+        UILabel? label = button.GetMeta<UILabel>(2);
+        
+        if (label is null)
+            throw new Exception("bre, idek");
+
+        string? currentText = currentlyDragging?.GetMeta<string>(1);
+        if (currentText is null)
+            throw new Exception("bre, idek 2");
+
+        string? extension = "."+currentText.Split(".").Last();
+
+        ExpectResourceAttribute? attribute = property.GetCustomAttribute<ExpectResourceAttribute>();
+        if (attribute is not null)
+        {
+            if (!attribute.allowedExtensions.Contains(extension)) // TODO: display warning that incorrect type, do you want to continue
+                return;
+        }
+
+        string? path = currentlyDragging?.GetMeta<string>();
+        string fullpath = path + currentText;
+        
+        label.text = fullpath;
+
+        property?.SetValue(target, ExternalResource.FromPath(fullpath));
+        ComponentView.instance.HandleCustomInspectorSetProperty(target, property);
+    }
+
+    public override void OnTick(float dt)
+    {
+        if (Input.GetMouseButtonUp(0) && currentlyDragging is not null)
+        {
+            Vector2 m = Input.GetMousePosition();
+
+            UIButton? button = FileAssignableRegistry.GetButtonAtPosition(m);
+
+            if (button is not null)
+            {
+                AssignFileToButton(button);
+            }
+
+            currentlyDragging = null;
+        }
+
+        if (dragPanel is null || dragText is null)
+            return;
+
+        dragPanel.active = currentlyDragging is not null;
+        dragPanel.visible = currentlyDragging is not null;
+
+        if (currentlyDragging is not null)
+        {
+            Vector2 m = Input.GetMousePosition();
+            dragPanel.position = new UDim2(0,0,m.X, m.Y);
+            string? itemName = currentlyDragging.GetMeta<string>(1);
+            dragText.text = itemName is null ? "ERROR" : itemName;
+        }
+    }
+
     public override void Cleanup() {}
 
     public void UpdateView()
@@ -80,7 +170,8 @@ public class MiniResourceView : Component
         if (resourcesPath is null)
             return;
 
-        AddFolder(resourcesPath, 0, 0);
+        CreateItem(string.Join("/",resourcesPath.Split("/").SkipLast(2))+"/", "EngineData/", 0, 0, "Folders");
+        CreateItem(string.Join("/",resourcesPath.Split("/").SkipLast(2))+"/", "Resources/", 1, 0, "Folders");
 
         UIManager.Sort();
     }
@@ -101,6 +192,11 @@ public class MiniResourceView : Component
         return result;
     }
 
+    private void HandleDrag(CustomButton item)
+    {
+        currentlyDragging = item;
+    }
+
     private const int indentSize = 10;
     private void CreateItem(string path, string itemName, int index, int indent, string theme)
     {
@@ -111,9 +207,15 @@ public class MiniResourceView : Component
         item.size = new UDim2(1f, 0f, indent * -indentSize, 30);
         item.borderWidth = 3;
         item.buttonPressed += (b) => {
-            Logger.Log(UIManager.currentTheme.ExportValues(UITheme.ThemeExportColourPrecisionMode.ZeroTo255));
+            Logger.Log("pressed");
             if (!ContainsPath(path + itemName))
+            {
+                Logger.Log(path + itemName);
                 AddFolder(path + itemName, scroll.GetElementIndex(b) + 1, b.GetMeta<int>(2) + 1);
+            }
+
+            if (File.Exists(path + itemName))
+                HandleDrag(item);
         };
         gameObject.AddComponent(item);
 

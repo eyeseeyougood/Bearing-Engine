@@ -92,7 +92,6 @@ public class ResourceView : Component
         item.position = new UDim2(0f, 0f, indent * indentSize, 0);
         item.size = new UDim2(1f, 0f, indent * -indentSize, 60);
         item.buttonPressed += (b) => {
-            Logger.Log(UIManager.currentTheme.ExportValues(UITheme.ThemeExportColourPrecisionMode.ZeroTo255));
             if (!ContainsPath(path + itemName))
                 AddFolder(path + itemName, scroll.GetElementIndex(b) + 1, b.GetMeta<int>(2) + 1);
         };

@@ -7,13 +7,15 @@ using OpenTK.Mathematics;
 
 namespace Bearing
 {
-    public class Shader : IBSTSerialisable
+    public partial class Shader : IBSTSerialisable
     {
-        public readonly uint Handle;
+        public uint Handle { get; private set; }
 
         private Dictionary<string, int> _uniformLocations;
 
+        [ExpectResource(".vert",".v",".glsl")]
         public Resource vert { get; set; }
+        [ExpectResource(".frag",".f",".glsl")]
         public Resource frag { get; set; }
 
         private Shader(uint handle, Dictionary<string, int> uniformLocations) { Handle = handle; _uniformLocations = uniformLocations; }
@@ -22,7 +24,7 @@ namespace Bearing
             this.vert = EmbeddedResource.GetShader(embeddedVert);
             this.frag = EmbeddedResource.GetShader(embeddedFrag);
 
-            Handle = InitShader();
+            InitShader();
         }
 
         public Shader(Resource vert, Resource frag)
@@ -30,10 +32,10 @@ namespace Bearing
             this.vert = vert;
             this.frag = frag;
 
-            Handle = InitShader();
+            InitShader();
         }
 
-        private uint InitShader()
+        private void InitShader()
         {
             GL GL = GLContext.gl;
 
@@ -75,7 +77,7 @@ namespace Bearing
                 _uniformLocations.Add(key, location);
             }
 
-            return h;
+            Handle = h;
         }
 
         public static Shader FromResources(Resource vert, Resource frag)
