@@ -47,9 +47,9 @@ public class Renderable : Component
 
         bool is3D = mesh is Mesh3D;
 
-        int texLoc = GL.GetAttribLocation((uint)shaderHandle, name);
-        GL.VertexAttribPointer((uint)texLoc, numFloats, VertexAttribPointerType.Float, normalised, (uint)(is3D ? MeshVertex3D.sizeInBytes : MeshVertex2D.sizeInBytes), (void*)(attribAllocCache * sizeof(float)));
-        GL.EnableVertexAttribArray((uint)texLoc);
+        int loc = GL.GetAttribLocation((uint)shaderHandle, name);
+        GL.VertexAttribPointer((uint)loc, numFloats, VertexAttribPointerType.Float, normalised, (uint)(is3D ? MeshVertex3D.sizeInBytes : MeshVertex2D.sizeInBytes), (void*)(attribAllocCache * sizeof(float)));
+        GL.EnableVertexAttribArray((uint)loc);
 
         attribAllocCache += numFloats;
     }

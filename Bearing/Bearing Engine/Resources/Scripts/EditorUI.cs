@@ -27,6 +27,7 @@ public class EditorUI : Component
         Game.instance.SetTitle("Bearing Editor");
 
         gameObject.AddComponent(new UILogger());
+        gameObject.AddComponent(new TextRenderingTest());
 
         CreateEditorView();
         CreateResourceView();

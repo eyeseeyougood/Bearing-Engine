@@ -25,7 +25,7 @@ public class SpriteRenderer : Renderable
 
             parameters = new List<ShaderParam>()
             {
-                new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
+                new ShaderParam() { name = "mainColour", value = new List<object> {1.0f, 1.0f, 1.0f, 1.0f} },
             },
         };
     }

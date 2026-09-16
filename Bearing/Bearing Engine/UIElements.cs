@@ -348,6 +348,8 @@ public class UIElement : SpriteRenderer
         material.Use();
 
         GL.DrawElements(PrimitiveType.Triangles, (uint)mesh.indices.Length, DrawElementsType.UnsignedInt, (void*)0);
+
+        AfterRender();
     }
 
     public void OnMouseEvent()
@@ -533,7 +535,9 @@ public class UILabel : UIElement
                 finalText += "...";
         }
 
+        //Logger.MeasureStart("gen legacy text");
         sprite.SetTexture(UIManager.UITextHelper.RenderTextToBmp(finalText, font));
+        //Logger.MeasureEnd("gen legacy text");
     }
 
     protected virtual void TextChanged(string val)
