@@ -18,6 +18,11 @@ public class Sprite : IMetadata
         textures.Clear();
     }
 
+    public void SetTexture(string embeddedTextureName, bool cleanupTextures = true)
+    {
+        SetTexture(Texture.LoadFromResource(EmbeddedResource.GetTexture(embeddedTextureName)), cleanupTextures);
+    }
+
     public void SetTexture(Texture texture, bool cleanupTextures = true)
     {
         if (cleanupTextures)

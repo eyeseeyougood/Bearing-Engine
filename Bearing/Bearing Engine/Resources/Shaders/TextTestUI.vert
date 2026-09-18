@@ -1,12 +1,11 @@
 #version 430 core
+
 in vec2 aPosition;
 in vec2 aTexCoord;
 
 uniform vec2 anchor;
 uniform vec2 posOffset;
 uniform vec2 posScale;
-uniform vec2 sizeOffset;  // remove
-uniform vec2 sizeScale;  // remove
 
 uniform vec2 screenSize;
 
@@ -43,8 +42,9 @@ float GetGlobalOrigin(int instance)
 
     for (int i = 0; i < instance; i++)
     {
-        Glyph gl = metrics[text[i]+characterInclusionOffset];
-        origin += gl.advance - gl.bearing.x;
+        Glyph gl = metrics[text[i] + characterInclusionOffset];
+
+        origin += gl.advance;
     }
 
     return origin;
@@ -52,45 +52,51 @@ float GetGlobalOrigin(int instance)
 
 void main()
 {
-    //vec2 sizing = sizeScale + (sizeOffset/screenSize);
     int glyphID = text[gl_InstanceID] + characterInclusionOffset;
 
     Glyph glyph = metrics[glyphID];
 
-    vec2 sizing = glyph.size*vec2(1,2)/screenSize;
+    vec2 sizing = glyph.size/screenSize;
 
     vec2 anchorOffset = sizing * anchor;
 
     float globalOrigin = GetGlobalOrigin(gl_InstanceID);
 
-    vec2 positioning = posScale + ((posOffset+vec2(globalOrigin, 0) - glyph.bearing)/screenSize)
-                     - ((vec2(1,1) - sizing) / 2)
-                     - anchorOffset;
+    vec2 positioning = posScale + ((posOffset + vec2(globalOrigin, 0.0) - glyph.bearing)/screenSize)
+        -((vec2(1.0) - sizing) / 2.0)
+        -anchorOffset;
 
     positioning = vec2(positioning.x, -positioning.y);
 
     gl_Position = vec4(aPosition * sizing + positioning, 0.0, 0.5);
 
-    vec2 glyphAtlasPosition = vec2(glyphID % atlasColumns, glyphID / atlasColumns);
+    vec2 cellPosition = vec2(glyphID % atlasColumns, glyphID / atlasColumns);
+    vec2 cellSize = vec2(1.0 / atlasColumns, 1.0 / atlasRows);
+    vec2 cellUV = vec2(cellPosition.x * cellSize.x, cellPosition.y * cellSize.y);
 
-    float cellWidth = 1.0 / atlasColumns;
-    float cellHeight = 1.0 / atlasRows;
+    vec2 glyphSize = vec2(glyph.size.x / atlasWidth, glyph.size.y / atlasHeight);
+    vec2 glyphUVOffset = vec2(glyph.origin.x / atlasWidth, glyph.origin.y / atlasHeight);
 
-    float width = (glyph.size.x) / atlasWidth;
-    float height = cellHeight;
+    vec2 offset = cellUV + glyphUVOffset;
 
-    vec2 offset = vec2(glyphAtlasPosition.x * cellWidth, glyphAtlasPosition.y * cellHeight);
-    offset += vec2((glyph.origin.x) / atlasWidth, (cellHeight * atlasHeight - glyph.origin.y) / atlasHeight);
+    vec2 uv;
 
-    float uvs[8];
-    uvs[0] = offset.x;
-    uvs[1] = offset.y + height;
-    uvs[2] = offset.x;
-    uvs[3] = offset.y;
-    uvs[4] = offset.x + width;
-    uvs[5] = offset.y;
-    uvs[6] = offset.x + width;
-    uvs[7] = offset.y + height;
+    if (gl_VertexID == 0)
+    {
+        uv = vec2(offset.x, offset.y + glyphSize.y);
+    }
+    else if (gl_VertexID == 1)
+    {
+        uv = vec2(offset.x, offset.y);
+    }
+    else if (gl_VertexID == 2)
+    {
+        uv = vec2(offset.x + glyphSize.x, offset.y);
+    }
+    else
+    {
+        uv = vec2(offset.x + glyphSize.x, offset.y + glyphSize.y);
+    }
 
-    texCoord = vec2(uvs[gl_VertexID*2], 1-uvs[gl_VertexID*2 + 1]);
+    texCoord = vec2(uv.x, 1.0 - uv.y);
 }

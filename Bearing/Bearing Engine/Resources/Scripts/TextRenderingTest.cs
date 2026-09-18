@@ -3,6 +3,7 @@ using Silk.NET.OpenGL;
 using Bearing;
 using Texture = Bearing.Texture;
 using Shader = Bearing.Shader;
+using HarfBuzzSharp;
 using SkiaSharp;
 
 struct GlyphMetrics
@@ -19,7 +20,7 @@ public class TextRenderingTest : UIElement
 	private uint ssbo0;
     private uint ssbo1;
 
-    private string text = "Hello This is a test!";
+    private string text = "Advancement get! Getting an upgrade!";
     private int atlasColumns = 16;
     private int atlasRows = 0;
     private int atlasWidth = 0;
@@ -70,42 +71,69 @@ public class TextRenderingTest : UIElement
         sprite.SetTexture(Texture.LoadFromResource(EmbeddedResource.GetTexture("Test.png")));
     }
 
-    private GlyphMetrics[] GenAtlasAndMetrics(string fontName, string outputPath, int fontSize = 48)
+    private GlyphMetrics[] GenAtlasAndMetrics(string fontPath, string outputPath, int fontSize = 48)
     {
         Logger.MeasureStart("gen atlas");
+
+        using Blob blob = Blob.FromFile(fontPath);
+        using Face face = new Face(blob, 0);
+        using Font hbFont = new Font(face);
+
+        hbFont.SetScale(fontSize, fontSize);
+
+        using SKTypeface typeface = SKTypeface.FromFile(fontPath);
+        using SKFont skFont = new SKFont(typeface, fontSize);
+
+        using SKPaint paint = new SKPaint
+        {
+            IsAntialias = true,
+            Color = SKColors.White
+        };
+
         int firstChar = 32;
         int lastChar = 1024;
+
+        int glyphCount = lastChar - firstChar + 1;
 
         characterOffset = -firstChar;
 
         int columns = atlasColumns;
         int padding = 30;
 
-        int glyphCount = lastChar - firstChar + 1;
 
-        using var typeface = SKTypeface.FromFamilyName(fontName);
+        var glyphIDs = new uint[glyphCount];
+        var extents = new GlyphExtents[glyphCount];
+        var valid = new bool[glyphCount];
 
-        using var font = new SKFont(typeface, fontSize);
+        int maxWidth = 0;
+        int maxHeight = 0;
 
-        using var paint = new SKPaint
+        for (int i = 0; i < glyphCount; i++)
         {
-            IsAntialias = true,
-            Color = SKColors.White
-        };
+            uint codepoint = (uint)(i + firstChar);
 
-        GlyphMetrics[] metricResults = new GlyphMetrics[glyphCount];
-            
-        // the largest character metrics are used to create an atlas with equally sized cells for simplicity
+            if (!hbFont.TryGetNominalGlyph(codepoint, out uint glyphID))
+                continue;
 
-        font.GetFontMetrics(out SKFontMetrics metrics);
+            if (!hbFont.TryGetGlyphExtents(glyphID, out GlyphExtents glyphExtents))
+                continue;
 
-        float maxWidth = metrics.MaxCharacterWidth;
-        float maxHeight = metrics.Descent - metrics.Ascent;
+            glyphIDs[i] = glyphID;
+            extents[i] = glyphExtents;
+            valid[i] = true;
 
-        int cellWidth = (int)MathF.Ceiling(maxWidth) + padding;
-        int cellHeight = (int)MathF.Ceiling(maxHeight) + padding;
+            int width = Math.Abs(glyphExtents.Width);
+            int height = Math.Abs(glyphExtents.Height);
+
+            maxWidth = Math.Max(maxWidth, width);
+            maxHeight = Math.Max(maxHeight, height);
+        }
+
+        int cellWidth = maxWidth + padding;
+        int cellHeight = maxHeight + padding;
 
         int rows = (glyphCount + columns - 1) / columns;
+
         atlasRows = rows;
 
         atlasWidth = cellWidth * columns;
@@ -115,18 +143,23 @@ public class TextRenderingTest : UIElement
             atlasWidth,
             atlasHeight,
             SKColorType.Rgba8888,
-            SKAlphaType.Premul
-        );
+            SKAlphaType.Premul);
 
         using var canvas = new SKCanvas(bitmap);
 
         canvas.Clear(SKColors.Transparent);
 
-        // actually using the glyph data to render to a canvas
+        GlyphMetrics[] metricResults = new GlyphMetrics[glyphCount];
 
         for (int i = 0; i < glyphCount; i++)
         {
-            char c = (char)(firstChar + i);
+            if (!valid[i])
+                continue;
+
+            uint glyphID = glyphIDs[i];
+            GlyphExtents hbExtents = extents[i];
+
+            char c = (char)(i + firstChar);
 
             int column = i % columns;
             int row = i / columns;
@@ -134,47 +167,45 @@ public class TextRenderingTest : UIElement
             float cellX = column * cellWidth;
             float cellY = row * cellHeight;
 
-            using var path = font.GetTextPath(c.ToString());
-            float glyphWidth = font.MeasureText(c.ToString());
-            float glyphHeight = path.Bounds.Height;
+            // dunno why but harfbuzz seems to give me negative size
+            float glyphWidth = Math.Abs(hbExtents.Width);
+            float glyphHeight = Math.Abs(hbExtents.Height);
 
-            float x = cellX + (cellWidth - glyphWidth) * 0.5f;
+            float glyphX = (cellWidth - glyphWidth) * 0.5f;
+            float glyphY = (cellHeight - glyphHeight) * 0.5f;
 
-            // position baseline using the ascent
-            float y = cellY + padding - metrics.Ascent;
+            float baselineY = cellY + glyphY + hbExtents.YBearing;
+            float baselineX = cellX + glyphX - hbExtents.XBearing;
 
-            canvas.DrawText(c.ToString(), x, y, font, paint);
-            //canvas.DrawRect(cellX,cellY,cellWidth,cellHeight, new SKPaint(){Color = SKColor.FromHsv(0,0,0)});
+            canvas.DrawText(c.ToString(), baselineX, baselineY, skFont, paint);
 
-
-            // save metrics
-            metricResults[i] =
-            new()
+            metricResults[i] = new GlyphMetrics
             {
                 origin = new Vector2(
-                x - cellX,
-                y - cellY),
+                    glyphX,
+                    glyphY),
 
                 size = new Vector2(
                     glyphWidth,
-                    char.IsAsciiLetterUpper(c) ? metrics.CapHeight : glyphHeight),
+                    glyphHeight),
 
                 bearing = new Vector2(
-                    path.Bounds.Left,
-                    -path.Bounds.Top),
+                    hbExtents.XBearing,
+                    hbExtents.YBearing),
 
-                advance = font.GetGlyphWidths(c.ToString()).First()
+                advance = hbFont.GetHorizontalGlyphAdvance(glyphID)
             };
-
         }
 
-        // temporary saving code for debug
-
+        // TODO: Remove this and make the texture a gl texture directly
+        Logger.MeasureStart("create file");
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
 
         using var stream = File.Create(outputPath);
         data.SaveTo(stream);
+        Logger.MeasureEnd("create file");
+
         Logger.MeasureEnd("gen atlas");
 
         return metricResults;
@@ -187,7 +218,7 @@ public class TextRenderingTest : UIElement
     	ssbo0 = GL.GenBuffer();
     	BindGlyphBuffer();
 
-        GlyphMetrics[] data = GenAtlasAndMetrics("Arial", "Test.png", 60);
+        GlyphMetrics[] data = GenAtlasAndMetrics("./Andika-Regular.ttf", "Test.png", 48);
 
         fixed (void* ptr = data)
     	   GL.BufferData(BufferTargetARB.ShaderStorageBuffer, (nuint)(sizeof(GlyphMetrics) * data.Length), ptr, BufferUsageARB.StaticDraw);

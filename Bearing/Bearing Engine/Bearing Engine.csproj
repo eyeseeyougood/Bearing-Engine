@@ -26,6 +26,8 @@
     <PackageReference Include="Box2D.NET" Version="3.1.645" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="HarfBuzzSharp" Version="14.2.1.200" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="14.2.1.200" />
     <PackageReference Include="OpenTK.Mathematics" Version="4.9.4" />
     <PackageReference Include="RiptideNetworking.Riptide" Version="2.2.0" />
     <PackageReference Include="Silk.Net.Input" Version="2.22.0" />
