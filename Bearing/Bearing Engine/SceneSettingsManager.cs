@@ -9,23 +9,29 @@ namespace Bearing;
 public static class SceneSettingsManager
 {
     public static string settings = "";
+    private static bool settingsExist = false;
 
     public static void Init()
     {
-        settings = Resources.ReadAllText(EmbeddedResource.FromPath("./Resources/Scene/settings.txt"));
+        EmbeddedResource res = EmbeddedResource.FromPath("./Resources/Scene/settings.txt");
+
+        if (EmbeddedResource.Exists(res))
+        {
+            settings = Resources.ReadAllText(res);
+            settingsExist = true;
+        }
     }
 
     /// <summary>
     /// This fetches all of the settings under a section header from the scene settings file.
     /// </summary>
     /// <param name="section">The desired section title.</param>
-    /// <returns>The settingsA dictionary of setting names and their values as strings. If the section title isn't found then returns null.</returns>
+    /// <returns>A dictionary of setting names and their values as strings. If the section title isn't found then returns null.</returns>
     public static Dictionary<string, string>? GetSettings(string section)
     {
-        // quick and shitty check for if the secion exists (not reliable)
-        if (!settings.Contains(section))
+        if (!SettingsExist(section))
         {
-            Logger.LogError("Invalid scene settings: Requested section is missing from the settings file!");
+            Logger.LogError($"Invalid scene settings: Requested section '{section}' is missing from the settings file!");
             return null;
         }
 
@@ -36,19 +42,28 @@ public static class SceneSettingsManager
 
         foreach (string line in lines)
         {
-            if (line == sectionHeader)
+            string filteredLine = line.ReplaceLineEndings().Trim();
+            
+            if (filteredLine == sectionHeader)
                 break;
-
-            string filteredLine = line.Trim().Replace(" ","");
 
             string[] parts = filteredLine.Split("=");
 
             if (parts.Length != 2)
-                Logger.LogError("Invalid scene settings: Incorrect number of setting parts!");
+                throw new Exception("Invalid scene settings: Incorrect number of setting parts!");
 
-            result.Add(parts[0], parts[1]);
+            result.Add(parts[0].Trim(), parts[1].Trim());
         }
 
         return result;
+    }
+
+    public static bool SettingsExist(string section)
+    {
+        // quick and shitty check for if the secion exists (not reliable)
+        // TODO: improve, this can be broken in the condition that the given section doesnt exist, but a setting or value of a setting in
+        // another section is named the same as the given section header
+        string sectionHeader = $"--- {section} ---";
+        return settingsExist && settings.Contains(sectionHeader);
     }
 }

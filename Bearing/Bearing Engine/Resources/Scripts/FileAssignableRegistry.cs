@@ -16,6 +16,11 @@ public static class FileAssignableRegistry
 		return registry.Contains(button);
 	}
 
+	public static void ClearRegistry()
+	{
+		registry.Clear();
+	}
+
 	public static UIButton? GetButtonAtPosition(Vector2 position)
 	{
 		UIButton? highest = null;

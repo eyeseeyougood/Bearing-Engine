@@ -7,12 +7,12 @@ public class Renderable : Component
 
     /// <summary>Call at end of override, ENSURE MATERIAL IS SET BEFORE CALLING</summary>
     public override void OnLoad(){ material.Use(); LoadAttribs(); Game.instance.AddRenderable(this); }
-    public override void OnTick(float dt){}
+    public override void OnTick(float dt){base.OnTick(dt);}
     public override void Cleanup(){ Game.instance.RemoveRenderable(this); }
 
     [HideFromInspector]
     [DontSerialise]
-    public int rid { get; set; } = -1;
+    public int rid { get; private set; } = -1;
     public int renderPass { get; set; } = 0;
     [HideFromInspector]
     public bool useTransparency { get; set; } = false; // I actually don't know what I was thinking when making this but im afraid to remove this just in case.

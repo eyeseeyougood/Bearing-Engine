@@ -78,6 +78,7 @@ public class MiniResourceView : Component
     {
         object? target = button.GetMeta<object>(1);
         PropertyInfo? property = button.GetMeta<PropertyInfo>();
+        Logger.Log("property: " + property);
         if (target is null || property is null)
             return;
 
@@ -170,8 +171,8 @@ public class MiniResourceView : Component
         if (resourcesPath is null)
             return;
 
-        CreateItem(string.Join("/",resourcesPath.Split("/").SkipLast(2))+"/", "EngineData/", 0, 0, "Folders");
-        CreateItem(string.Join("/",resourcesPath.Split("/").SkipLast(2))+"/", "Resources/", 1, 0, "Folders");
+        CreateItem(string.Join("/",resourcesPath.Split("/").SkipLast(1))+"/", "EngineData/", 0, 0, "Folders");
+        CreateItem(string.Join("/",resourcesPath.Split("/").SkipLast(1))+"/", "Resources/", 1, 0, "Folders");
 
         UIManager.Sort();
     }
@@ -207,10 +208,8 @@ public class MiniResourceView : Component
         item.size = new UDim2(1f, 0f, indent * -indentSize, 30);
         item.borderWidth = 3;
         item.buttonPressed += (b) => {
-            Logger.Log("pressed");
             if (!ContainsPath(path + itemName))
             {
-                Logger.Log(path + itemName);
                 AddFolder(path + itemName, scroll.GetElementIndex(b) + 1, b.GetMeta<int>(2) + 1);
             }
 

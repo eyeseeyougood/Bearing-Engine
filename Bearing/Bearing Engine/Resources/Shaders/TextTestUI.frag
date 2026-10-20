@@ -10,6 +10,6 @@ void main()
 {
     FragColor = mainColour * texture(textAtlas, texCoord);
 
-    //if (FragColor.a < 0.01)
-    //    FragColor = vec4(0.0,0.2,0.6,1.0);
+    if (FragColor.a < 0.01)
+        FragColor = vec4(0.0,0.2,0.6,0.5);
 }

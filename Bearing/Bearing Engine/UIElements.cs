@@ -118,6 +118,19 @@ public class UIElement : SpriteRenderer
         }
     }
 
+    protected float _rotation { get; set; } = 0;
+    public float rotation
+    {
+        get
+        {
+            return MathHelper.RadToDeg * _rotation;
+        }
+        set
+        {
+            _rotation = MathHelper.DegToRad * value;
+        }
+    }
+
     protected UDim2 _setPos{ get; set; } = new UDim2(0.0f, 0.0f, 0, 0);
     protected UDim2 _position { get; set; } = new UDim2(0.0f, 0.0f, 0, 0);
     public UDim2 position { 
@@ -335,6 +348,7 @@ public class UIElement : SpriteRenderer
         material.SetShaderParameter("posScale", worldPosition.scale);
         material.SetShaderParameter("sizeOffset", worldSize.offset);
         material.SetShaderParameter("sizeScale", worldSize.scale);
+        material.SetShaderParameter("rotation", _rotation);
 
         material.LoadParameters();
 
@@ -859,6 +873,7 @@ public class UITextBox : UIButton
         label.text = text;
     }
 
+    public event Action<UITextBox> textChanged = (i) => {};
     public event Action<UITextBox> textSubmitted = (i) => {};
 
     public bool useMultiline { get; set; } = false;
@@ -919,6 +934,7 @@ public class UITextBox : UIButton
         }
         set {
             _text = value;
+            textChanged.Invoke(this);
             if (label is not null)
             {
                 label.text = _text;
@@ -1033,7 +1049,7 @@ public class UITextBox : UIButton
             string? clip = Game.instance.GetClipboard();
             if (clip is not null)
             {
-                _text += clip;
+                text += clip;
                 label.text = text;
             }
         }
@@ -1049,7 +1065,7 @@ public class UITextBox : UIButton
         if (!selected)
             return;
         
-        _text += s[0];
+        text += s[0];
         label.text = text;
     }
 
@@ -1063,7 +1079,7 @@ public class UITextBox : UIButton
         if (text.Length - 1 < 0)
             return;
 
-        _text = text.Substring(0, text.Length - 1);
+        text = text.Substring(0, text.Length - 1);
 
         label.text = text;
     }

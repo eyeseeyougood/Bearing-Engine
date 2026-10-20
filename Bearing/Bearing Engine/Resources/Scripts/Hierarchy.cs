@@ -13,6 +13,8 @@ public class Hierarchy : Component
 	private CustomPanel hierarchyPanel;
 	private UIVerticalScrollView scroll;
 
+	private HashSet<GameObject> collapsedObjects = new HashSet<GameObject>();
+
 	private int parent;
 	public Hierarchy(int parent) {this.parent=parent; instance = this;}
     public override void OnLoad()
@@ -29,7 +31,7 @@ public class Hierarchy : Component
     	scroll.renderLayer = 2;
     	scroll.parent = hierarchyPanel.rid;
     	scroll.position = new UDim2(0,0,10,10);
-    	scroll.size = new UDim2(1,0.7f, -20, -20);
+    	scroll.size = new UDim2(1,1, -20, -20);
 
     	gameObject.AddComponent(scroll);
 
@@ -62,6 +64,16 @@ public class Hierarchy : Component
 		return button;
     }
 
+    public void ToggleCollapseObject(GameObject go)
+    {
+    	if (collapsedObjects.Contains(go))
+    		collapsedObjects.Remove(go);
+    	else
+    		collapsedObjects.Add(go);
+
+		UpdateHierarchy();
+    }
+
     public void UpdateHierarchy()
     {
     	scroll.ClearContents();
@@ -87,7 +99,7 @@ public class Hierarchy : Component
 		if (selectedObject == go)
 		{
     		selectedButton = button;
-    		selectedButton.themeOverride.SetColour("panelOutline", BearingColour.FromZeroTo255(88,132,220));
+    		selectedButton.themeOverride.SetColour("panelOutline", UIManager.themes["Objects"].GetColour("selection"));
 		}
 
 		if (go != Game.instance.root)
@@ -117,6 +129,33 @@ public class Hierarchy : Component
 	        removeLabel.text = "X";
 	        removeLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
 	        gameObject.AddComponent(removeLabel);
+
+	        if (go.immediateChildren.Count > 0)
+	        {
+	        	CustomButton collapseButton = new CustomButton();
+				collapseButton.theme = UIManager.themes["Objects"];
+		        collapseButton.renderLayer = 4;
+		        collapseButton.parent = button.rid;
+		        collapseButton.anchor = new Vector2(0,0);
+		        collapseButton.position = new UDim2(0, 0, 0, 2);
+		        collapseButton.size = new UDim2(0, 1, 25, -4);
+		        collapseButton.themeOverride.SetColour("panelOutline", BearingColour.Transparent);
+		        collapseButton.buttonPressed += (b) => {
+		        	Hierarchy.instance?.ToggleCollapseObject(go);
+		        };
+		        gameObject.AddComponent(collapseButton);
+
+		        UILabel collapseLabel = new UILabel();
+		        collapseLabel.theme = UIManager.themes["Objects"];
+		        collapseLabel.renderLayer = 5;
+		        collapseLabel.parent = collapseButton.rid;
+		        collapseLabel.position = new UDim2(0f,0f,4,4);
+		        collapseLabel.size = new UDim2(1f,1f,-8,-8);
+		        collapseLabel.text = collapsedObjects.Contains(go) ? ">" : "\\/";
+		        collapseLabel.mouseCaptureMode = UIMouseCaptureMode.PassThrough;
+		        collapseButton.AddMeta(collapseLabel);
+		        gameObject.AddComponent(collapseLabel);
+	        }
 		}
 
 		scroll.AddElement(button);
@@ -129,7 +168,10 @@ public class Hierarchy : Component
     	foreach (GameObject go in currentObject.immediateChildren)
     	{
     		if (CreateObjectButton(go, indent))
-    			CreateTreeRecursive(go, indent+1);
+    		{
+    			if (!collapsedObjects.Contains(go))
+    				CreateTreeRecursive(go, indent+1);
+    		}
     	}
     }
 

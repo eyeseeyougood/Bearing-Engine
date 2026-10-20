@@ -13,11 +13,14 @@ public static class Time
     {
         get
         {
+            if (sw is null)
+                return 0f;
+
             return (float)(sw.Elapsed.TotalMilliseconds/1000d);
         }
     }
 
-    private static Stopwatch sw;
+    private static Stopwatch? sw;
     public static float evaluationTime = 0.05f;
 
     public static void Init()
@@ -27,7 +30,7 @@ public static class Time
 
     public static async Task WaitTillTime(float time)
     {
-        while (sw.Elapsed.TotalSeconds < time)
+        while (sw?.Elapsed.TotalSeconds < time)
         {
             await Task.Delay((int)(evaluationTime*1000));
         }

@@ -33,7 +33,7 @@
         },
 
         (GameObject){
-            name: "Cube",
+            name: "Sphere",
             components: [
                 (MeshRenderer:"eng/ICOSphere.obj"){
                     material: (Material){

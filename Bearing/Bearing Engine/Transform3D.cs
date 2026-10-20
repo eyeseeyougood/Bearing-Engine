@@ -127,7 +127,7 @@ public class Transform3D : Transform
 
     public Vector3 GetForward()
     {
-        return -new Vector3(
+        return new Vector3(
             model.M31,
             model.M32,
             model.M33

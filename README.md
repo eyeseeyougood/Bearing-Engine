@@ -8,3 +8,7 @@ Command to build for linux: dotnet publish -c Release -r linux-x64 --self-contai
 
 final files are found in the '/bin/Release/net8.0/[platform]/publish' folder
 where [platform] is either 'win-x64' or 'linux-x64' depending on which build command was ran
+
+NOTE:
+This is only necessary on when building for linux-x64:
+The post-build script requires patchelf to be installed due to the 'libassimp.so' file not using the correct working directory by default.

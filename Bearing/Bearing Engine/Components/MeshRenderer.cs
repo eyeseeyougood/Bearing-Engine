@@ -8,6 +8,7 @@ public class MeshRenderer : Renderable, IBSTSerialisable
     protected bool setup3DMatrices = true;
 
     public bool drawOnTop { get; set; }
+    public bool renderBackFaces { get; set; }
 
     [DontSerialise, HideFromInspector]
     public Texture? texture0 { get; set; }
@@ -17,7 +18,7 @@ public class MeshRenderer : Renderable, IBSTSerialisable
     public Texture? texture2 { get; set; }
 
     private Resource? _texture0Resource;
-    [DontSerialise, ExpectResource(".png",".jpg",".jpeg")] // others work too, these are just the ones I have tested
+    [ExpectResource(".png",".jpg",".jpeg")] // others work too, these are just the ones I have tested
     public Resource? texture0Resource
     {
         get{
@@ -63,7 +64,15 @@ public class MeshRenderer : Renderable, IBSTSerialisable
         this.mesh = new Mesh3D(mesh);
     }
 
-    private MeshRenderer() {}
+    public MeshRenderer(Mesh3D mesh)
+    {
+        this.mesh = mesh;
+    }
+
+    public MeshRenderer()
+    {
+        mesh = new Mesh3D(EmbeddedResource.GetModel("eng/Cube.obj"));
+    }
 
     public override void OnLoad()
     {
@@ -104,6 +113,7 @@ public class MeshRenderer : Renderable, IBSTSerialisable
 
     public override void OnTick(float dt)
     {
+        base.OnTick(dt);
     }
 
     public override unsafe void Render()
@@ -114,6 +124,11 @@ public class MeshRenderer : Renderable, IBSTSerialisable
             GL.Disable(GLEnum.DepthTest);
         else
             GL.Enable(GLEnum.DepthTest);
+
+        if (renderBackFaces)
+            GL.Disable(GLEnum.CullFace);
+        else
+            GL.Enable(GLEnum.CullFace);
 
         material.Use();
 

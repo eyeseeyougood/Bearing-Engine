@@ -451,6 +451,9 @@ public class EditorUI : Component
         importSceneButton.position = new UDim2(0.333333f, 0.5f, 0, 0);
         importSceneButton.size = new UDim2(0.333333f, 0.5f, -5, -10);
         importSceneButton.buttonPressed += (b) => {
+            if (Hierarchy.instance is null)
+                return;
+
             if (!File.Exists("./Export/main.bst"))
                 return;
 
@@ -464,6 +467,9 @@ public class EditorUI : Component
                 child.Cleanup();
             }
 
+            Hierarchy.instance.selectedButton = null;
+            Hierarchy.instance.selectedObject = null;
+
             String s = File.ReadAllText("./Export/main.bst");
             GameObject imported = SceneLoader.DeserialiseGameObject(s);
             foreach (GameObject child in imported.immediateChildren.ToList())
@@ -475,7 +481,8 @@ public class EditorUI : Component
             imported.immediateChildren.Clear();
             imported.Cleanup();
 
-            Hierarchy.instance?.UpdateHierarchy();
+            Hierarchy.instance.UpdateHierarchy();
+            ComponentView.instance.UpdateComponentView();
         };
         gameObject.AddComponent(importSceneButton);
 

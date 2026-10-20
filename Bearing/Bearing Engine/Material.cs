@@ -55,7 +55,7 @@ public class Material
 
         parameters = new List<ShaderParam>()
         {
-            new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
+            new ShaderParam() { name = "mainColour", value = new List<object> {1.0f, 1.0f, 1.0f, 1.0f} },
         }
     };
 
@@ -65,7 +65,7 @@ public class Material
 
         parameters = new List<ShaderParam>()
         {
-            new ShaderParam() { name = "mainColour", value = new List<object> {0.9f, 0.9f, 0.9f, 1.0f} },
+            new ShaderParam() { name = "mainColour", value = new List<object> {1.0f, 1.0f, 1.0f, 1.0f} },
         },
     };
 
@@ -86,6 +86,81 @@ public class Material
     public void SetShaderParameter(ShaderParam param)
     {
         SetShaderParameter(param.name, param.GetData());
+    }
+
+    ///<summary>
+    ///I couldn't think of how to make the name clearer but this sets a parameter permanently until changed again, while SetShaderParameter() only changes it for 1 render
+    ///</summary>
+    public void ChangeParamater(string name, int value)
+    {
+        foreach (ShaderParam param in parameters)
+        {
+            if (param.name == name)
+            {
+                param.value = new List<object>() {value};
+                break;
+            }
+        }
+    }
+
+    public void ChangeParamater(string name, float value)
+    {
+        foreach (ShaderParam param in parameters)
+        {
+            if (param.name == name)
+            {
+                param.value = new List<object>() {value};
+                break;
+            }
+        }
+    }
+
+    public void ChangeParamater(string name, Vector2 value)
+    {
+        foreach (ShaderParam param in parameters)
+        {
+            if (param.name == name)
+            {
+                param.value = new List<object>() {value.X, value.Y};
+                break;
+            }
+        }
+    }
+
+    public void ChangeParamater(string name, Vector3 value)
+    {
+        foreach (ShaderParam param in parameters)
+        {
+            if (param.name == name)
+            {
+                param.value = new List<object>() {value.X, value.Y, value.Z};
+                break;
+            }
+        }
+    }
+
+    public void ChangeParamater(string name, Vector4 value)
+    {
+        foreach (ShaderParam param in parameters)
+        {
+            if (param.name == name)
+            {
+                param.value = new List<object>() {value.X, value.Y, value.Z, value.W};
+                break;
+            }
+        }
+    }
+
+    public void ChangeParamater(string name, Matrix4 value)
+    {
+        foreach (ShaderParam param in parameters)
+        {
+            if (param.name == name)
+            {
+                param.value = value.ToObjectArray().ToList();
+                break;
+            }
+        }
     }
 
     public void SetShaderParameter(string name, object value)

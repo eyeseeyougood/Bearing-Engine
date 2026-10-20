@@ -8,7 +8,7 @@ namespace Bearing;
 
 public static class Program
 {
-    public static IWindow window = null;
+    public static IWindow? window = null;
 
     private static bool wantsToClose = false;
 
@@ -16,10 +16,22 @@ public static class Program
     {
         Console.WriteLine("Starting Bearing Engine");
 
+        SceneSettingsManager.Init();
+
+        string windowTitle = "Bearing Engine";
+
+        if (SceneSettingsManager.SettingsExist("General"))
+        {
+            Dictionary<string, string>? settings = SceneSettingsManager.GetSettings("General");
+
+            if (settings is not null)
+                if (settings.ContainsKey("windowTitle"))
+                    windowTitle = settings["windowTitle"];
+        }
 
         WindowOptions options = WindowOptions.Default with {
             Size = new Silk.NET.Maths.Vector2D<int>(800, 600),
-            Title = "Bearing Engine",
+            Title = windowTitle,
         };
 
         window = Window.Create(options);
@@ -38,11 +50,17 @@ public static class Program
 
     public static Vector2i GetClientSize()
     {
+        if (window is null)
+            return Vector2i.Zero;
+
         return new Vector2i(window.Size.X, window.Size.Y);
     }
 
     public static void OnLoad()
     {
+        if (window is null)
+            throw new Exception("SOMETHING IS HORRIBLY WRONG!!! Program.cs.OnLoad() should not be called before the window has been created!");
+
         GLContext.gl = window.CreateOpenGL();
 
         Input.Init(window.CreateInput());
@@ -63,6 +81,12 @@ public static class Program
     {
         Glfw glfw = Glfw.GetApi();
 
+        if (window is null)
+        {
+            Logger.LogError("Cannot set the clipboard contents before window creation has occured.");
+            return;
+        }
+
         unsafe
         {
             glfw.SetClipboardString(
@@ -75,6 +99,12 @@ public static class Program
     public static string? GetClipboard()
     {
         Glfw glfw = Glfw.GetApi();
+
+        if (window is null)
+        {
+            Logger.LogError("Cannot get the clipboard contents before window creation has occured.");
+            return "";
+        }
 
         string? result = null;
 
@@ -95,11 +125,20 @@ public static class Program
 
     public static void Retitle(string newTitle)
     {
+        if (window is null)
+        {
+            Logger.LogError("Cannot set the window title before the window has been created! Try using the onTitleChangeableChanged event to detect when the title can be changed safely.");
+            return;
+        }
+
         window.Title = newTitle;
     }
 
     public static void OnUpdate(double delta)
     {
+        if (window is null)
+            return;
+
         if (!window.IsClosing)
             Game.instance.OnTick(delta);
 

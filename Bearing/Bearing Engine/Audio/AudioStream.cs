@@ -185,8 +185,8 @@ public unsafe class AudioStream
 	{
 		foreach (uint buffer in buffers)
 		{
-			AudioManager.GetAL().DeleteBuffer(buffer);
+			AudioManager.GetAL()?.DeleteBuffer(buffer);
 		}
-		s.Dispose();
+		s?.Dispose();
 	}
 }

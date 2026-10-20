@@ -27,9 +27,17 @@ public class SpriteSheet
     ///</summary>
     public Texture Sample(Vector2i spriteCoord)
     {
+        return Sample(spriteCoord.X, spriteCoord.Y);
+    }
+
+    ///<summary>
+    ///This function requires you to specify the slice width and height in the constructor of this spritesheet
+    ///</summary>
+    public Texture Sample(int x, int y)
+    {
         int spriteCountX = sheetWidth / sWidth;
 
-        int index = spriteCoord.X + spriteCoord.Y * spriteCountX;
+        int index = x + y * spriteCountX;
 
         return textures[index];
     }
@@ -61,7 +69,7 @@ public class SpriteSheet
 
         List<byte[]> splitData = new List<byte[]>();
 
-        for (int y = 0; y < height; y += sliceHeight)
+        for (int y = height - sliceHeight; y >= 0; y -= sliceHeight)
         {
             for (int x = 0; x < width; x += sliceWidth)
             {

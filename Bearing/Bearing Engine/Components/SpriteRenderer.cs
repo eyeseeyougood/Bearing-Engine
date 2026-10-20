@@ -1,13 +1,36 @@
 ﻿using Silk.NET.OpenGL;
+using OpenTK.Mathematics;
 
 namespace Bearing;
 
 public class SpriteRenderer : Renderable
 {
-    protected static Mesh2D quad;
+    protected static Mesh2D? quad;
 
     public Sprite sprite = new Sprite();
     public bool renderBackface = false;
+
+    private bool _flipY;
+    public bool flipY
+    {
+        get{
+            return _flipY;
+        }
+        set{
+            _flipY = value;
+        }
+    }
+
+    private bool _flipX;
+    public bool flipX
+    {
+        get{
+            return _flipX;
+        }
+        set{
+            _flipX = value;
+        }
+    }
 
     protected uint ebo;
     protected uint vao;
@@ -30,9 +53,31 @@ public class SpriteRenderer : Renderable
         };
     }
 
+    public SpriteRenderer(Resource texture)
+    {
+        if (quad == null)
+            quad = new Mesh2D(EmbeddedResource.GetModel("eng/Quad.obj"));
+
+        mesh = quad;
+        material = new Material()
+        {
+            shader = new Shader("eng/default2D.vert", "eng/texture.frag"),
+
+            parameters = new List<ShaderParam>()
+            {
+                new ShaderParam() { name = "mainColour", value = new List<object> {1.0f, 1.0f, 1.0f, 1.0f} },
+            },
+        };
+
+        sprite.SetTexture(Texture.LoadFromResource(texture));
+    }
+
     public override void OnLoad()
     {
         GL GL = GLContext.gl;
+
+        if (mesh is null)
+            return;
 
         float[] vertexData = mesh.GetVertexData();
 
@@ -65,7 +110,7 @@ public class SpriteRenderer : Renderable
         Transform2D transform = ((Transform2D)gameObject.transform);
         material.SetShaderParameter("position", transform.position);
         material.SetShaderParameter("rot", transform.rotation);
-        material.SetShaderParameter("scale", transform.scale);
+        material.SetShaderParameter("scale", transform.scale * new Vector2(flipX?-1:1,flipY?-1:1));
         material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
         material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
 
@@ -73,12 +118,17 @@ public class SpriteRenderer : Renderable
 
         LightManager.AddLightingInfo(material);
 
-        Texture t = sprite.Peak();
+        Texture? t = sprite.Peak();
 
         if (t != null)
             t.Use(TextureUnit.Texture0);
 
         if (renderBackface)
+            GL.Disable(GLEnum.CullFace);
+        else
+            GL.Enable(GLEnum.CullFace);
+
+        if (flipY || flipX)
         {
             GL.Disable(GLEnum.CullFace);
         }
@@ -87,7 +137,8 @@ public class SpriteRenderer : Renderable
 
         material.Use();
 
-        GL.DrawElements(PrimitiveType.Triangles, (uint)mesh.indices.Length, DrawElementsType.UnsignedInt, (void*)0);
+        if (mesh is not null)
+            GL.DrawElements(PrimitiveType.Triangles, (uint)mesh.indices.Length, DrawElementsType.UnsignedInt, (void*)0);
 
         AfterRender();
     }

@@ -19,6 +19,7 @@ public class ShaderView : Component
     	GameObject go = new GameObject();
     	go.parent = Game.instance.root;
     	go.AddMeta("___HIDEFROMHIERARCHY___");
+        go.Load();
     	go.AddComponent(new ShaderRenderer(image));
 
 

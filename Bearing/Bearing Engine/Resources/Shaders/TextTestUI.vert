@@ -17,7 +17,8 @@ uniform int characterInclusionOffset;
 
 struct Glyph
 {
-    vec2 origin;
+    vec2 atlasPosition;
+    vec2 atlasSize;
     vec2 size;
     vec2 bearing;
     float advance;
@@ -74,8 +75,8 @@ void main()
     vec2 cellSize = vec2(1.0 / atlasColumns, 1.0 / atlasRows);
     vec2 cellUV = vec2(cellPosition.x * cellSize.x, cellPosition.y * cellSize.y);
 
-    vec2 glyphSize = vec2(glyph.size.x / atlasWidth, glyph.size.y / atlasHeight);
-    vec2 glyphUVOffset = vec2(glyph.origin.x / atlasWidth, glyph.origin.y / atlasHeight);
+    vec2 glyphSize = vec2(glyph.atlasSize.x / atlasWidth, glyph.atlasSize.y / atlasHeight);
+    vec2 glyphUVOffset = vec2(glyph.atlasPosition.x / atlasWidth, glyph.atlasPosition.y / atlasHeight);
 
     vec2 offset = cellUV + glyphUVOffset;
 

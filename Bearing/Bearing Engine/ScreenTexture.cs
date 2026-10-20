@@ -111,14 +111,20 @@ public class ScreenTexture
 		return depTex;
 	}
 
-	public void Use(TextureUnit colourUnit, TextureUnit depthUnit)
+	public void Use(TextureUnit? colourUnit, TextureUnit? depthUnit)
 	{
 		GL GL = GLContext.gl;
-		GL.ActiveTexture(colourUnit);
-        GL.BindTexture(TextureTarget.Texture2D, colTex);
+		if (colourUnit.HasValue)
+		{
+			GL.ActiveTexture(colourUnit.Value);
+	        GL.BindTexture(TextureTarget.Texture2D, colTex);
+		}
 
-        GL.ActiveTexture(depthUnit);
-        GL.BindTexture(TextureTarget.Texture2D, depTex);
+		if (depthUnit.HasValue)
+		{
+	        GL.ActiveTexture(depthUnit.Value);
+	        GL.BindTexture(TextureTarget.Texture2D, depTex);
+		}
 	}
 
 	public byte[] GetColourData()

@@ -8,7 +8,8 @@ using SkiaSharp;
 
 struct GlyphMetrics
 {
-    public Vector2 origin;
+    public Vector2 atlasPosition;
+    public Vector2 atlasSize;
     public Vector2 size;
     public Vector2 bearing;
     public float advance;
@@ -68,7 +69,7 @@ public class TextRenderingTest : UIElement
         position = new UDim2(0.2f,0.2f);
         size = new UDim2(0,0,110,120);
 
-        sprite.SetTexture(Texture.LoadFromResource(EmbeddedResource.GetTexture("Test.png")));
+        sprite.SetTexture(Texture.LoadFromResource(ExternalResource.FromPath("./Test.png")));
     }
 
     private GlyphMetrics[] GenAtlasAndMetrics(string fontPath, string outputPath, int fontSize = 48)
@@ -129,8 +130,8 @@ public class TextRenderingTest : UIElement
             maxHeight = Math.Max(maxHeight, height);
         }
 
-        int cellWidth = maxWidth + padding;
-        int cellHeight = maxHeight + padding;
+        int cellWidth = maxWidth + padding*2;
+        int cellHeight = maxHeight + padding*2;
 
         int rows = (glyphCount + columns - 1) / columns;
 
@@ -169,21 +170,25 @@ public class TextRenderingTest : UIElement
 
             // dunno why but harfbuzz seems to give me negative size
             float glyphWidth = Math.Abs(hbExtents.Width);
-            float glyphHeight = Math.Abs(hbExtents.Height);
+            float glyphHeight = Math.Abs(hbExtents.Height) + 2;
 
             float glyphX = (cellWidth - glyphWidth) * 0.5f;
             float glyphY = (cellHeight - glyphHeight) * 0.5f;
 
-            float baselineY = cellY + glyphY + hbExtents.YBearing;
             float baselineX = cellX + glyphX - hbExtents.XBearing;
+            float baselineY = cellY + glyphY + hbExtents.YBearing;
 
             canvas.DrawText(c.ToString(), baselineX, baselineY, skFont, paint);
 
             metricResults[i] = new GlyphMetrics
             {
-                origin = new Vector2(
+                atlasPosition = new Vector2(
                     glyphX,
                     glyphY),
+
+                atlasSize = new Vector2(
+                    glyphWidth,
+                    glyphHeight),
 
                 size = new Vector2(
                     glyphWidth,

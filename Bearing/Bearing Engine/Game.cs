@@ -12,15 +12,16 @@ public class Game
     public GameObject root;
 
     private List<Renderable> renderables = new List<Renderable>();
-    // this code is currently undergoing a refactor, and so doesnt make loads of sense
+    // this code is currently undergoing a refactor, and so doesn't make loads of sense
     // to sum this up, it is going to be split into opaque and transparent objects
     // with the transparent list being sorted, and the opaque one being unsorted
-    // for the time being, the renderables list is un-used and so transparent objects do not render
+    // for the time being, the renderables list is unused and so transparent objects do not render
 
     public int renderPasses = 3;
 
     public event Action rootLoaded = () => {};
     public event Action gameTick = () => {};
+    ///<summary>Runs at the start of each render pass</summary>
     public event Action beforeRender = () => {};
     public event Action afterRender = () => {};
     public event Action onTitleChangeableChanged = () => {};
@@ -58,18 +59,21 @@ public class Game
         return currentGameObjectID;
     }
 
+    public List<Renderable> GetRenderables()
+    {
+        return renderables;
+    }
+
     public Game()
     {
         instance = this;
 
         ClientSize = Program.GetClientSize();
 
-        camera = new Camera(new Vector3(0,2,4f), 8f/6f);
+        camera = new Camera(new Vector3(0,2,4f), ClientSize.X / ClientSize.Y);
 
         // init stuff
         Time.Init();
-
-        SceneSettingsManager.Init();
 
         Gizmos.Init();
 

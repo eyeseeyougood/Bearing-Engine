@@ -55,7 +55,7 @@
   <Target Name="CopyExtraLinuxLibraries" AfterTargets="Publish">
 
     <PropertyGroup>
-      <ExtraLibsDir>$(ProjectDir)bin\Release\ExtraLibs</ExtraLibsDir>
+      <ExtraLibsDir>$(ProjectDir)build\ExtraLibs</ExtraLibsDir>
     </PropertyGroup>
 
     <!-- WARNING WARNING WARNING !!!! this is a potential failure point -->

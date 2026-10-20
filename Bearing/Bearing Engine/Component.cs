@@ -8,14 +8,26 @@ public abstract class Component : IMetadata
 
     public object[] metadata { get; set; } = new object[0];
 
-    public abstract void OnLoad();
-    public abstract void OnTick(float dt);
-    public abstract void Cleanup();
-    protected async void Delay(Action func, float seconds)
-    {
-        await Time.WaitTillTime(Time.now + seconds);
+    private List<(Action, float)> delays = new List<(Action, float)>();
 
-        func.Invoke();
+    public abstract void OnLoad();
+    public virtual void OnTick(float dt)
+    {
+        foreach (var kvp in delays.ToList()) // TODO: OPTIMISATION, i have no idea if .ToList is slow here or not, so just keep it in mind
+        {
+            if (Time.now > kvp.Item2)
+            {
+                kvp.Item1.Invoke();
+                delays.Remove(kvp);
+            }
+        } 
+    }
+    public abstract void Cleanup();
+
+    protected void Delay(Action func, float seconds)
+    {
+        delays.Add((func, Time.now + seconds));
+
     }
     protected T Transform<T>()
     {

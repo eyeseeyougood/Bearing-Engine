@@ -44,6 +44,22 @@ public class EmbeddedResource : Resource
         return r;
     }
 
+    public static bool Exists(EmbeddedResource resource)
+    {
+        string? processedName = resource.fullpath[0] == '.' ? new string(resource.fullpath.Skip(1).ToArray()) : resource.fullpath;
+        processedName = processedName.Replace("/", ".");
+        processedName = "Bearing." + (processedName[0] == '.' ? new string(processedName.Skip(1).ToArray()) : processedName);
+
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        Stream? stream = assembly.GetManifestResourceStream(processedName);
+
+        bool result = stream is not null;
+
+        stream?.DisposeAsync();
+
+        return result;
+    }
+
     public string GetShortPath()
     {
         string prefix = fullpath.StartsWith("./Resources/") ? "res/" : "eng/";
@@ -132,6 +148,16 @@ public class ExternalResource : Resource
         r.fullpath = path;
         r.AddMeta(type);
         return r;
+    }
+
+    public static bool Exists(ExternalResource resource)
+    {
+        return File.Exists(resource.fullpath);
+    }
+
+    public static bool Exists(string path)
+    {
+        return File.Exists(path);
     }
 }
 

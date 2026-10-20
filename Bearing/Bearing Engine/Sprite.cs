@@ -33,24 +33,28 @@ public class Sprite : IMetadata
         textures.Add(texture);
     }
 
-    public void SetAnimation(SpriteSheet sheet)
+    public void SetAnimation(SpriteSheet sheet, bool cleanupTextures = true)
     {
-        SetAnimation(sheet.textures);
+        SetAnimation(sheet.textures, cleanupTextures);
     }
 
-    public void SetAnimation(List<Texture> frames)
+    public void SetAnimation(List<Texture> frames, bool cleanupTextures = true)
     {
-        ClearTextures();
+        if (cleanupTextures)
+            ClearTextures();
+        else
+            textures.Clear();
+
 
         textures = frames;
     }
 
-    public void SetAnimation(Resource containingFolder)
+    public void SetAnimation(Resource containingFolder, bool cleanupTextures = true)
     {
-        SetAnimation(containingFolder.fullpath);
+        SetAnimation(containingFolder.fullpath, cleanupTextures);
     }
 
-    public void SetAnimation(string embeddedContainingFolder)
+    public void SetAnimation(string embeddedContainingFolder, bool cleanupTextures = true)
     {
         List<Texture> frames = new List<Texture>();
 
@@ -60,7 +64,7 @@ public class Sprite : IMetadata
             frames.Add(t);
         }
 
-        SetAnimation(frames);
+        SetAnimation(frames, cleanupTextures);
     }
 
     public Texture? Peak()
@@ -88,9 +92,9 @@ public class Sprite : IMetadata
         currentTexture-=num;
     }
 
-    public Texture Cycle()
+    public Texture? Cycle()
     {
-        Texture t = Peak();
+        Texture? t = Peak();
         currentTexture++;
         if (currentTexture >= textures.Count)
             currentTexture = 0;

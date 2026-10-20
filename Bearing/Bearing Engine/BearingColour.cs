@@ -7,7 +7,7 @@ using OpenTK.Mathematics;
 
 namespace Bearing;
 
-public struct BearingColour
+public partial struct BearingColour
 {
     public static readonly BearingColour Transparent = new BearingColour() { zeroToOne = new Vector4(0,0,0,0) };
     public static readonly BearingColour Black = new BearingColour() { zeroToOne = new Vector4(0,0,0,1) };
@@ -21,6 +21,9 @@ public struct BearingColour
     public static readonly BearingColour Red = new BearingColour() { zeroToOne = new Vector4(1, 0, 0, 1) };
     public static readonly BearingColour Green = new BearingColour() { zeroToOne = new Vector4(0, 1, 0, 1) };
     public static readonly BearingColour Pink = new BearingColour() { zeroToOne = new Vector4(1, 0, 1, 1) };
+    public static readonly BearingColour Yellow = new BearingColour() { zeroToOne = new Vector4(1, 1, 0, 1) };
+    public static readonly BearingColour Orange = new BearingColour() { zeroToOne = new Vector4(1, 0.5f, 0, 1) };
+    public static readonly BearingColour Purple = new BearingColour() { zeroToOne = new Vector4(0.5f, 0, 1, 1) };
     /// <summary>
     /// In memory of Mihran Khachatryan. A great friend who will never be forgotten.
     /// </summary>

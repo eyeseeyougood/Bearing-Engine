@@ -1,6 +1,7 @@
 using System.Reflection;
 using OpenTK.Mathematics;
 using Bearing;
+using System.Collections;
 
 public class ComponentView : Component
 {
@@ -177,6 +178,16 @@ public class ComponentView : Component
 	        removeButton.themeOverride.SetColour("panelOutline", BearingColour.Transparent);
 	        removeButton.buttonPressed += (b) => {
 	        	((Component)c).gameObject.RemoveComponent((Component)c);
+	        	foreach (UIElement elem in panel.GetMeta<UIVerticalScrollView>(2).GetContents())
+	        	{
+	        		if (elem is UIButton elemB)
+	        		{
+	        			if (FileAssignableRegistry.IsButtonFileAssignable(elemB))
+	        			{
+	        				FileAssignableRegistry.UnregisterFileAssignableButton(elemB);
+	        			}
+	        		}
+	        	}
 	        	scroll.RemoveElement(panel);
 	        };
 	        gameObject.AddComponent(removeButton);
@@ -309,11 +320,13 @@ public class ComponentView : Component
 
     		CustomPanel propertyPanel;
 
-			Logger.Log("type: " + prop.PropertyType.Name);
     		switch (prop.PropertyType.Name)
     		{
     			case "Vector4":
     				propertyPanel = CreateVector4(prop, objectWithProperties, (Vector4?)value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
+    				break;
+				case "BearingColour":
+    				propertyPanel = CreateBearingColour(prop, objectWithProperties, (BearingColour?)value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
     				break;
     			case "Vector3":
     				propertyPanel = CreateVector3(prop, objectWithProperties, (Vector3?)value, refreshHierarchy: doRefreshHierarchy, renderLayerOffset);
@@ -721,6 +734,7 @@ public class ComponentView : Component
     	return panel;
     }
 
+    // This is exactly the sort of code that causes any sane person to either have a fit or fire all of their employees
 	private CustomPanel CreateVector4(PropertyInfo prop, object component, Vector4? value, bool refreshHierarchy = false, int renderLayerOffset = 0)
     {
     	string key = prop.Name;
@@ -845,7 +859,197 @@ public class ComponentView : Component
     	};
     	z.metadata = new object[] { prop, component, value.Value.Z };
 
-    	panel.AddMeta(x,y,z);
+    	CustomTextBox w = CreateInputField(panel.rid, value.HasValue ? value.Value.W.ToString() : "ERR");
+    	w.renderLayer = 6 + renderLayerOffset;
+    	w.position = new UDim2(0.5f + 3 * 0.125f,0,0,0);
+    	w.size = new UDim2(0.125f,1,-1,0);
+    	w.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
+    	w.useElipsisTruncation = true;
+    	w.ResetTexture();
+    	w.textSubmitted += (s) => {
+    		if (float.TryParse(s.placeholderText, out float val))
+    		{
+    			Vector4 curr = (Vector4)w.GetMeta<PropertyInfo>()?.GetValue(w.GetMeta<object>(1));
+    			w.GetMeta<PropertyInfo>()?.SetValue(w.GetMeta<object>(1), new Vector4(curr.X, curr.Y, curr.Z, val));
+    			HandleCustomInspectorSetProperty(w.GetMeta<object>(1), w.GetMeta<PropertyInfo>());
+    			w.metadata[2] = val;
+    		}
+    		else
+    		{
+    			w.placeholderText = ((float)w.metadata[2]).ToString();
+    		}
+
+    		if (refreshHierarchy)
+    			Hierarchy.instance?.UpdateHierarchy();
+
+			w.truncateThreshold = 4;
+    	};
+    	w.buttonPressed += (b) => {
+			w.truncateThreshold = -1;
+    	};
+    	w.metadata = new object[] { prop, component, value.Value.W };
+
+    	panel.AddMeta(x,y,z,w);
+
+    	return panel;
+    }
+
+    // Since bearing colour is a struct, it needs to be handled separately
+    private CustomPanel CreateBearingColour(PropertyInfo prop, object component, BearingColour? value, bool refreshHierarchy = false, int renderLayerOffset = 0)
+    {
+    	string key = prop.Name;
+
+    	CustomPanel panel = new CustomPanel(prop, component);
+    	panel.renderLayer = 5 + renderLayerOffset;
+    	panel.position = new UDim2(0,0,3,0);
+    	panel.size = new UDim2(1f,0,-6,40);
+		panel.borderWidth = 2;
+		panel.themeOverride.SetColour("panelOutline", BearingColour.Transparent);
+    	gameObject.AddComponent(panel);
+
+    	CustomPanel namePanel = new CustomPanel();
+    	namePanel.theme = UIManager.themes["ListItems"];
+    	namePanel.parent = panel.rid;
+    	namePanel.renderLayer = 6 + renderLayerOffset;
+    	namePanel.position = new UDim2(0,0,4,0);
+    	namePanel.size = new UDim2(0.5f,1,-8,0);
+		namePanel.borderWidth = 2;
+		namePanel.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+
+    	gameObject.AddComponent(namePanel);
+
+    	UILabel name = new UILabel();
+    	name.theme = UIManager.themes["ListItems"];
+    	name.renderLayer = 7 + renderLayerOffset;
+    	name.parent = namePanel.rid;
+    	name.position = new UDim2(0,0,2,2);
+    	name.size = new UDim2(1,1,-4,-4);
+    	name.text = key;
+    	name.mouseCaptureMode = UIMouseCaptureMode.HandleAndPass;
+
+    	gameObject.AddComponent(name);
+
+    	CustomTextBox x = CreateInputField(panel.rid, value.HasValue ? value.Value.zeroToOne.X.ToString() : "ERR");
+    	x.renderLayer = 6 + renderLayerOffset;
+    	x.position = new UDim2(0.5f,0,0,0);
+    	x.size = new UDim2(0.125f,1,-1,0);
+    	x.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
+    	x.useElipsisTruncation = true;
+    	x.ResetTexture();
+    	x.textSubmitted += (s) => {
+    		if (float.TryParse(s.placeholderText, out float val))
+    		{
+    			Vector4 curr = ((BearingColour)x.GetMeta<PropertyInfo>()?.GetValue(x.GetMeta<object>(1))).zeroToOne;
+    			x.GetMeta<PropertyInfo>()?.SetValue(x.GetMeta<object>(1), BearingColour.FromZeroToOne(val, curr.Y, curr.Z, curr.W));
+    			HandleCustomInspectorSetProperty(x.GetMeta<object>(1), x.GetMeta<PropertyInfo>());
+    			x.metadata[2] = val;
+    		}
+    		else
+    		{
+    			x.placeholderText = ((float)x.metadata[2]).ToString();
+    		}
+
+    		if (refreshHierarchy)
+    			Hierarchy.instance?.UpdateHierarchy();
+
+			x.truncateThreshold = 4;
+    	};
+    	x.buttonPressed += (b) => {
+			x.truncateThreshold = -1;
+    	};
+    	x.metadata = new object[] { prop, component, value.Value.zeroToOne.X };
+
+    	CustomTextBox y = CreateInputField(panel.rid, value.HasValue ? value.Value.zeroToOne.Y.ToString() : "ERR");
+    	y.renderLayer = 6 + renderLayerOffset;
+    	y.position = new UDim2(0.5f + 0.125f,0,0,0);
+    	y.size = new UDim2(0.125f,1,-1,0);
+    	y.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
+    	y.useElipsisTruncation = true;
+    	y.ResetTexture();
+    	y.textSubmitted += (s) => {
+    		if (float.TryParse(s.placeholderText, out float val))
+    		{
+    			Vector4 curr = ((BearingColour)y.GetMeta<PropertyInfo>()?.GetValue(y.GetMeta<object>(1))).zeroToOne;
+    			y.GetMeta<PropertyInfo>()?.SetValue(y.GetMeta<object>(1), BearingColour.FromZeroToOne(curr.X, val, curr.Z, curr.W));
+    			HandleCustomInspectorSetProperty(y.GetMeta<object>(1), y.GetMeta<PropertyInfo>());
+    			y.metadata[2] = val;
+    		}
+    		else
+    		{
+    			y.placeholderText = ((float)y.metadata[2]).ToString();
+    		}
+
+    		if (refreshHierarchy)
+    			Hierarchy.instance?.UpdateHierarchy();
+
+			y.truncateThreshold = 4;
+    	};
+    	y.buttonPressed += (b) => {
+			y.truncateThreshold = -1;
+    	};
+    	y.metadata = new object[] { prop, component, value.Value.zeroToOne.Y };
+
+		CustomTextBox z = CreateInputField(panel.rid, value.HasValue ? value.Value.zeroToOne.Z.ToString() : "ERR");
+    	z.renderLayer = 6 + renderLayerOffset;
+    	z.position = new UDim2(0.5f + 2 * 0.125f,0,0,0);
+    	z.size = new UDim2(0.125f,1,-1,0);
+    	z.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
+    	z.useElipsisTruncation = true;
+    	z.ResetTexture();
+    	z.textSubmitted += (s) => {
+    		if (float.TryParse(s.placeholderText, out float val))
+    		{
+    			Vector4 curr = ((BearingColour)z.GetMeta<PropertyInfo>()?.GetValue(z.GetMeta<object>(1))).zeroToOne;
+    			z.GetMeta<PropertyInfo>()?.SetValue(z.GetMeta<object>(1), BearingColour.FromZeroToOne(curr.X, curr.Y, val, curr.W));
+    			HandleCustomInspectorSetProperty(z.GetMeta<object>(1), z.GetMeta<PropertyInfo>());
+    			z.metadata[2] = val;
+    		}
+    		else
+    		{
+    			z.placeholderText = ((float)z.metadata[2]).ToString();
+    		}
+
+    		if (refreshHierarchy)
+    			Hierarchy.instance?.UpdateHierarchy();
+
+			z.truncateThreshold = 4;
+    	};
+    	z.buttonPressed += (b) => {
+			z.truncateThreshold = -1;
+    	};
+    	z.metadata = new object[] { prop, component, value.Value.zeroToOne.Z };
+
+    	CustomTextBox w = CreateInputField(panel.rid, value.HasValue ? value.Value.zeroToOne.W.ToString() : "ERR");
+    	w.renderLayer = 6 + renderLayerOffset;
+    	w.position = new UDim2(0.5f + 3 * 0.125f,0,0,0);
+    	w.size = new UDim2(0.125f,1,-1,0);
+    	w.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
+    	w.useElipsisTruncation = true;
+    	w.ResetTexture();
+    	w.textSubmitted += (s) => {
+    		if (float.TryParse(s.placeholderText, out float val))
+    		{
+    			Vector4 curr = ((BearingColour)w.GetMeta<PropertyInfo>()?.GetValue(w.GetMeta<object>(1))).zeroToOne;
+    			w.GetMeta<PropertyInfo>()?.SetValue(w.GetMeta<object>(1), BearingColour.FromZeroToOne(curr.X, curr.Y, curr.Z, val));
+    			HandleCustomInspectorSetProperty(w.GetMeta<object>(1), w.GetMeta<PropertyInfo>());
+    			w.metadata[2] = val;
+    		}
+    		else
+    		{
+    			w.placeholderText = ((float)w.metadata[2]).ToString();
+    		}
+
+    		if (refreshHierarchy)
+    			Hierarchy.instance?.UpdateHierarchy();
+
+			w.truncateThreshold = 4;
+    	};
+    	w.buttonPressed += (b) => {
+			w.truncateThreshold = -1;
+    	};
+    	w.metadata = new object[] { prop, component, value.Value.zeroToOne.W };
+
+    	panel.AddMeta(x,y,z,w);
 
     	return panel;
     }
@@ -1099,7 +1303,9 @@ public class ComponentView : Component
     	}
     	dropdownTree.Clear();
 
-    	if (Hierarchy.instance.selectedObject is null)
+    	FileAssignableRegistry.ClearRegistry();
+
+    	if (Hierarchy.instance?.selectedObject is null)
     		return;
 
 		CreateComponentPanel(Hierarchy.instance.selectedObject);
