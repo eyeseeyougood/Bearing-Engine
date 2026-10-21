@@ -13,7 +13,7 @@ namespace Bearing
 
         private float _pitch;
 
-        private float _yaw = MathHelper.PiOver2;
+        private float _yaw = -MathHelper.PiOver2;
 
         private float _fov = MathHelper.PiOver2;
 

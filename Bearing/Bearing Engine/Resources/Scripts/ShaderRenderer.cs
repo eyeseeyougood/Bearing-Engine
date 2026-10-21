@@ -38,12 +38,12 @@ public class ShaderImage : UIElement
         GL.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
         GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-        material.SetShaderParameter("screenSize", Game.instance.ClientSize);
-        material.SetShaderParameter("anchor", anchor);
-        material.SetShaderParameter("posOffset", worldPosition.offset);
-        material.SetShaderParameter("posScale", worldPosition.scale);
-        material.SetShaderParameter("sizeOffset", worldSize.offset);
-        material.SetShaderParameter("sizeScale", worldSize.scale);
+        material.PassValue("screenSize", Game.instance.ClientSize);
+        material.PassValue("anchor", anchor);
+        material.PassValue("posOffset", worldPosition.offset);
+        material.PassValue("posScale", worldPosition.scale);
+        material.PassValue("sizeOffset", worldSize.offset);
+        material.PassValue("sizeScale", worldSize.scale);
 
         material.LoadParameters();
 
@@ -64,13 +64,13 @@ public class ShaderImage : UIElement
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter("mainColour", Vector4.One);
-        material.SetShaderParameter("fitToTexRatio", 0);
+        material.PassValue("mainColour", Vector4.One);
+        material.PassValue("fitToTexRatio", 0);
 
         Bearing.Texture tex = sprite.Peak();
 
         if (tex != null)
-            material.SetShaderParameter("texSize", new Vector2(tex._width, tex._height));
+            material.PassValue("texSize", new Vector2(tex._width, tex._height));
     }
 }
 

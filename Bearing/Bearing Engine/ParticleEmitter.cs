@@ -178,8 +178,8 @@ public class ParticleEmitter3D : MeshRenderer
         GL.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
         GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-        material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
-        material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
+        material.PassValue("view", Game.instance.camera.GetViewMatrix());
+        material.PassValue("projection", Game.instance.camera.GetProjectionMatrix());
 
         material.LoadParameters();
 

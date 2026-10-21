@@ -281,15 +281,15 @@ public class TextRenderingTest : UIElement
         GL.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
         GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-        material.SetShaderParameter("screenSize", Game.instance.ClientSize);
-        material.SetShaderParameter("anchor", anchor);
-        material.SetShaderParameter("posOffset", worldPosition.offset);
-        material.SetShaderParameter("posScale", worldPosition.scale);
-        material.SetShaderParameter("atlasColumns", atlasColumns);
-        material.SetShaderParameter("atlasRows", atlasRows);
-        material.SetShaderParameter("atlasWidth", atlasWidth);
-        material.SetShaderParameter("atlasHeight", atlasHeight);
-        material.SetShaderParameter("characterInclusionOffset", characterOffset);
+        material.PassValue("screenSize", Game.instance.ClientSize);
+        material.PassValue("anchor", anchor);
+        material.PassValue("posOffset", worldPosition.offset);
+        material.PassValue("posScale", worldPosition.scale);
+        material.PassValue("atlasColumns", atlasColumns);
+        material.PassValue("atlasRows", atlasRows);
+        material.PassValue("atlasWidth", atlasWidth);
+        material.PassValue("atlasHeight", atlasHeight);
+        material.PassValue("characterInclusionOffset", characterOffset);
         //material.SetShaderParameter("sizeOffset", worldSize.offset);
         //material.SetShaderParameter("sizeScale", worldSize.scale);
 

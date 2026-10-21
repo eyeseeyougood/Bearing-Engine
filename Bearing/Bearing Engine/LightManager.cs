@@ -44,8 +44,8 @@ public static class LightManager
                 pointId++;
             }
         }
-        mat.SetShaderParameter("numPointLights", pointId);
-        mat.SetShaderParameter("cameraPos", Game.instance.camera.Position);
+        mat.PassValue("numPointLights", pointId);
+        mat.PassValue("cameraPos", Game.instance.camera.Position);
     }
 
     private static void AddDirectionalLights(Material mat)
@@ -69,8 +69,8 @@ public static class LightManager
                 pointId++;
             }
         }
-        mat.SetShaderParameter("numDirectionalLights", pointId);
-        mat.SetShaderParameter("cameraPos", Game.instance.camera.Position);
+        mat.PassValue("numDirectionalLights", pointId);
+        mat.PassValue("cameraPos", Game.instance.camera.Position);
     }
 
     public static void AddLightingInfo(Material mat)

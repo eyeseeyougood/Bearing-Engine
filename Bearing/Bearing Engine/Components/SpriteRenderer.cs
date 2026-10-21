@@ -108,11 +108,11 @@ public class SpriteRenderer : Renderable
         GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
         Transform2D transform = ((Transform2D)gameObject.transform);
-        material.SetShaderParameter("position", transform.position);
-        material.SetShaderParameter("rot", transform.rotation);
-        material.SetShaderParameter("scale", transform.scale * new Vector2(flipX?-1:1,flipY?-1:1));
-        material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
-        material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
+        material.PassValue("position", transform.position);
+        material.PassValue("rot", transform.rotation);
+        material.PassValue("scale", transform.scale * new Vector2(flipX?-1:1,flipY?-1:1));
+        material.PassValue("view", Game.instance.camera.GetViewMatrix());
+        material.PassValue("projection", Game.instance.camera.GetProjectionMatrix());
 
         material.LoadParameters();
 

@@ -342,13 +342,13 @@ public class UIElement : SpriteRenderer
         GL.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
         GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-        material.SetShaderParameter("screenSize", Game.instance.ClientSize);
-        material.SetShaderParameter("anchor", anchor);
-        material.SetShaderParameter("posOffset", worldPosition.offset);
-        material.SetShaderParameter("posScale", worldPosition.scale);
-        material.SetShaderParameter("sizeOffset", worldSize.offset);
-        material.SetShaderParameter("sizeScale", worldSize.scale);
-        material.SetShaderParameter("rotation", _rotation);
+        material.PassValue("screenSize", Game.instance.ClientSize);
+        material.PassValue("anchor", anchor);
+        material.PassValue("posOffset", worldPosition.offset);
+        material.PassValue("posScale", worldPosition.scale);
+        material.PassValue("sizeOffset", worldSize.offset);
+        material.PassValue("sizeScale", worldSize.scale);
+        material.PassValue("rotation", _rotation);
 
         material.LoadParameters();
 
@@ -429,7 +429,7 @@ public class UIPanel : UIElement
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("panelBG").zeroToOne);
+        material.PassValue("mainColour", GetThemeValue<BearingColour>("panelBG").zeroToOne);
     }
 }
 
@@ -456,13 +456,13 @@ public class UIImage : UIElement
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter("mainColour", Vector4.One);
-        material.SetShaderParameter("fitToTexRatio", 0);
+        material.PassValue("mainColour", Vector4.One);
+        material.PassValue("fitToTexRatio", 0);
 
         Texture tex = sprite.Peak();
 
         if (tex != null)
-            material.SetShaderParameter("texSize", new Vector2(tex._width, tex._height));
+            material.PassValue("texSize", new Vector2(tex._width, tex._height));
     }
 }
 
@@ -568,14 +568,14 @@ public class UILabel : UIElement
 
         Texture? tex = sprite.Peak();
 
-        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("labelText").zeroToOne);
+        material.PassValue("mainColour", GetThemeValue<BearingColour>("labelText").zeroToOne);
         if (tex is not null)
-            material.SetShaderParameter("texSize", new Vector2(tex._width, tex._height));
+            material.PassValue("texSize", new Vector2(tex._width, tex._height));
         fitHeightToWidth = true;
-        material.SetShaderParameter("fitToTexRatio", fitHeightToWidth ? 1:0);
+        material.PassValue("fitToTexRatio", fitHeightToWidth ? 1:0);
 
         Vector2 alignment = new Vector2((int)horizontalAlignment / 2f, (int)verticalAlignment / 2f);
-        material.SetShaderParameter("alignment", alignment);
+        material.PassValue("alignment", alignment);
     }
 }
 
@@ -1261,7 +1261,7 @@ public class UIButton : UIElement
             bg = GetThemeValue<BearingColour>("buttonUpBackground");
         }
 
-        material.SetShaderParameter("mainColour", bg.zeroToOne);
+        material.PassValue("mainColour", bg.zeroToOne);
 
         if (UIManager.GetHoveredElement() == this && !prevHovered)
         {
@@ -1706,7 +1706,7 @@ public class UIVerticalScrollView : UIElement
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("verticalScrollBG").zeroToOne);
+        material.PassValue("mainColour", GetThemeValue<BearingColour>("verticalScrollBG").zeroToOne);
 
         foreach (UIElement element in contents)
         {

@@ -69,12 +69,12 @@ public class LineRenderer3D : Renderable, IBSTSerialisable
         GL.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
         GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-        material.SetShaderParameter("model", ((Transform3D)gameObject.transform).GetModelMatrix());
-        material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
-        material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
-        material.SetShaderParameter("cameraBackDirection", -Game.instance.camera.Front);
+        material.PassValue("model", ((Transform3D)gameObject.transform).GetModelMatrix());
+        material.PassValue("view", Game.instance.camera.GetViewMatrix());
+        material.PassValue("projection", Game.instance.camera.GetProjectionMatrix());
+        material.PassValue("cameraBackDirection", -Game.instance.camera.Front);
 
-        material.SetShaderParameter("lineWidth", width);
+        material.PassValue("lineWidth", width);
 
         int pID = 0;
         foreach (Vector3 point in points)
@@ -83,7 +83,7 @@ public class LineRenderer3D : Renderable, IBSTSerialisable
             pID++;
         }
         
-        material.SetShaderParameter("numPoints", points.Count);
+        material.PassValue("numPoints", points.Count);
 
         material.LoadParameters();
 

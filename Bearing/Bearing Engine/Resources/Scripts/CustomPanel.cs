@@ -16,8 +16,8 @@ public class CustomPanel : UIPanel
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter("mainColour", GetThemeValue<BearingColour>("panelBG").zeroToOne);
-        material.SetShaderParameter("outlineColour", GetThemeValue<BearingColour>("panelOutline").zeroToOne);
-        material.SetShaderParameter("borderWidth", borderWidth);
+        material.PassValue("mainColour", GetThemeValue<BearingColour>("panelBG").zeroToOne);
+        material.PassValue("outlineColour", GetThemeValue<BearingColour>("panelOutline").zeroToOne);
+        material.PassValue("borderWidth", borderWidth);
     }
 }

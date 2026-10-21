@@ -70,7 +70,7 @@ public class Game
 
         ClientSize = Program.GetClientSize();
 
-        camera = new Camera(new Vector3(0,2,-4f), ClientSize.X / ClientSize.Y);
+        camera = new Camera(new Vector3(0,2,4f), ClientSize.X / ClientSize.Y);
 
         // init stuff
         Time.Init();

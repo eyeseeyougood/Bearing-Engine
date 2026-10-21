@@ -7,8 +7,8 @@ public class MeshRenderer : Renderable, IBSTSerialisable
 {
     protected bool setup3DMatrices = true;
 
-    public bool drawOnTop { get; set; }
-    public bool renderBackFaces { get; set; }
+    public bool drawOnTop { get; set; } = false;
+    public bool renderBackFaces { get; set; } = false;
 
     [DontSerialise, HideFromInspector]
     public Texture? texture0 { get; set; }
@@ -138,9 +138,9 @@ public class MeshRenderer : Renderable, IBSTSerialisable
 
         if (setup3DMatrices)
         {
-            material.SetShaderParameter("model", ((Transform3D)gameObject.transform).GetModelMatrix());
-            material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
-            material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
+            material.PassValue("model", ((Transform3D)gameObject.transform).GetModelMatrix());
+            material.PassValue("view", Game.instance.camera.GetViewMatrix());
+            material.PassValue("projection", Game.instance.camera.GetProjectionMatrix());
         }
 
         material.LoadParameters();

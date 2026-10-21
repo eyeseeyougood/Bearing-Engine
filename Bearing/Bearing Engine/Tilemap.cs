@@ -52,8 +52,8 @@ public class Tilemap : SpriteRenderer
         //material.SetShaderParameter("position", transform.position);
         //material.SetShaderParameter("rot", transform.rotation);
         //material.SetShaderParameter("scale", transform.scale);
-        material.SetShaderParameter("sliceSize", new Vector2(spriteSheet.sWidth, spriteSheet.sHeight));
-        material.SetShaderParameter("sheetSize", new Vector2(spriteSheet.GetWidth(), spriteSheet.GetHeight()));
+        material.PassValue("sliceSize", new Vector2(spriteSheet.sWidth, spriteSheet.sHeight));
+        material.PassValue("sheetSize", new Vector2(spriteSheet.GetWidth(), spriteSheet.GetHeight()));
 
         material.LoadParameters();
 
@@ -66,7 +66,7 @@ public class Tilemap : SpriteRenderer
             GL.Uniform1(material.shader.GetUniformLoc($"tiles[{tileId}].index"), tile.Value);
             tileId++;
         }
-        material.SetShaderParameter("numTiles", tileId);
+        material.PassValue("numTiles", tileId);
 
 
         LightManager.AddLightingInfo(material);

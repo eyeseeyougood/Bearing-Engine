@@ -47,8 +47,8 @@ public class Skybox : MeshRenderer
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter("view", Game.instance.camera.GetViewMatrix());
-        material.SetShaderParameter("projection", Game.instance.camera.GetProjectionMatrix());
+        material.PassValue("view", Game.instance.camera.GetViewMatrix());
+        material.PassValue("projection", Game.instance.camera.GetProjectionMatrix());
     }
 
     protected override void BeforeRender()

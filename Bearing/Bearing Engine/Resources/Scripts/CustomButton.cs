@@ -16,7 +16,7 @@ public class CustomButton : UIButton
     {
         base.OnTick(dt);
 
-        material.SetShaderParameter("outlineColour", GetThemeValue<BearingColour>("panelOutline").zeroToOne);
-        material.SetShaderParameter("borderWidth", borderWidth);
+        material.PassValue("outlineColour", GetThemeValue<BearingColour>("panelOutline").zeroToOne);
+        material.PassValue("borderWidth", borderWidth);
     }
 }
