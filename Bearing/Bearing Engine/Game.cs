@@ -195,4 +195,9 @@ public class Game
     {
         return Program.GetClipboard();
     }
+
+    public double GetFPS()
+    {
+        return Program.GetFPS();
+    }
 }

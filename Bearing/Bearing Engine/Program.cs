@@ -19,19 +19,25 @@ public static class Program
         SceneSettingsManager.Init();
 
         string windowTitle = "Bearing Engine";
+        float fps = 60;
 
         if (SceneSettingsManager.SettingsExist("General"))
         {
             Dictionary<string, string>? settings = SceneSettingsManager.GetSettings("General");
 
             if (settings is not null)
+            {
                 if (settings.ContainsKey("windowTitle"))
                     windowTitle = settings["windowTitle"];
+                if (settings.ContainsKey("targetFPS"))
+                    fps = float.Parse(settings["targetFPS"]);
+            }
         }
 
         WindowOptions options = WindowOptions.Default with {
             Size = new Silk.NET.Maths.Vector2D<int>(800, 600),
             Title = windowTitle,
+            FramesPerSecond = fps,
         };
 
         window = Window.Create(options);
@@ -159,5 +165,13 @@ public static class Program
     public static void OnResize(Silk.NET.Maths.Vector2D<int> newSize)
     {
         Game.instance.OnResize(new Vector2(newSize.X, newSize.Y));
+    }
+
+    public static double GetFPS()
+    {
+        if (window is null)
+            return 0;
+
+        return window.FramesPerSecond;
     }
 }

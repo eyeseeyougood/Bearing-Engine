@@ -9,6 +9,8 @@ public class SpriteRenderer : Renderable
 
     public Sprite sprite = new Sprite();
     public bool renderBackface = false;
+    public bool playingAnim { get; private set; } = false;
+    public float fps = 5;
 
     private bool _flipY;
     public bool flipY
@@ -93,9 +95,38 @@ public class SpriteRenderer : Renderable
         GL.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(mesh.indices.Length * sizeof(uint)), new ReadOnlySpan<uint>(mesh.indices), BufferUsageARB.StaticDraw);
 
         base.OnLoad();
+
+        AnimLoop();
     }
 
-    public override void OnTick(float dt) {}
+    protected virtual void AnimLoop()
+    {
+        if (playingAnim)
+        {
+            if ((int)Game.instance.GetFPS() != 0)
+            {
+                int cycleCount = (int)fps / (int)Game.instance.GetFPS();
+                if (cycleCount <= 0) cycleCount = 1;
+
+                for (int i = 0; i < cycleCount; i++)
+                    sprite.Cycle();
+            }
+        }
+
+        Delay(AnimLoop, 1.0f / fps);
+    }
+
+    public virtual void Play()
+    {
+        playingAnim = true;
+    }
+
+    public virtual void Stop()
+    {
+        playingAnim = false;
+    }
+
+    public override void OnTick(float dt) { base.OnTick(dt); }
  
     public override unsafe void Render()
     {
