@@ -29,8 +29,14 @@ public abstract class Component : IMetadata
         delays.Add((func, Time.now + seconds));
 
     }
-    protected T Transform<T>()
+    
+    protected Transform3D GetTransform3D()
     {
-        return (T)Convert.ChangeType(gameObject.transform, typeof(T));
+        return gameObject.Transform3D();
+    }
+
+    protected Transform2D GetTransform2D()
+    {
+        return gameObject.Transform2D();
     }
 }
