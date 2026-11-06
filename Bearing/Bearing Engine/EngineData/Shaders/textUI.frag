@@ -3,7 +3,7 @@ out vec4 FragColor;
 
 in vec2 texCoord;
 
-uniform vec4 mainColour;
+uniform vec4 textColour;
 
 uniform vec2 caretPos;
 uniform vec2 caretSize;
@@ -14,7 +14,9 @@ uniform sampler2D texture0;
 
 void main()
 {
-    vec4 finalCol = mainColour * texture(texture0, texCoord);
+    vec4 finalCol = textColour * texture(texture0, texCoord*vec2(1,1));
+
+    finalCol = finalCol.bgra;
 
     vec2 pixCoord = texCoord * texSize;
 

@@ -32,6 +32,28 @@ public abstract class Resource : IMetadata
     {
         return fullpath;
     }
+
+    public static bool operator ==(Resource? own, Resource? other)
+    {
+        if (own is null && other is null)
+            return true;
+
+        if (own is null || other is null)
+            return false;
+
+        return own.fullpath == other.fullpath;
+    }
+
+    public static bool operator !=(Resource? own, Resource? other)
+    {
+        if (own is null && other is null)
+            return false;
+
+        if (own is null || other is null)
+            return true;
+
+        return own.fullpath != other.fullpath;
+    }
 }
 
 public class EmbeddedResource : Resource

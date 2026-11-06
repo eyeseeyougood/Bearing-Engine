@@ -35,7 +35,7 @@ public class Game
     public void AddRenderable(Renderable renderable)
     {
         if (!renderables.Contains(renderable))
-        // TODO: Handle transparent renderables 
+        // TODO: Handle transparent renderables
             renderables.Add(renderable);
     }
 

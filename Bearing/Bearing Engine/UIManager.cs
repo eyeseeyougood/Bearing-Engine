@@ -1,10 +1,13 @@
-﻿using SkiaSharp;
-using System;
+﻿using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using OpenTK.Mathematics;
+using Silk.NET.Input;
+using HarfBuzzSharp;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Silk.NET.Input;
+using SkiaSharp;
+using System;
 
 namespace Bearing;
 
@@ -141,74 +144,125 @@ public static class UIManager
 
     public static class UITextHelper
     {
-        public static Dictionary<string, Dictionary<char, float>> charLengths = new Dictionary<string, Dictionary<char, float>>(); // lengths in pixels of each char for a given font (precached)
-        public static Dictionary<string, float> fontHeights = new Dictionary<string, float>();
-
-        public static int MeasureText(string text, string font = "Arial")
+        [StructLayout(LayoutKind.Sequential)]
+        public struct GlyphData
         {
-            if (!charLengths.ContainsKey(font))
-                GenCharLookup(font);
-
-            float len = 0;
-
-            foreach (char c in text)
-            {
-                len += charLengths[font][c];
-            }
-
-            return (int)len;
+            public Vector2 atlasPosition;
+            public Vector2 atlasPercSize;
+            public Vector2 atlasPixelSize;
+            public Vector2 bearing;
+            public Vector3 spacing;
+            public float advance;
         }
 
-        public static void GenCharLookup(string font)
-        {
-            var fontSize = 48;
-            var typeface = SKTypeface.FromFamilyName(font);
-            var paint = new SKPaint
-            {
-                Typeface = typeface,
-                TextSize = fontSize,
-            };
+        public static Dictionary<string, Texture> atlasCache = new Dictionary<string, Texture>();
+        public static Dictionary<string, GlyphData[]> glyphCache = new Dictionary<string, GlyphData[]>();
 
-            if (!charLengths.ContainsKey(font))
-                charLengths.Add(font, new Dictionary<char, float>());
+        public static void CleanFontCache(Resource font)
+        {/*
+            if (atlasCache.ContainsKey(font))
+                atlasCache.Remove(font);
 
-            for (int i = 20; i < 127; i++)
-                charLengths[font].Add((char)i, paint.MeasureText(((char)i).ToString()));
+            if (glyphCache.ContainsKey(font))
+                glyphCache.Remove(font);*/
         }
-        public static Texture RenderTextToBmp(string text, string font = "Arial")
+
+        public static Texture RenderCharacterAtlas(Resource font, int fontSize, uint maxCharacterID = 1000)
         {
-            var fontSize = 48;
-            var typeface = SKTypeface.FromFamilyName(font);
-            var paint = new SKPaint
-            {
-                Typeface = typeface,
-                TextSize = fontSize,
-                IsAntialias = true,
-                Color = SKColors.White
-            };
+            Logger.Log("atlas count: " + atlasCache.Count);
+            if (atlasCache.ContainsKey(font.fullpath))
+                return atlasCache[font.fullpath];
 
-            var lines = text.Split('\n');
-            var fontMetrics = paint.FontMetrics;
-            var lineHeight = fontMetrics.Descent - fontMetrics.Ascent;
+            GlyphData[] glyphData = new GlyphData[maxCharacterID+1];
 
-            if (!fontHeights.ContainsKey(font))
-                fontHeights.Add(font, lineHeight);
+            // TODO: TEST IF THESE TWO STREAMS ARE PROPERLY DISPOSED OF
+            Blob blob = Blob.FromStream(Resources.Open(font));
+            Face face = new Face(blob,0);
+            Font hbFont = new Font(face);
+            hbFont.SetScale(fontSize,fontSize);
 
-            // Determine maximum width and total height
-            int width = (int)lines.Max(line => paint.MeasureText(line));
-            int height = (int)(lineHeight * lines.Length);
+            SKTypeface skFace = SKTypeface.FromStream(Resources.Open(font));
+            SKFont skFont = new SKFont(skFace,fontSize);
 
-            using var bitmap = new SKBitmap(width, height);
-            using var canvas = new SKCanvas(bitmap);
+            int maxWidth = (int)skFont.Metrics.MaxCharacterWidth;
+            int maxHeight = (int)(fontSize);
+
+            int atlasColumns = (int)Math.Round(Math.Sqrt((float)(maxCharacterID+1) * maxHeight / maxWidth));
+
+            SKBitmap bmp = new(maxWidth * atlasColumns, ((int)(maxCharacterID + 1) / atlasColumns + 1) * maxHeight);
+            using SKCanvas canvas = new(bmp);
             canvas.Clear(SKColors.Transparent);
 
-            for (int i = 0; i < lines.Length; i++)
+            using SKPaint paint = new()
             {
-                float y = -fontMetrics.Ascent + i * lineHeight;
-                canvas.DrawText(lines[i], 0, y, paint);
+                Color = SKColors.White,
+                IsAntialias = true,
+            };
+
+            for (int id = 0; id <= maxCharacterID; id++)
+            {
+                hbFont.TryGetGlyph((uint)id, out uint glyph);
+                hbFont.TryGetGlyphExtents(glyph, out GlyphExtents extents);
+                int bearingY = extents.YBearing;
+
+                int px = (id % atlasColumns) * maxWidth;
+                int py = (id / atlasColumns) * maxHeight;
+
+                canvas.DrawText((char)id+"", px, py + bearingY, skFont, paint);
+
+                glyphData[id] = new GlyphData(){
+                    atlasPosition = new Vector2(px/(float)bmp.Width,(py-1)/(float)bmp.Height),
+                    atlasPercSize = new Vector2(extents.Width/(float)bmp.Width, -(extents.Height-1)/(float)bmp.Height),
+                    atlasPixelSize = new Vector2(extents.Width, -extents.Height),
+                    bearing = new Vector2(extents.XBearing, extents.YBearing),
+                    advance = hbFont.GetHorizontalGlyphAdvance(glyph)
+                };
             }
 
-            return Texture.FromData(width, height, bitmap.Bytes, Silk.NET.OpenGL.TextureWrapMode.ClampToBorder);
+            glyphCache.Add(font.fullpath, glyphData);
+            
+            Texture tex = Texture.FromData(bmp.Width,bmp.Height,bmp.Bytes);
+            atlasCache.Add(font.fullpath, tex);
+
+            bmp.Dispose();
+
+            hbFont.Dispose();
+            face.Dispose();
+            blob.Dispose();
+
+            skFont.Dispose();
+            skFace.Dispose();
+
+            return tex;
+        }
+
+        public static GlyphData[] GetGlyphData(Resource font)
+        {
+            if (glyphCache.ContainsKey(font.fullpath))
+                return glyphCache[font.fullpath];
+
+            Logger.LogError($"FAILED TO GET GLYPH DATA FOR FONT '{font.fullpath}'. YOU MUST FIRST CALL RenderCharacterAtlas() TO GENERATE GLYPH INFORMATION");
+            return new GlyphData[0];
+        }
+
+        public static int GetMaxCharacterHeight(string text, GlyphData[] glyphData)
+        {
+            if (glyphData is null || glyphData.Length == 0)
+            {
+                Logger.LogError($"FAILED TO GET MAX HEIGHT FROM GLYPH DATA SINCE IT IS EMPTY! Have you checked that the font you are using exists?");
+                return -1;
+            }
+
+            int maxHeight = (int)glyphData[(int)text[0]].atlasPixelSize.Y;
+            
+            foreach (char c in text)
+            {
+                int h = (int)glyphData[(int)c].atlasPixelSize.Y;
+                if (h > maxHeight)
+                    maxHeight = h;
+            }
+
+            return maxHeight;
         }
     }
 }

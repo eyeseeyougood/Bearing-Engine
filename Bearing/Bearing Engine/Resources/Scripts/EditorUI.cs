@@ -24,7 +24,8 @@ public class EditorUI : Component
         UIManager.LoadTheme("Files", EmbeddedResource.FromPath("./Resources/Themes/Files.theme"));
 
     	Game.instance.SetClearColour(BearingColour.FromZeroTo255(19,13,18));
-        Game.instance.SetTitle("Bearing Editor");
+        if (Random.Shared.Next(0,101) == 1)
+            Game.instance.SetTitle("Yo, I'm feinberg");
 
         gameObject.AddComponent(new UILogger());
         //gameObject.AddComponent(new TextRenderingTest());

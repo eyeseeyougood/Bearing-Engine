@@ -133,4 +133,9 @@ public partial struct BearingColour
 
         return result;
     }
+
+    public override string ToString()
+    {
+        return "Bearing Colour: " + GetZeroTo255A();
+    }
 }

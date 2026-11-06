@@ -9,6 +9,7 @@ namespace Bearing
 {
     public partial class Shader : IBSTSerialisable
     {
+        [HideFromInspector]
         public uint Handle { get; private set; }
 
         private Dictionary<string, int> _uniformLocations;

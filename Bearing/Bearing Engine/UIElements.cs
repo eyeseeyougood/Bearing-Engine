@@ -1,7 +1,9 @@
-﻿using System.Drawing;
-using Silk.NET.Input;
+﻿using OpenTK.Mathematics;
 using Silk.NET.OpenGL;
-using OpenTK.Mathematics;
+using Silk.NET.Input;
+using System.Drawing;
+using HarfBuzzSharp;
+using SkiaSharp;
 
 namespace Bearing;
 
@@ -459,7 +461,7 @@ public class UIImage : UIElement
         material.PassValue("mainColour", Vector4.One);
         material.PassValue("fitToTexRatio", 0);
 
-        Texture tex = sprite.Peak();
+        Texture? tex = sprite.Peak();
 
         if (tex != null)
             material.PassValue("texSize", new Vector2(tex._width, tex._height));
@@ -468,114 +470,316 @@ public class UIImage : UIElement
 
 public class UILabel : UIElement
 {
-    private string _text = "Label";
+    public Resource font = ExternalResource.FromPath("./Arial.ttf", "Font");
 
+    public bool fitToSize = true;
+    public int fontSize = 100;
+
+    private int maxCharHeight = -1; // height of the tallest character in the current text
+    private UIManager.UITextHelper.GlyphData[] glyphData;
+
+    private bool loaded = false;
+
+    private string _text = "Label";
+    private string processedText = "Label";
     public string text
     {
-        get
-        {
+        get{
             return _text;
         }
-        set
-        {
+        set{
             _text = value;
-            TextChanged(value);
+
+            if (!loaded)
+                return;
+
+            onTextChanged.Invoke(this);
+            ProcessText();
+            BufferTextData();
         }
     }
-
-    public bool fitHeightToWidth { get; set; } = true;
-    public string font { get; set; } = "Arial";
-    public HorizontalAlignment horizontalAlignment { get; set; } = HorizontalAlignment.Centre;
-    public VerticalAlignment verticalAlignment { get; set; } = VerticalAlignment.Centre;
 
     private int _truncateThreshold = -1;
-    public int truncateThreshold {
-        get {
+    public int truncateThreshold
+    {
+        get{
             return _truncateThreshold;
         }
-        set {
+        set{
             _truncateThreshold = value;
-            ResetTexture();
+
+            if (!loaded)
+                return;
+            
+            ProcessText();
+            BufferTextData();
         }
     }
-    public bool useElipsisTruncation { get; set; } = false;
 
-    public event EventHandler<string> onTextChanged = (i,j) => { };
+    private bool _useElipsisTruncation;
+    public bool useElipsisTruncation
+    {
+        get{
+            return _useElipsisTruncation;
+        }
+        set{
+            _useElipsisTruncation = value;
 
-    public UILabel(params object[] meta) : base(meta) { }
+            if (!loaded)
+                return;
+
+            ProcessText();
+            BufferTextData();
+        }
+    }
+
+    private UDim2 _padding = new UDim2(0,0,5,5);
+    public UDim2 padding
+    {
+        get{
+            return _padding;
+        }
+        set{
+            _padding = value;
+        }
+    }
+
+    private HorizontalAlignment _horizontalAlignment { get; set; } = HorizontalAlignment.Centre;
+    public HorizontalAlignment horizontalAlignment {
+        get {
+            return _horizontalAlignment;
+        }
+        set {
+            _horizontalAlignment = value;
+        }
+    }
+    private VerticalAlignment _verticalAlignment { get; set; } = VerticalAlignment.Centre;
+    public VerticalAlignment verticalAlignment {
+        get {
+            return _verticalAlignment;
+        }
+        set {
+            _verticalAlignment = value;
+        }
+    }
+
+    ///<summary>
+    ///Changing this value only affects the atlas when it is first generated in OnLoad()
+    ///</summary>
+    public int _numUnicodeCharactersToGenerate = 1000;
+    public int numUnicodeCharactersToGenerate
+    {
+        get{
+            return _numUnicodeCharactersToGenerate;
+        }
+        set{
+            _numUnicodeCharactersToGenerate = value;
+
+            if (!loaded)
+                return;
+
+            UIManager.UITextHelper.CleanFontCache(font);
+            Logger.MeasureStart("Gen Atlas 1");
+            sprite.SetTexture(UIManager.UITextHelper.RenderCharacterAtlas(font, fontSize, (uint)_numUnicodeCharactersToGenerate - 1));
+            Logger.MeasureEnd("Gen Atlas 1");
+
+            BufferGlyphData();
+        }
+    }
+
+    public event Action<UILabel> onTextChanged=(i)=>{};
+    
+    private uint ssbo0;
+    private uint ssbo1;
+    private uint ssbo2;
+
+    public UILabel(params object[] meta) : base(meta)
+    {
+        material = new Material()
+        {
+            shader = new Shader("eng/textUI.vert", "eng/textUI.frag"),
+            parameters = new List<ShaderParam>()
+            {
+                new ShaderParam() { name = "mainColour", value = new List<object> {1.0f, 1.0f, 1.0f, 1.0f} },
+            },
+        };
+    }
 
     public override void Cleanup()
     {
-        if (onTextChanged != null)
-        {
-            Delegate[] subscribers = onTextChanged.GetInvocationList();
-            foreach (var d in subscribers)
-                onTextChanged -= d as EventHandler<string>;
-        }
+        // silly hack to prevent cached texture atlas from being cleanedup
+        // if it does get disposed, other text on screen breaks
+        sprite.SetTexture(Texture.blank, false);
         base.Cleanup();
+    }
+
+    private void ProcessText()
+    {
+        processedText = text;
+
+        if (truncateThreshold > 0 && processedText.Length > truncateThreshold)
+        {
+            processedText = processedText.Substring(0, truncateThreshold);
+
+            if (useElipsisTruncation)
+                processedText += "...";
+        }
+
+        if (processedText.Length == 0)
+            processedText = " ";
+
+        maxCharHeight = UIManager.UITextHelper.GetMaxCharacterHeight(processedText, glyphData);
+    }
+
+    private void GenerateSSBOs()
+    {
+        GL GL = GLContext.gl;
+
+        ssbo0 = GL.GenBuffer();
+        ssbo1 = GL.GenBuffer();
+        ssbo2 = GL.GenBuffer();
+    }
+
+    private unsafe void BufferGlyphData()
+    {
+        GL GL = GLContext.gl;
+
+        glyphData = UIManager.UITextHelper.GetGlyphData(font);
+
+        GL.BindBuffer(BufferTargetARB.ShaderStorageBuffer, ssbo0);
+        fixed (void* ptr = glyphData)
+            GL.BufferData(BufferTargetARB.ShaderStorageBuffer, ((nuint)glyphData.Length * 12 * sizeof(float)), ptr, BufferUsageARB.StaticDraw);
+        GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 0, ssbo0);
+        GL.BindBuffer(BufferTargetARB.ShaderStorageBuffer, 0);
+    }
+
+    private unsafe void BufferkerningValues()
+    {
+        GL GL = GLContext.gl;
+
+        if (processedText.Length == 0)
+            return;
+
+        Blob blob = Blob.FromStream(Resources.Open(font));
+        Face face = new Face(blob,0);
+        Font hbFont = new Font(face);
+        hbFont.SetScale(fontSize,fontSize);
+
+        GL.BindBuffer(BufferTargetARB.ShaderStorageBuffer, ssbo2);
+
+        int[] kernings = new int[processedText.Length-1];
+
+        for (int i = 1; i < processedText.Length; i++)
+        {
+            uint prevUnicode = processedText[i-1];
+            uint unicode = processedText[i];
+
+            hbFont.TryGetGlyph(prevUnicode, out uint prevGlyph);
+            hbFont.TryGetGlyph(unicode, out uint glyph);
+
+            int kerning = hbFont.GetHorizontalGlyphKerning(prevGlyph, glyph);
+
+            kernings[i-1] = kerning;
+        }
+
+        fixed (void* ptr = kernings)
+            GL.BufferData(BufferTargetARB.ShaderStorageBuffer, ((nuint)kernings.Length * sizeof(int)), ptr, BufferUsageARB.StaticDraw);
+        GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 2, ssbo2);
+        GL.BindBuffer(BufferTargetARB.ShaderStorageBuffer, 0);
+
+        hbFont.Dispose();
+        face.Dispose();
+        blob.Dispose();
+    }
+
+    private unsafe void BufferTextData()
+    {
+        GL GL = GLContext.gl;
+
+        int[] unicodes = new int[processedText.Length];
+        for (int i = 0; i < processedText.Length; i++)
+        {
+            unicodes[i] = processedText[i];
+        }
+
+        GL.BindBuffer(BufferTargetARB.ShaderStorageBuffer, ssbo1);
+        fixed (void* ptr = unicodes)
+            GL.BufferData(BufferTargetARB.ShaderStorageBuffer, ((nuint)unicodes.Length * sizeof(int)), ptr, BufferUsageARB.StaticDraw);
+        GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 1, ssbo1);
+        GL.BindBuffer(BufferTargetARB.ShaderStorageBuffer, 0);
     }
 
     public override void OnLoad()
     {
-        material = new Material()
-        {
-            shader = new Shader("eng/defaultUI.vert", "eng/textUI.frag"),
-        };
-
-        ResetTexture();
-
         base.OnLoad();
+
+        GenerateSSBOs();
+
+        Logger.MeasureStart("Gen Atlas");
+        Logger.Log("FONT: " + font);
+        sprite.SetTexture(UIManager.UITextHelper.RenderCharacterAtlas(font, fontSize, (uint)numUnicodeCharactersToGenerate - 1));
+        Logger.MeasureEnd("Gen Atlas");        
+
+        BufferGlyphData();
+        ProcessText();
+
+        BufferTextData();
+        BufferkerningValues();
+
+        loaded = true;
     }
 
-    public virtual void SetTextWithoutEventTrigger(string newValue)
+    public override unsafe void Render()
     {
-        _text = newValue;
+        if (mesh is null)
+            return;
 
-        ResetTexture();
-    }
+        UpdateVisibility();
 
-    public virtual void ResetTexture()
-    {
-        string finalText = text;
+        if (!visible)
+            return;
 
-        if (text == "")
-            finalText = " ";
+        GL GL = GLContext.gl;
 
-        if (text.Length > truncateThreshold && truncateThreshold != -1)
-        {
-            finalText = finalText.Substring(0, truncateThreshold);
+        material.Use();
 
-            if (useElipsisTruncation)
-                finalText += "...";
-        }
+        GL.BindVertexArray(vao);
+        GL.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+        GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-        //Logger.MeasureStart("gen legacy text");
-        sprite.SetTexture(UIManager.UITextHelper.RenderTextToBmp(finalText, font));
-        //Logger.MeasureEnd("gen legacy text");
-    }
+        material.PassValue("textColour", GetThemeValue<BearingColour>("labelText").zeroToOne);
+        material.PassValue("screenSize", Game.instance.ClientSize);
+        material.PassValue("anchor", anchor);
+        material.PassValue("posOffset", worldPosition.offset);
+        material.PassValue("posScale", worldPosition.scale);
+        material.PassValue("sizeOffset", worldSize.offset);
+        material.PassValue("sizeScale", worldSize.scale);
+        material.PassValue("paddingOffset", padding.offset);
+        material.PassValue("paddingScale", padding.scale);
+        material.PassValue("alignment", new Vector2((int)horizontalAlignment / 2.0f, (int)verticalAlignment / 2.0f));
+        material.PassValue("maxCharHeight", maxCharHeight);
 
-    protected virtual void TextChanged(string val)
-    {
-        if (onTextChanged != null)
-            onTextChanged.Invoke(this, val);
+        material.PassValue("fitToSize", fitToSize ? 1 : 0);
 
-        ResetTexture();
-    }
+        Texture? t = sprite.Peak();
 
-    public override void OnTick(float dt)
-    {
-        base.OnTick(dt);
+        if (t != null)
+            t.Use(TextureUnit.Texture0);
 
-        Texture? tex = sprite.Peak();
+        BeforeRender();
 
-        material.PassValue("mainColour", GetThemeValue<BearingColour>("labelText").zeroToOne);
-        if (tex is not null)
-            material.PassValue("texSize", new Vector2(tex._width, tex._height));
-        fitHeightToWidth = true;
-        material.PassValue("fitToTexRatio", fitHeightToWidth ? 1:0);
+        material.Use();
 
-        Vector2 alignment = new Vector2((int)horizontalAlignment / 2f, (int)verticalAlignment / 2f);
-        material.PassValue("alignment", alignment);
+        GL.BindBuffer(BufferTargetARB.ShaderStorageBuffer, ssbo0);
+        GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 0, ssbo0);
+        GL.BindBuffer(BufferTargetARB.ShaderStorageBuffer, ssbo1);
+        GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 1, ssbo1);
+        GL.BindBuffer(BufferTargetARB.ShaderStorageBuffer, ssbo2);
+        GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 2, ssbo2);
+
+        GL.DrawElementsInstanced(PrimitiveType.Triangles, (uint)mesh.indices.Length, DrawElementsType.UnsignedInt, (void*)0, (uint)processedText.Length);
+
+        AfterRender();
     }
 }
 
@@ -993,11 +1197,6 @@ public class UITextBox : UIButton
 
         if (text == "")
             label.text = placeholderText;
-    }
-
-    public void ResetTexture()
-    {
-        label.ResetTexture();
     }
 
     protected virtual void Pressed(UIButton sender)

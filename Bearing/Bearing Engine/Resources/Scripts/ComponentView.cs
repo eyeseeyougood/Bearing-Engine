@@ -645,7 +645,6 @@ public class ComponentView : Component
     	x.size = new UDim2(0.166667f,1,-1,0);
     	x.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	x.useElipsisTruncation = true;
-    	x.ResetTexture();
     	x.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -675,7 +674,6 @@ public class ComponentView : Component
     	y.size = new UDim2(0.166667f,1,-1,0);
     	y.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	y.useElipsisTruncation = true;
-    	y.ResetTexture();
     	y.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -705,7 +703,6 @@ public class ComponentView : Component
     	z.size = new UDim2(0.166667f,1,-1,0);
     	z.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	z.useElipsisTruncation = true;
-    	z.ResetTexture();
     	z.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -775,7 +772,6 @@ public class ComponentView : Component
     	x.size = new UDim2(0.125f,1,-1,0);
     	x.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	x.useElipsisTruncation = true;
-    	x.ResetTexture();
     	x.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -805,7 +801,6 @@ public class ComponentView : Component
     	y.size = new UDim2(0.125f,1,-1,0);
     	y.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	y.useElipsisTruncation = true;
-    	y.ResetTexture();
     	y.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -835,7 +830,6 @@ public class ComponentView : Component
     	z.size = new UDim2(0.125f,1,-1,0);
     	z.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	z.useElipsisTruncation = true;
-    	z.ResetTexture();
     	z.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -865,7 +859,6 @@ public class ComponentView : Component
     	w.size = new UDim2(0.125f,1,-1,0);
     	w.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	w.useElipsisTruncation = true;
-    	w.ResetTexture();
     	w.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -935,7 +928,6 @@ public class ComponentView : Component
     	x.size = new UDim2(0.125f,1,-1,0);
     	x.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	x.useElipsisTruncation = true;
-    	x.ResetTexture();
     	x.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -965,7 +957,6 @@ public class ComponentView : Component
     	y.size = new UDim2(0.125f,1,-1,0);
     	y.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	y.useElipsisTruncation = true;
-    	y.ResetTexture();
     	y.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -995,7 +986,6 @@ public class ComponentView : Component
     	z.size = new UDim2(0.125f,1,-1,0);
     	z.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	z.useElipsisTruncation = true;
-    	z.ResetTexture();
     	z.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
@@ -1025,7 +1015,6 @@ public class ComponentView : Component
     	w.size = new UDim2(0.125f,1,-1,0);
     	w.truncateThreshold = 4; // perhaps values like this could be saved into an editor settings file or sum
     	w.useElipsisTruncation = true;
-    	w.ResetTexture();
     	w.textSubmitted += (s) => {
     		if (float.TryParse(s.placeholderText, out float val))
     		{
